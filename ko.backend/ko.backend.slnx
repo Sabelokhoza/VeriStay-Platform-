@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ko.api/ko.api.csproj" />
+  <Project Path="ko.core/ko.core.csproj" Id="064db9e5-8019-48a1-b69b-ed63f89c830e" />
+  <Project Path="ko.entity_framework/ko.entity_framework.csproj" Id="ce659dc8-f81f-48a6-aab1-ad9e338d0f13" />
+</Solution>

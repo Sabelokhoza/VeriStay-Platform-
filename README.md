@@ -1,1 +1,1 @@
-# VeriStay-Platform-
+# Student-Accommodation-Verification-Platform

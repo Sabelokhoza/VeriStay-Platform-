@@ -1,3 +1,5 @@
+using ko.core.Extensions;
+using ko.core.Middleware;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
@@ -89,6 +91,8 @@ builder.Services.AddHttpLogging(logging =>
                            Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.Duration;
 });
 
+builder.Services.AddCoreServices(builder.Configuration);
+
 //flaten api response
 //builder.Services.Configure<ApiBehaviorOptions>(opts =>
 //{
@@ -159,7 +163,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
         c.RoutePrefix = string.Empty;
     });
 }
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");

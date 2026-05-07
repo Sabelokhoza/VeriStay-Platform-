@@ -134,6 +134,7 @@ namespace ko.core.Services
 
         public async Task<AuthResponse> Login(LoginDto loginDto)
         {
+
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
             if (user == null)
             {
@@ -250,7 +251,6 @@ namespace ko.core.Services
             var user = _mapper.Map<ApplicationUser>(registerDto);
             user.UserName = registerDto.Email;
             user.EmailConfirmed = true;
-            user.CreatedAt = DateTime.UtcNow;
             user.IsActive = false;
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

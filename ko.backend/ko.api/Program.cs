@@ -1,4 +1,5 @@
 using ko.core.Extensions;
+using ko.core.MappingProfiles;
 using ko.core.Middleware;
 using ko.core.Models;
 using ko.entity_framework;
@@ -90,6 +91,8 @@ builder.Services.AddHttpLogging(logging =>
                            Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseBody |
                            Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.Duration;
 });
+
+builder.Services.AddAutoMapper(typeof(PropertyMappingProfile).Assembly);
 
 builder.Services.AddCoreServices(builder.Configuration);
 

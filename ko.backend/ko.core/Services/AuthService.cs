@@ -5,6 +5,7 @@ using ko.entity_framework;
 using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -27,7 +28,7 @@ namespace ko.core.Services
         //private readonly IConfiguration _configuration;
         private readonly AppDbContext _appDbContext;
 
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext)
+        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -40,6 +41,7 @@ namespace ko.core.Services
             //_centreStudentService = centreStudentService;
             //_configuration = configuration;
             _appDbContext = appDbContext;
+            _jwtSettings = jwtSettings.Value;
             //_trainingCentreService = trainingCentreService;
         }
 

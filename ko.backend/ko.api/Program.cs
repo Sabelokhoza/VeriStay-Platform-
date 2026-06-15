@@ -1,3 +1,4 @@
+using ko.core.Contracts;
 using ko.core.Extensions;
 using ko.core.MappingProfiles;
 using ko.core.Middleware;
@@ -6,6 +7,7 @@ using ko.entity_framework;
 using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -97,20 +99,20 @@ builder.Services.AddAutoMapper(typeof(PropertyMappingProfile).Assembly);
 builder.Services.AddCoreServices(builder.Configuration);
 
 //flaten api response
-//builder.Services.Configure<ApiBehaviorOptions>(opts =>
-//{
-//    opts.InvalidModelStateResponseFactory = actionContext =>
-//    {
-//        var errors = actionContext.ModelState.
-//         Where(w => w.Value.Errors.Count > 0)
-//         .SelectMany(x => x.Value.Errors)
-//         .Select(x => x.ErrorMessage).ToArray();
+builder.Services.Configure<ApiBehaviorOptions>(opts =>
+{
+    opts.InvalidModelStateResponseFactory = actionContext =>
+    {
+        var errors = actionContext.ModelState.
+         Where(w => w.Value.Errors.Count > 0)
+         .SelectMany(x => x.Value.Errors)
+         .Select(x => x.ErrorMessage).ToArray();
 
-//        var apiResponse = ApiResponse.ValidationFailure(errors, "Validation failed");
+        var apiResponse = ApiResponse.ValidationFailure(errors, "Validation failed");
 
-//        return new BadRequestObjectResult(apiResponse);
-//    };
-//});
+        return new BadRequestObjectResult(apiResponse);
+    };
+});
 
 // Services
 builder.Services.AddHttpClient();

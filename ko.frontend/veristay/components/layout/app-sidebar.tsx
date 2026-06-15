@@ -100,7 +100,7 @@ export function AppSidebar() {
                             <Link href="#">
                                 <GraduationCapIcon className="size-5" />
                                 <div className="text-lg leading-tight">
-                                    <span className="font-bold text-primary">Trainers Council</span>
+                                    <span className="font-bold text-primary">Veristay</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>

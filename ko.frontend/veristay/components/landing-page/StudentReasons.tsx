@@ -1,55 +1,75 @@
 'use client';
 
 import { AnimatedList } from '@/components/magicui/animated-list';
-import { Item } from '@/types/landing';
 import { Notification } from './Notification';
 import { montserrat } from '@/lib/fonts';
 
+type Item = {
+    name: string;
+    description: string;
+    time: string;
+    icon?: string;
+    color?: string;
+};
+
 let studentBenefits: Item[] = [
     {
-        name: 'Learn Anytime, Anywhere',
-        description: 'Access courses online from any device.',
+        name: 'Verified Listings Only',
+        description: 'Every property is reviewed and approved by your university before going live.',
         time: 'Just now',
-        icon: '📖',
-        color: '#4CAF50',
+        icon: '✅',
+        color: '#4f8ef7',
     },
     {
-        name: 'Accredited Certifications',
-        description: 'Earn recognized security training certifications.',
+        name: 'Safe & Fraud-Free',
+        description: 'No more scams — only university-vetted landlords are allowed on the platform.',
         time: '5m ago',
-        icon: '🎓',
-        color: '#FFB800',
-    },
-    {
-        name: 'Interactive Learning',
-        description: 'Engage with instructors & classmates.',
-        time: '10m ago',
-        icon: '💬',
-        color: '#1E86FF',
-    },
-    {
-        name: 'Affordable Pricing',
-        description: 'Secure payments via Paystack with no hidden fees.',
-        time: '15m ago',
-        icon: '💰',
+        icon: '🔒',
         color: '#00C9A7',
     },
     {
-        name: 'PSIRA-Aligned Curriculum',
-        description: 'Study content structured around PSIRA registration requirements.',
+        name: 'Easy Applications',
+        description: 'Apply to multiple properties in minutes directly from your dashboard.',
+        time: '10m ago',
+        icon: '📋',
+        color: '#6A1B9A',
+    },
+    {
+        name: 'Real-Time Status Tracking',
+        description: 'Know instantly when your application is approved, rejected, or pending.',
+        time: '15m ago',
+        icon: '📡',
+        color: '#F57C00',
+    },
+    {
+        name: 'Simulated Rent Payments',
+        description: 'Practice managing rent payments and view full transaction history.',
         time: '20m ago',
-        icon: '🛡️',
+        icon: '💳',
+        color: '#FF3D71',
+    },
+    {
+        name: 'Maintenance Requests',
+        description: 'Log issues with photos and track resolution progress end-to-end.',
+        time: '25m ago',
+        icon: '🔧',
         color: '#E53935',
     },
     {
-        name: 'Grade-Based Training',
-        description: 'Complete PSIRA Grade E to A courses and advance your security career.',
-        time: '25m ago',
-        icon: '📋',
-        color: '#5C6BC0',
+        name: 'Digital Lease Access',
+        description: 'View and download your lease agreement anytime from your account.',
+        time: '30m ago',
+        icon: '📄',
+        color: '#007BFF',
+    },
+    {
+        name: 'Community Hub',
+        description: 'Connect with housemates and stay updated via landlord announcements.',
+        time: '35m ago',
+        icon: '🏘️',
+        color: '#00897B',
     },
 ];
-
 studentBenefits = Array.from({ length: 100 }, () => studentBenefits).flat();
 
 export function StudentReasons() {

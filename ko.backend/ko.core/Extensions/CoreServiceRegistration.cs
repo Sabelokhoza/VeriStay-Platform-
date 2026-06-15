@@ -12,9 +12,9 @@ namespace ko.core.Extensions
         {
             services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
-            // services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
-
+            services.AddScoped<IUserService, UserService>();
 
             services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 

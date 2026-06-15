@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <div className="container flex h-16 items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 font-bold">
                         <GraduationCap className="h-6 w-6" />
-                        <span>TRAINERSCOUNCIL</span>
+                        <span>VeriStay</span>
                     </Link>
                     <nav className="flex items-center gap-4">
                         <ThemeSwitcher />

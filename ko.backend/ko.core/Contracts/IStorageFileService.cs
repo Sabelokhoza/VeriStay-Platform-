@@ -10,4 +10,12 @@ namespace ko.core.Contracts
         Task DeleteAsync(string bucketName, string key);
         Task<string> GeneratePresignedUrlAsync(string bucketName, string key, TimeSpan expiresIn);
     }
+
+    public interface IEmailService
+    {
+        Task SendEmailAsync(string fromEmail, string fromName, string toEmail, string subject, string body, bool isHtml = false);
+        Task SendEmailWithAttachmentsAsync(string fromEmail, string fromName, string toEmail, string subject, string body, bool isHtml, params string[] attachmentPaths);
+        Task SendEmailWithCcBccAsync(string fromEmail, string fromName, string toEmail, string subject, string body, string[] ccEmails = null, string[] bccEmails = null);
+        Task SendMultipartEmailAsync(string fromEmail, string fromName, string toEmail, string subject, string plainText, string htmlBody);
+    }
 }

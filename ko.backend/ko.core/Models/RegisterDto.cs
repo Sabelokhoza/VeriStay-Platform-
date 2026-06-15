@@ -19,7 +19,7 @@ namespace ko.core.Models
 
         [Required]
         [Display(Name = "University")]
-        public string University { get; set; }
+        public string University { get; set; } = "University Of The Freestate";
 
         [Required]
         [Phone]
@@ -36,5 +36,21 @@ namespace ko.core.Models
         [DataType(DataType.Password)]
         [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
         public string Password { get; set; }
+    }
+
+    public class ProfileDto
+    {
+        public string Id { get; set; }
+        public string FullName { get; set; }
+
+        public string Email { get; set; }
+
+        public string StudentNumber { get; set; }
+
+        public string University { get; set; } = "University Of The Freestate";
+
+        public string PhoneNumber { get; set; }
+
+        public decimal Budget { get; set; }
     }
 }

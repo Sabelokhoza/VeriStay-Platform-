@@ -41,6 +41,8 @@ export default function LoginPage() {
                 name: `${userData.data.firstName} ${userData.data.lastName}`,
             };
 
+            console.log('Fetched user details:', userWithAuthData);
+
             dispatch(setLoggedInUser(userWithAuthData));
             toast.success('Logged in Successfully');
             router.push('/dashboard');

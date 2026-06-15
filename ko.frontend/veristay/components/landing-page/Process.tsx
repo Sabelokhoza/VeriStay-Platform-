@@ -2,9 +2,9 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { GraduationCap, Shield } from 'lucide-react';
+import { Home, GraduationCap } from 'lucide-react';
 import StudentProcess from './StudentProcess';
-import CenterProcess from './CenterProcess';
+import LandlordProcess from './CenterProcess';
 import { montserrat } from '@/lib/fonts';
 
 export default function Process() {
@@ -26,15 +26,15 @@ export default function Process() {
                         value="student"
                         className="gap-1 sm:gap-2 text-xs sm:text-base hover:cursor-pointer"
                     >
-                        <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />{' '}
+                        <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
                         <span className="hidden sm:inline">For</span> Students
                     </TabsTrigger>
                     <TabsTrigger
-                        value="center"
+                        value="landlord"
                         className="gap-1 sm:gap-2 text-xs sm:text-base hover:cursor-pointer"
                     >
-                        <Shield className="w-4 h-4 sm:w-5 sm:h-5" />{' '}
-                        <span className="hidden sm:inline">For</span> Training Centers
+                        <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="hidden sm:inline">For</span> Landlords
                     </TabsTrigger>
                 </TabsList>
 
@@ -50,18 +50,19 @@ export default function Process() {
                     </motion.div>
                 </TabsContent>
 
-                {/* Training Center Workflow */}
-                <TabsContent value="center">
+                {/* Landlord Workflow */}
+                <TabsContent value="landlord">
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                         className="mt-6 space-y-6 text-center"
                     >
-                        <CenterProcess />
+                        <LandlordProcess />
                     </motion.div>
                 </TabsContent>
             </Tabs>
         </section>
     );
 }
+

@@ -3,6 +3,34 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ko.core.Models
 {
+    public class EmailMessage
+    {
+        public EmailMessage(string to, string subject, string body)
+        {
+            To = to;
+            Subject = subject;
+            Body = body;
+        }
+
+        public string To { get; set; }
+        public string Subject { get; set; }
+        public string Body { get; set; }
+    }
+
+    public class ResetPasswordRequestDto
+    {
+        [Required]
+        public string Email { get; set; }
+        [Required]
+        public string Token { get; set; }
+        [Required]
+        public string Password { get; set; }
+    }
+    public class RequestForgotPasswordDto
+    {
+        [Required]
+        public string Email { get; set; }
+    }
     public class LoginDto
     {
         [Required]

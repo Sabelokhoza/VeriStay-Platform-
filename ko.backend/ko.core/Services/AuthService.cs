@@ -5,6 +5,7 @@ using ko.entity_framework;
 using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,30 +19,30 @@ namespace ko.core.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAppLogger<AuthService> _logger;
-        //private readonly IEmailService _emailService;
+        private readonly IEmailService _emailService;
         //private readonly IUserService _userService;
         private readonly IMapper _mapper;
         //private readonly ICentreAdminService _centreAdminService;
         //private readonly ICentreStudentService _centreStudentService;
         //private readonly ITrainingCentreService _trainingCentreService;
         private readonly JwtSettings _jwtSettings;
-        //private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         private readonly AppDbContext _appDbContext;
 
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings)
+        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings, IConfiguration configuration, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            //_emailService = emailService;
             _mapper = mapper;
             //_centreAdminService = centreAdminService;
             //_jwtSettings = jwtSettings.Value;
             //_userService = userService;
             //_centreStudentService = centreStudentService;
-            //_configuration = configuration;
             _appDbContext = appDbContext;
             _jwtSettings = jwtSettings.Value;
+            _configuration = configuration;
+            _emailService = emailService;
             //_trainingCentreService = trainingCentreService;
         }
 
@@ -60,79 +61,147 @@ namespace ko.core.Services
         //    return response;
         //}
 
+        public async Task<bool> ForgotPassword(RequestForgotPasswordDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                throw new BadRequestException("Invalid payload");
+            }
 
-        //public async Task<bool> ForgotPassword(RequestForgotPasswordDto model)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(model.Email);
-        //    if (user == null)
-        //    {
-        //        throw new BadRequestException("Invalid payload");
-        //    }
-        //    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        //    if (string.IsNullOrEmpty(token))
-        //    {
-        //        throw new BadRequestException("Something went wrong");
-        //    }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new BadRequestException("Something went wrong");
+            }
 
-        //    var encodedToken = System.Web.HttpUtility.UrlEncode(token);
-        //    var encodedEmail = System.Web.HttpUtility.UrlEncode(user.Email);
-        //    //Front end URl must be moved to Appsettings Sabelo
-        //    var callbackUrl = $"{_configuration["Ui:Url"]}reset-password?code={encodedToken}&email={encodedEmail}";
+            var encodedToken = System.Web.HttpUtility.UrlEncode(token);
+            var encodedEmail = System.Web.HttpUtility.UrlEncode(user.Email);
+            var callbackUrl = $"{_configuration["Ui:Url"]}reset-password?code={encodedToken}&email={encodedEmail}";
 
-        //    var body = $@"
-        //        <html>
-        //        <head>
-        //            <style>
-        //                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-        //                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        //                .button {{ 
-        //                    display: inline-block; 
-        //                    padding: 12px 24px; 
-        //                    background-color: #007bff; 
-        //                    color: #ffffff; 
-        //                    text-decoration: none; 
-        //                    border-radius: 4px; 
-        //                    margin: 20px 0;
-        //                }}
-        //                .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
-        //            </style>
-        //        </head>
-        //        <body>
-        //            <div class='container'>
-        //                <h2>Password Reset Request</h2>
-        //                <p>Hello,</p>
-        //                <p>You have requested to reset your password for your Trainers Council account.</p>
-        //                <p>Please click the button below to reset your password:</p>
-        //                <a href='{callbackUrl}' class='button'>Reset Password</a>
-        //                <p>Or copy and paste this link into your browser:</p>
-        //                <p style='word-break: break-all;'>{callbackUrl}</p>
-        //                <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
-        //                <p>This link will expire in 24 hours for security reasons.</p>
-        //                <div class='footer'>
-        //                    <p>Best regards,<br/>Trainers Council Team</p>
-        //                </div>
-        //            </div>
-        //        </body>
-        //        </html>";
+            var body = $@"
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }}
+                        .wrapper {{ background-color: #f4f4f4; padding: 40px 20px; }}
+                        .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }}
+                        .header {{ background-color: #1a1a2e; padding: 30px 40px; text-align: center; }}
+                        .header h1 {{ color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; }}
+                        .header span {{ color: #4f8ef7; }}
+                        .body {{ padding: 40px; }}
+                        .body h2 {{ color: #1a1a2e; margin-top: 0; }}
+                        .button {{ 
+                            display: inline-block; 
+                            padding: 14px 32px; 
+                            background-color: #4f8ef7; 
+                            color: #ffffff !important; 
+                            text-decoration: none; 
+                            border-radius: 6px; 
+                            font-weight: bold;
+                            font-size: 15px;
+                            margin: 24px 0;
+                        }}
+                        .link-box {{ 
+                            background-color: #f4f4f4; 
+                            border-radius: 4px; 
+                            padding: 12px 16px; 
+                            font-size: 13px; 
+                            word-break: break-all; 
+                            color: #555;
+                            margin: 12px 0;
+                        }}
+                        .divider {{ border: none; border-top: 1px solid #eeeeee; margin: 30px 0; }}
+                        .notice {{
+                            background-color: #fff8e1;
+                            border-left: 4px solid #f9a825;
+                            padding: 12px 16px;
+                            border-radius: 4px;
+                            font-size: 13px;
+                            color: #555;
+                            margin: 20px 0;
+                        }}
+                        .footer {{ background-color: #f9f9f9; padding: 24px 40px; text-align: center; font-size: 12px; color: #999; }}
+                        .footer a {{ color: #4f8ef7; text-decoration: none; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='wrapper'>
+                        <div class='container'>
 
-        //    var emailSend = new EmailMessage(user.Email, "Trainers council - Reset Password", body);
-        //    await _emailService.SendEmailAsync(_configuration["Email:From"], "Trainers-Council", emailSend.To, emailSend.Subject, emailSend.Body, true);
+                            <!-- Header -->
+                            <div class='header'>
+                                <h1>Veri<span>Stay</span></h1>
+                            </div>
 
-        //    return true;
-        //}
+                            <!-- Body -->
+                            <div class='body'>
+                                <h2>Password Reset Request</h2>
+                                <p>Hello {user.FullName},</p>
+                                <p>We received a request to reset the password for your <strong>VeriStay</strong> account associated with <strong>{user.Email}</strong>.</p>
+                                <p>Click the button below to reset your password:</p>
 
-        //public async Task<bool> ResetPassword(ResetPasswordRequestDto model)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(model.Email);
-        //    if (user == null)
-        //        throw new BadRequestException("Invalid payload");
+                                <div style='text-align: center;'>
+                                    <a href='{callbackUrl}' class='button'>Reset My Password</a>
+                                </div>
 
-        //    var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
-        //    if (!result.Succeeded)
-        //        throw new BadRequestException("Something went wrong");
+                                <p style='font-size: 13px; color: #666;'>Or copy and paste this link into your browser:</p>
+                                <div class='link-box'>{callbackUrl}</div>
 
-        //    return true;
-        //}
+                                <hr class='divider' />
+
+                                <div class='notice'>
+                                    ⚠️ This link will expire in <strong>24 hours</strong> for security reasons. 
+                                    If you did not request a password reset, please ignore this email or 
+                                    <a href='mailto:{_configuration["Email:Support"]}' style='color: #4f8ef7;'>contact our support team</a> 
+                                    if you have concerns.
+                                </div>
+
+                                <p style='font-size: 13px; color: #666;'>
+                                    For your security, VeriStay will never ask for your password via email or phone.
+                                </p>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class='footer'>
+                                <p>© {DateTime.UtcNow.Year} VeriStay. All rights reserved.</p>
+                                <p>Verified Student Accommodation Platform</p>
+                                <p>
+                                    <a href='{_configuration["Ui:Url"]}'>Visit VeriStay</a> &nbsp;|&nbsp;
+                                    <a href='mailto:{_configuration["Email:Support"]}'>Support</a>
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+            var emailSend = new EmailMessage(user.Email, "VeriStay - Reset Your Password", body);
+            await _emailService.SendEmailAsync(
+                _configuration["Email:From"],
+                "VeriStay",
+                emailSend.To,
+                emailSend.Subject,
+                emailSend.Body,
+                true
+            );
+
+            return true;
+        }
+
+        public async Task<bool> ResetPassword(ResetPasswordRequestDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                throw new BadRequestException("Invalid payload");
+
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+            if (!result.Succeeded)
+                throw new BadRequestException("Something went wrong");
+
+            return true;
+        }
 
         public async Task<AuthResponse> Login(LoginDto loginDto)
         {
@@ -263,7 +332,7 @@ namespace ko.core.Services
 
                 try
                 {
-                    //    if (await SendWelcomeEmailAsync(user))
+                    if (await SendWelcomeEmailAsync(user))
                     {
                         return new RegistrationResponse() { UserId = user.Id };
                     }
@@ -322,43 +391,147 @@ namespace ko.core.Services
 
 
 
-        //private async Task<bool> SendWelcomeEmailAsync(ApplicationUser user)
-        //{
-        //    var body = $@"
-        //        <html>
-        //          <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
-        //            <p>Dear {user.FirstName},</p>
+        private async Task<bool> SendWelcomeEmailAsync(ApplicationUser user)
+        {
+            var body = $@"
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }}
+                .wrapper {{ background-color: #f4f4f4; padding: 40px 20px; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }}
+                .header {{ background-color: #1a1a2e; padding: 30px 40px; text-align: center; }}
+                .header h1 {{ color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; }}
+                .header span {{ color: #4f8ef7; }}
+                .header p {{ color: #aab4c8; font-size: 13px; margin: 8px 0 0 0; }}
+                .body {{ padding: 40px; }}
+                .body h2 {{ color: #1a1a2e; margin-top: 0; }}
+                .highlight-box {{
+                    background-color: #f0f5ff;
+                    border-left: 4px solid #4f8ef7;
+                    border-radius: 4px;
+                    padding: 16px 20px;
+                    margin: 24px 0;
+                    font-size: 14px;
+                    color: #444;
+                }}
+                .features {{ margin: 24px 0; }}
+                .feature-item {{ display: flex; align-items: flex-start; margin-bottom: 16px; font-size: 14px; }}
+                .feature-icon {{ font-size: 18px; margin-right: 12px; min-width: 24px; }}
+                .button {{ 
+                    display: inline-block; 
+                    padding: 14px 32px; 
+                    background-color: #4f8ef7; 
+                    color: #ffffff !important; 
+                    text-decoration: none; 
+                    border-radius: 6px; 
+                    font-weight: bold;
+                    font-size: 15px;
+                    margin: 8px 0 24px 0;
+                }}
+                .divider {{ border: none; border-top: 1px solid #eeeeee; margin: 30px 0; }}
+                .footer {{ background-color: #f9f9f9; padding: 24px 40px; text-align: center; font-size: 12px; color: #999; }}
+                .footer a {{ color: #4f8ef7; text-decoration: none; }}
+            </style>
+        </head>
+        <body>
+            <div class='wrapper'>
+                <div class='container'>
 
-        //            <p>
-        //              Welcome to <strong>Trainers Council</strong> — your trusted partner in professional security training.
-        //            </p>
+                    <!-- Header -->
+                    <div class='header'>
+                        <h1>Veri<span>Stay</span></h1>
+                        <p>Verified Student Accommodation Platform</p>
+                    </div>
 
-        //            <p>
-        //              We’re thrilled to have you on board and look forward to supporting your growth and success in the security industry.
-        //            </p>
+                    <!-- Body -->
+                    <div class='body'>
+                        <h2>Welcome to VeriStay! 🎉</h2>
+                        <p>Dear <strong>{user.FullName}</strong>,</p>
+                        <p>
+                            We're excited to have you on board! Your VeriStay account has been successfully created 
+                            and you're now part of a platform built to make student accommodation safe, verified, and stress-free.
+                        </p>
 
-        //            <p>
-        //              If you have any questions or need assistance, please don’t hesitate to reach out to our support team.
-        //            </p>
+                        <div class='highlight-box'>
+                            🏠 <strong>Your account is ready.</strong> You can now browse verified properties, 
+                            submit applications, and manage your accommodation — all in one place.
+                        </div>
 
-        //            <p>
-        //              Sincerely,<br>
-        //              <strong>Trainers Council Team</strong>
-        //            </p>
+                        <p><strong>Here's what you can do with VeriStay:</strong></p>
 
-        //            <hr style='margin-top: 20px; border: none; border-top: 1px solid #ddd;'>
-        //            <p style='font-size: 12px; color: #777;'>
-        //              © {DateTime.Now.Year} Trainers Council. All rights reserved.
-        //            </p>
-        //          </body>
-        //        </html>";
+                        <div class='features'>
+                            <div class='feature-item'>
+                                <span class='feature-icon'>✅</span>
+                                <span>Browse <strong>verified listings</strong> from approved landlords only</span>
+                            </div>
+                            <div class='feature-item'>
+                                <span class='feature-icon'>📋</span>
+                                <span>Submit and track your <strong>accommodation applications</strong> in real time</span>
+                            </div>
+                            <div class='feature-item'>
+                                <span class='feature-icon'>💳</span>
+                                <span>Manage your <strong>rent payments</strong> and view receipts securely</span>
+                            </div>
+                            <div class='feature-item'>
+                                <span class='feature-icon'>🔧</span>
+                                <span>Log and track <strong>maintenance requests</strong> directly with your landlord</span>
+                            </div>
+                            <div class='feature-item'>
+                                <span class='feature-icon'>📄</span>
+                                <span>Access your <strong>lease documents</strong> anytime, anywhere</span>
+                            </div>
+                        </div>
 
-        //    var emailSend = new EmailMessage(user.Email, "Welcome to Trainers Council", body);
+                        <div style='text-align: center;'>
+                            <a href='{_configuration["Ui:Url"]}' class='button'>Get Started →</a>
+                        </div>
 
+                        <hr class='divider' />
 
-        //    await _emailService.SendEmailAsync(_configuration["Email:From"], "Trainers-Council", emailSend.To, emailSend.Subject, emailSend.Body, true);
-        //    return true;
-        //}
+                        <p style='font-size: 13px; color: #666;'>
+                            If you have any questions or need assistance getting started, our support team is always 
+                            happy to help. Reach us at 
+                            <a href='mailto:{_configuration["Email:Support"]}' style='color: #4f8ef7;'>{_configuration["Email:Support"]}</a>.
+                        </p>
+
+                        <p>
+                            Warm regards,<br/>
+                            <strong>The VeriStay Team</strong>
+                        </p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class='footer'>
+                        <p>© {DateTime.UtcNow.Year} VeriStay. All rights reserved.</p>
+                        <p>Verified Student Accommodation Platform</p>
+                        <p>
+                            <a href='{_configuration["Ui:Url"]}'>Visit VeriStay</a> &nbsp;|&nbsp;
+                            <a href='mailto:{_configuration["Email:Support"]}'>Support</a>
+                        </p>
+                        <p style='margin-top: 12px; font-size: 11px; color: #bbb;'>
+                            You received this email because you created an account on VeriStay.<br/>
+                            If this wasn't you, please contact us immediately.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </body>
+        </html>";
+
+            var emailSend = new EmailMessage(user.Email, "Welcome to VeriStay — You're all set! 🏠", body);
+            await _emailService.SendEmailAsync(
+                _configuration["Email:From"],
+                "VeriStay",
+                emailSend.To,
+                emailSend.Subject,
+                emailSend.Body,
+                true
+            );
+
+            return true;
+        }
 
         private async Task<string> GenerateToken(ApplicationUser user)
         {
@@ -394,7 +567,7 @@ namespace ko.core.Services
 
             return tokenHandler.WriteToken(token);
 
-         }
+        }
         private async Task<bool> CheckIfEmailExists(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);

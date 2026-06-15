@@ -3,82 +3,104 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import BaseCard from '@/components/shared/base-card';
 import { useRegisterMutation } from '@/app/errors/authApi';
 
-import { toast } from 'react-toastify';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { DatePicker } from '@heroui/react';
-import BaseCard from '@/components/shared/base-card';
+interface RegisterStudentDto {
+    fullName: string;
+    email: string;
+    studentNumber: string;
+    phoneNumber: string;
+    budget: number;
+    password: string;
+    confirmPassword: string;
+}
 
 export default function RegisterPage() {
     const router = useRouter();
+    const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
-    const [citizenship, setCitizenship] = useState('south-african');
-    const [registerUser] = useRegisterMutation();
+    const [registerStudent] = useRegisterMutation();
+
+    const [formData, setFormData] = useState<RegisterStudentDto>({
+        fullName: '',
+        email: '',
+        studentNumber: '',
+        phoneNumber: '',
+        budget: 0,
+        password: '',
+        confirmPassword: '',
+    });
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'budget' ? parseFloat(value) || 0 : value,
+        }));
+    }
+
+    function validate(): string[] {
+        const validationErrors: string[] = [];
+
+        if (!formData.fullName.trim())
+            validationErrors.push('Full name is required');
+
+        if (!formData.email.trim())
+            validationErrors.push('Email is required');
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+            validationErrors.push('Please enter a valid email address');
+
+        if (!formData.studentNumber.trim())
+            validationErrors.push('Student number is required');
+
+        if (!formData.phoneNumber.trim())
+            validationErrors.push('Phone number is required');
+        else if (!/^\+?[\d\s\-()]{7,15}$/.test(formData.phoneNumber))
+            validationErrors.push('Please enter a valid phone number');
+
+        if (formData.budget <= 0)
+            validationErrors.push('Monthly budget must be a positive value');
+
+        if (!formData.password)
+            validationErrors.push('Password is required');
+        else if (formData.password.length < 8)
+            validationErrors.push('Password must be at least 8 characters');
+
+        if (formData.password !== formData.confirmPassword)
+            validationErrors.push('Passwords do not match');
+
+        return validationErrors;
+    }
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        setIsLoading(true);
         setErrors([]);
 
-        const formData = new FormData(event.currentTarget);
-
-        const password = formData.get('password') as string;
-        const confirmPassword = formData.get('confirmPassword') as string;
-
-        if (password !== confirmPassword) {
-            setErrors(['Passwords do not match']);
-            setIsLoading(false);
+        const validationErrors = validate();
+        if (validationErrors.length > 0) {
+            setErrors(validationErrors);
             return;
         }
 
-        const data = {
-            idNumber: formData.get('idNumber') as string,
-            firstName: formData.get('firstName') as string,
-            lastName: formData.get('lastName') as string,
-            dateOfBirth:
-                citizenship === 'south-african'
-                    ? '0001-01-01'
-                    : (formData.get('dateOfBirth') as string),
-            isSouthAfrican: citizenship === 'south-african',
-            address: formData.get('address') as string,
-            phoneNumber: formData.get('phoneNumber') as string,
-            email: formData.get('email') as string,
-            password: password,
-        };
+        setIsLoading(true);
+
+        const { confirmPassword, ...payload } = formData;
 
         try {
-            const response = await registerUser(data);
-            console.log('Register response:', response);
+            const response = await registerStudent(payload);
 
             if ('data' in response && response.data) {
-                toast.success('Registered Successfully');
+                toast.success('Account created successfully! Please sign in.');
                 router.push('/login');
             } else if ('error' in response && response.error) {
-                const { error } = response;
-                console.log('Registration error:', error);
-
+                const error = response.error;
                 if ('data' in error && error.data) {
                     const errorData = error.data as any;
-
-                    if (
-                        errorData.details &&
-                        Array.isArray(errorData.details) &&
-                        errorData.details.length > 0
-                    ) {
-                        setErrors(errorData.details);
-                        toast.error('Please check the form for errors');
-                    } else if (errorData.message) {
-                        setErrors([errorData.message]);
-                        toast.error(errorData.message);
-                    } else {
-                        setErrors(['Registration failed. Please try again.']);
-                        toast.error('Registration failed. Please try again.');
-                    }
-                } else if ('message' in error) {
-                    const errorMessage = (error as any).message || 'Registration failed';
+                    const errorMessage = errorData.message || 'Registration failed';
                     setErrors([errorMessage]);
                     toast.error(errorMessage);
                 } else {
@@ -87,178 +109,170 @@ export default function RegisterPage() {
                 }
             }
         } catch (error) {
-            console.error('Registration catch error:', error);
-            setErrors(['An unexpected error occurred. Please try again.']);
-            toast.error('An unexpected error occurred. Please try again.');
+            console.error('Registration error:', error);
+            setErrors(['An unexpected error occurred']);
+            toast.error('An unexpected error occurred');
         } finally {
             setIsLoading(false);
         }
     }
 
+    const inputClass =
+        'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+
+    const labelClass =
+        'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70';
+
     return (
-        <div className="container flex min-h-screen w-screen flex-col items-center justify-center py-8">
+        <div className="container flex min-h-screen w-screen flex-col items-center justify-center py-10">
             <BaseCard>
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
                         <p className="text-sm text-muted-foreground">
-                            Enter your details to create your account
+                            Enter your details below to create your student account
                         </p>
                     </div>
 
-                    {/* Display validation errors */}
                     {errors.length > 0 && (
                         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4">
-                            <ul className="list-disc list-inside space-y-1 text-sm text-destructive">
-                                {errors.map((error, index) => (
-                                    <li key={index}>{error}</li>
-                                ))}
-                            </ul>
+                            <div className="flex">
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-destructive">
+                                        Please fix the following errors:
+                                    </h3>
+                                    <ul className="mt-2 list-disc list-inside space-y-1 text-sm text-destructive">
+                                        {errors.map((error, index) => (
+                                            <li key={index}>{error}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     )}
 
                     <form onSubmit={onSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label className="mb-2 block">Citizenship</Label>
-                            <RadioGroup
-                                value={citizenship}
-                                onValueChange={setCitizenship}
-                                className="flex space-x-4"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="south-african" id="south-african" />
-                                    <Label htmlFor="south-african">South African</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="other" id="other" />
-                                    <Label htmlFor="other">Other</Label>
-                                </div>
-                            </RadioGroup>
 
-                            <label htmlFor="idNumber" className="text-sm font-medium">
-                                ID Number / Passport Number
-                            </label>
+                        {/* Full Name */}
+                        <div className="space-y-2">
+                            <label htmlFor="fullName" className={labelClass}>Full Name</label>
                             <input
-                                id="idNumber"
-                                name="idNumber"
+                                id="fullName"
+                                name="fullName"
                                 type="text"
+                                placeholder="John Doe"
+                                value={formData.fullName}
+                                onChange={handleChange}
                                 disabled={isLoading}
-                                className="flex h-10 w-full rounded-md border px-3"
-                                placeholder="Enter your ID number"
+                                className={inputClass}
                                 required
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label htmlFor="firstName" className="text-sm font-medium">
-                                    First Name
-                                </label>
-                                <input
-                                    id="firstName"
-                                    name="firstName"
-                                    type="text"
-                                    disabled={isLoading}
-                                    className="flex h-10 w-full rounded-md border px-3"
-                                    placeholder="First name"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="lastName" className="text-sm font-medium">
-                                    Last Name
-                                </label>
-                                <input
-                                    id="lastName"
-                                    name="lastName"
-                                    type="text"
-                                    disabled={isLoading}
-                                    className="flex h-10 w-full rounded-md border px-3"
-                                    placeholder="Last name"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {citizenship === 'other' && (
-                            <div className="space-y-2">
-                                <DatePicker label="Date of Birth" name="dateOfBirth" />
-                            </div>
-                        )}
-
+                        {/* Institutional Email */}
                         <div className="space-y-2">
-                            <label htmlFor="address" className="text-sm font-medium">
-                                Address
-                            </label>
-                            <textarea
-                                id="address"
-                                name="address"
-                                rows={3}
-                                disabled={isLoading}
-                                className="flex w-full rounded-md border px-3 py-2"
-                                placeholder="Enter your full address"
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="phoneNumber" className="text-sm font-medium">
-                                Phone Number
-                            </label>
-                            <input
-                                id="phoneNumber"
-                                name="phoneNumber"
-                                type="tel"
-                                disabled={isLoading}
-                                className="flex h-10 w-full rounded-md border px-3"
-                                placeholder="Enter your phone number"
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">
-                                Email
-                            </label>
+                            <label htmlFor="email" className={labelClass}>Institutional Email</label>
                             <input
                                 id="email"
                                 name="email"
                                 type="email"
+                                placeholder="student@university.ac.za"
+                                autoComplete="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 disabled={isLoading}
-                                className="flex h-10 w-full rounded-md border px-3"
-                                placeholder="Enter your email address"
+                                className={inputClass}
                                 required
                             />
                         </div>
 
-                        {/* PASSWORD */}
+                        {/* Student Number */}
                         <div className="space-y-2">
-                            <label htmlFor="password" className="text-sm font-medium">
-                                Password
+                            <label htmlFor="studentNumber" className={labelClass}>Student Number</label>
+                            <input
+                                id="studentNumber"
+                                name="studentNumber"
+                                type="text"
+                                placeholder="e.g. 2021001234"
+                                value={formData.studentNumber}
+                                onChange={handleChange}
+                                disabled={isLoading}
+                                className={inputClass}
+                                required
+                            />
+                        </div>
+
+                        {/* Phone Number */}
+                        <div className="space-y-2">
+                            <label htmlFor="phoneNumber" className={labelClass}>Phone Number</label>
+                            <input
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                type="tel"
+                                placeholder="+27 81 234 5678"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                disabled={isLoading}
+                                className={inputClass}
+                                required
+                            />
+                        </div>
+
+                        {/* Monthly Budget */}
+                        <div className="space-y-2">
+                            <label htmlFor="budget" className={labelClass}>
+                                Monthly Budget (ZAR)
                             </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                    R
+                                </span>
+                                <input
+                                    id="budget"
+                                    name="budget"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.budget || ''}
+                                    onChange={handleChange}
+                                    disabled={isLoading}
+                                    className={`${inputClass} pl-7`}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-2">
+                            <label htmlFor="password" className={labelClass}>Password</label>
                             <input
                                 id="password"
                                 name="password"
                                 type="password"
+                                placeholder="Min. 8 characters"
+                                autoComplete="new-password"
+                                value={formData.password}
+                                onChange={handleChange}
                                 disabled={isLoading}
-                                className="flex h-10 w-full rounded-md border px-3"
-                                placeholder="Create a password"
+                                className={inputClass}
                                 required
                             />
                         </div>
 
-                        {/* CONFIRM PASSWORD */}
+                        {/* Confirm Password */}
                         <div className="space-y-2">
-                            <label htmlFor="confirmPassword" className="text-sm font-medium">
-                                Confirm Password
-                            </label>
+                            <label htmlFor="confirmPassword" className={labelClass}>Confirm Password</label>
                             <input
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 type="password"
+                                placeholder="Re-enter your password"
+                                autoComplete="new-password"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
                                 disabled={isLoading}
-                                className="flex h-10 w-full rounded-md border px-3"
-                                placeholder="Confirm your password"
+                                className={inputClass}
                                 required
                             />
                         </div>
@@ -266,7 +280,7 @@ export default function RegisterPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
+                            className="inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
                         >
                             {isLoading ? 'Creating account...' : 'Create account'}
                         </button>
@@ -274,7 +288,10 @@ export default function RegisterPage() {
 
                     <p className="px-8 text-center text-sm text-muted-foreground">
                         Already have an account?{' '}
-                        <Link href="/login" className="underline hover:text-primary">
+                        <Link
+                            href="/login"
+                            className="underline underline-offset-4 hover:text-primary"
+                        >
                             Sign in
                         </Link>
                     </p>

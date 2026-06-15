@@ -4,56 +4,59 @@ import ProcessCards, { Step } from './ProcessCards';
 import Benefits from './Benefits';
 
 function StudentProcess() {
-  const steps: Step[] = [
-    {
-      title: 'Register as a Student',
-      description:
-        'Sign up online from the comfort of your home, no need to visit a physical location.',
-    },
-    {
-      title: 'Choose a Training Center & Course',
-      description:
-        'Browse accredited training centers and select a course that fits your schedule.',
-    },
-    {
-      title: 'Make a Secure Payment',
-      description: 'Use Paystack to enroll instantly without paperwork or delays.',
-    },
-    {
-      title: 'Access Your Moodle Account',
-      description: 'Get immediate access to your coursework, video lessons, and assignments.',
-    },
-    {
-      title: 'Attend Classes & Take Assessments',
-      description: 'Study at your own pace or join live sessions with expert instructors.',
-    },
-    {
-      title: 'Get Certified!',
-      description:
-        'Earn an official security training certificate without ever needing to leave home.',
-    },
-  ];
+    const steps: Step[] = [
+        {
+            title: 'Create Your Student Account',
+            description:
+                'Register with your institutional email and student number to get verified access to the platform.',
+        },
+        {
+            title: 'Browse Verified Listings',
+            description:
+                'Search and filter university-approved properties by price, location, amenities, and availability.',
+        },
+        {
+            title: 'Submit an Application',
+            description:
+                'Apply to your preferred property in a few clicks. Upload any supporting documents if required.',
+        },
+        {
+            title: 'Track Your Application',
+            description:
+                'Monitor your application status in real time — pending, approved, or rejected — all from your dashboard.',
+        },
+        {
+            title: 'Move In & Manage Your Tenancy',
+            description:
+                'Once approved, simulate rent payments, log maintenance requests, and access your lease documents online.',
+        },
+        {
+            title: 'Connect With Your Community',
+            description:
+                'Join your property group, view landlord announcements, and connect with housemates through the community hub.',
+        },
+    ];
 
-  const benefits: string[] = [
-    'Flexible & Convenient',
-    'No Travel Required',
-    'Accredited & Recognized Certification',
-  ];
+    const benefits: string[] = [
+        'University-Verified Landlords Only',
+        'Real-Time Application Tracking',
+        'All Tenancy Tools in One Place',
+    ];
 
-  return (
-    <>
-      <motion.p
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
-        className="m-6 text-3xl text-center text-natural-400"
-      >
-        Learn From Anywhere!
-      </motion.p>
-      <ProcessCards steps={steps} />
-      <Benefits points={benefits} color="green" />
-    </>
-  );
+    return (
+        <>
+            <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+                className="m-6 text-3xl text-center text-neutral-400"
+            >
+                Find Your Perfect Place to Stay!
+            </motion.p>
+            <ProcessCards steps={steps} />
+            <Benefits points={benefits} color="blue" />
+        </>
+    );
 }
 
 export default StudentProcess;

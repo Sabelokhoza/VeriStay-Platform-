@@ -12,62 +12,76 @@ type Item = {
     color?: string;
 };
 
-let trainingCenterBenefits: Item[] = [
+let landlordBenefits: Item[] = [
     {
-        name: 'Expand Your Reach',
-        description: 'Enroll students from anywhere, increasing revenue.',
+        name: 'Reach Verified Students',
+        description: 'Connect with university-enrolled students actively looking for accommodation.',
         time: 'Just now',
-        icon: '🌍',
-        color: '#007BFF',
+        icon: '🎓',
+        color: '#4f8ef7',
     },
     {
-        name: 'Automated Payments',
-        description: 'Collect fees securely via Paystack.',
+        name: 'University-Backed Trust',
+        description: 'Your verified status gives students confidence to apply to your listings.',
         time: '5m ago',
+        icon: '🏛️',
+        color: '#00C9A7',
+    },
+    {
+        name: 'Easy Listing Management',
+        description: 'Create, update, and manage all your property listings from one dashboard.',
+        time: '10m ago',
+        icon: '🏠',
+        color: '#6A1B9A',
+    },
+    {
+        name: 'Streamlined Applications',
+        description: 'Review, approve, or reject student applications with a single click.',
+        time: '15m ago',
+        icon: '📋',
+        color: '#F57C00',
+    },
+    {
+        name: 'Rent Payment Tracking',
+        description: 'Monitor payment status and history for all your tenants in one place.',
+        time: '20m ago',
         icon: '💳',
         color: '#FF3D71',
     },
     {
-        name: 'Course Management',
-        description: 'Seamlessly manage students & course content.',
-        time: '10m ago',
-        icon: '🖥️',
-        color: '#6A1B9A',
-    },
-    {
-        name: 'Lower Overhead Costs',
-        description: 'Reduce classroom expenses & manual administration.',
-        time: '15m ago',
-        icon: '🏢',
-        color: '#00C9A7',
-    },
-    {
-        name: 'PSIRA-Accredited Delivery',
-        description: 'Deliver training that meets PSIRA compliance standards effortlessly.',
-        time: '20m ago',
-        icon: '✅',
+        name: 'Maintenance Oversight',
+        description: 'Receive, prioritize, and resolve tenant maintenance requests efficiently.',
+        time: '25m ago',
+        icon: '🔧',
         color: '#E53935',
     },
     {
-        name: 'Streamlined PSIRA Reporting',
-        description: 'Generate and submit PSIRA learner reports with ease.',
-        time: '25m ago',
-        icon: '📊',
-        color: '#F57C00',
+        name: 'Reputation Building',
+        description: 'Collect student reviews and ratings to attract higher-quality tenants.',
+        time: '30m ago',
+        icon: '⭐',
+        color: '#F9A825',
+    },
+    {
+        name: 'Tenant Announcements',
+        description: 'Post updates directly to your property community with one broadcast.',
+        time: '35m ago',
+        icon: '📢',
+        color: '#007BFF',
     },
 ];
-trainingCenterBenefits = Array.from({ length: 100 }, () => trainingCenterBenefits).flat();
+landlordBenefits = Array.from({ length: 100 }, () => landlordBenefits).flat();
 
-export function TrainingCenterReasons() {
+export function LandlordReasons() {
     return (
         <div className="relative flex h-[550px] w-full flex-col overflow-hidden p-4">
             <h3
                 className={`${montserrat.className} text-2xl font-semibold text-center mb-4 dark:text-gray-200 text-gray-800`}
             >
-                🏢 Training Center Benefits
+                🏠 Landlord Benefits
             </h3>
             <AnimatedList>
-                {trainingCenterBenefits.map((item, idx) => (
+                {landlordBenefits.map((item, idx) => (
                     <Notification {...item} key={idx} />
                 ))}
             </AnimatedList>

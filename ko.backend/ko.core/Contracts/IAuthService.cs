@@ -6,11 +6,14 @@ namespace ko.core.Contracts
     {
         Task<AuthResponse> Login(LoginDto loginDto);
         Task<RegistrationResponse> RegisterStudentAsync(RegisterStudentDto registerDto);
-        //Task<RegistrationResponse> RegisterCentreAdmin(RegisterCentreAdminDto registerDto);
-        //Task<AuthResponse> RefreshUserToken(string email);
-        //Task<bool> ForgotPassword(RequestForgotPasswordDto model);
-        //Task<bool> ResetPassword(ResetPasswordRequestDto model);
-        //Task<UpdateProfileDto> UpdateProfile(UpdateProfileDto updateProfileDto);
+        Task<bool> ForgotPassword(RequestForgotPasswordDto model);
+        Task<bool> ResetPassword(ResetPasswordRequestDto model);
+
+    }
+
+    public interface IUserService
+    {
+        Task<ProfileDto> GetUser(string userId);
 
     }
     // =============================================

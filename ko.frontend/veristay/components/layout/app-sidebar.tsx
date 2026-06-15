@@ -36,11 +36,7 @@ import { redirect } from 'next/navigation';
 
 const navMainStudent = [
     { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-    { title: 'Enrollments', url: '/enrollments', icon: BookOpenCheck },
-    { title: 'Courses', url: '/courses', icon: Folders },
-    { title: 'Marks', url: '/marks', icon: Pen },
-    { title: 'Certificates', url: '/certifications', icon: Award },
-    { title: 'Billing', url: '/billing', icon: HandCoins },
+   
 ];
 
 const navMainPartner = [

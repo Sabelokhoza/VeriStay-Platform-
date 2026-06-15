@@ -21,7 +21,7 @@ export default function LandingLayout({ children }: { readonly children: React.R
                             className="flex items-center gap-3 font-bold transition-transform hover:scale-105"
                         >
                             <GraduationCap className="h-7 w-7 text-primary" />
-                            <span className="text-lg tracking-wide">TRAINERSCOUNCIL</span>
+                            <span className="text-lg tracking-wide">VeriStay</span>
                         </Link>
 
                         {/* Desktop Navigation */}
@@ -39,10 +39,10 @@ export default function LandingLayout({ children }: { readonly children: React.R
                                 Why Us
                             </Link>
                             <Link
-                                href="/courses"
+                                href="/listings"
                                 className="text-sm font-medium hover:text-primary transition-colors"
                             >
-                                Courses
+                                Listings
                             </Link>
                             <Link
                                 href="/login"

@@ -34,10 +34,7 @@ import Link from 'next/link';
 import { Role, useUser } from '@/hooks/use-user';
 import { redirect } from 'next/navigation';
 
-const navMainStudent = [
-    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-   
-];
+const navMainStudent = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }];
 
 const navMainPartner = [
     { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },

@@ -15,14 +15,16 @@ type Item = {
 let studentBenefits: Item[] = [
     {
         name: 'Verified Listings Only',
-        description: 'Every property is reviewed and approved by your university before going live.',
+        description:
+            'Every property is reviewed and approved by your university before going live.',
         time: 'Just now',
         icon: '✅',
         color: '#4f8ef7',
     },
     {
         name: 'Safe & Fraud-Free',
-        description: 'No more scams — only university-vetted landlords are allowed on the platform.',
+        description:
+            'No more scams — only university-vetted landlords are allowed on the platform.',
         time: '5m ago',
         icon: '🔒',
         color: '#00C9A7',

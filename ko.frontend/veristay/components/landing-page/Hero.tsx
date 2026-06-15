@@ -57,9 +57,8 @@ export default function Hero() {
                 transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
                 className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg text-center text-muted-foreground px-4 max-w-2xl"
             >
-                VeriStay connects students with university-verified landlords. Browse
-                authenticated listings, submit applications, and manage your tenancy —
-                all in one place.
+                VeriStay connects students with university-verified landlords. Browse authenticated
+                listings, submit applications, and manage your tenancy — all in one place.
             </motion.p>
 
             {/* Stats Strip */}
@@ -88,7 +87,6 @@ export default function Hero() {
             {/* CTA Buttons */}
             <div className="flex mt-8 sm:mt-12 w-full justify-center px-4">
                 <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 max-w-4xl justify-center w-full">
-
                     {/* Student CTA */}
                     <Link href="/register">
                         <motion.button

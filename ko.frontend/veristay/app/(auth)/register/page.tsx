@@ -37,7 +37,7 @@ export default function RegisterPage() {
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             [name]: name === 'budget' ? parseFloat(value) || 0 : value,
         }));
@@ -46,27 +46,21 @@ export default function RegisterPage() {
     function validate(): string[] {
         const validationErrors: string[] = [];
 
-        if (!formData.fullName.trim())
-            validationErrors.push('Full name is required');
+        if (!formData.fullName.trim()) validationErrors.push('Full name is required');
 
-        if (!formData.email.trim())
-            validationErrors.push('Email is required');
+        if (!formData.email.trim()) validationErrors.push('Email is required');
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
             validationErrors.push('Please enter a valid email address');
 
-        if (!formData.studentNumber.trim())
-            validationErrors.push('Student number is required');
+        if (!formData.studentNumber.trim()) validationErrors.push('Student number is required');
 
-        if (!formData.phoneNumber.trim())
-            validationErrors.push('Phone number is required');
+        if (!formData.phoneNumber.trim()) validationErrors.push('Phone number is required');
         else if (!/^\+?[\d\s\-()]{7,15}$/.test(formData.phoneNumber))
             validationErrors.push('Please enter a valid phone number');
 
-        if (formData.budget <= 0)
-            validationErrors.push('Monthly budget must be a positive value');
+        if (formData.budget <= 0) validationErrors.push('Monthly budget must be a positive value');
 
-        if (!formData.password)
-            validationErrors.push('Password is required');
+        if (!formData.password) validationErrors.push('Password is required');
         else if (formData.password.length < 8)
             validationErrors.push('Password must be at least 8 characters');
 
@@ -98,11 +92,30 @@ export default function RegisterPage() {
                 router.push('/login');
             } else if ('error' in response && response.error) {
                 const error = response.error;
+                console.log('Registration error:', error);
                 if ('data' in error && error.data) {
-                    const errorData = error.data as any;
-                    const errorMessage = errorData.message || 'Registration failed';
-                    setErrors([errorMessage]);
-                    toast.error(errorMessage);
+                    const errorData = error.data as {
+                        data: null;
+                        success: boolean;
+                        message: string;
+                        Details: string[];
+                        traceId: string | null;
+                        timestamp: string;
+                    };
+                    console.log('Sabelo');
+                    console.log(errorData.Details);
+                    // Show details array if present, otherwise fall back to message
+                    if (errorData.Details && errorData.Details.length > 0) {
+                        console.log('Khoza');
+                        setErrors(errorData.Details);
+                        errorData.Details.forEach((detail: string) => toast.error(detail));
+                    } else if (errorData.message) {
+                        setErrors([errorData.message]);
+                        toast.error(errorData.message);
+                    } else {
+                        setErrors(['Registration failed. Please try again.']);
+                        toast.error('Registration failed. Please try again.');
+                    }
                 } else {
                     setErrors(['Registration failed. Please try again.']);
                     toast.error('Registration failed. Please try again.');
@@ -152,10 +165,11 @@ export default function RegisterPage() {
                     )}
 
                     <form onSubmit={onSubmit} className="space-y-4">
-
                         {/* Full Name */}
                         <div className="space-y-2">
-                            <label htmlFor="fullName" className={labelClass}>Full Name</label>
+                            <label htmlFor="fullName" className={labelClass}>
+                                Full Name
+                            </label>
                             <input
                                 id="fullName"
                                 name="fullName"
@@ -171,7 +185,9 @@ export default function RegisterPage() {
 
                         {/* Institutional Email */}
                         <div className="space-y-2">
-                            <label htmlFor="email" className={labelClass}>Institutional Email</label>
+                            <label htmlFor="email" className={labelClass}>
+                                Institutional Email
+                            </label>
                             <input
                                 id="email"
                                 name="email"
@@ -188,7 +204,9 @@ export default function RegisterPage() {
 
                         {/* Student Number */}
                         <div className="space-y-2">
-                            <label htmlFor="studentNumber" className={labelClass}>Student Number</label>
+                            <label htmlFor="studentNumber" className={labelClass}>
+                                Student Number
+                            </label>
                             <input
                                 id="studentNumber"
                                 name="studentNumber"
@@ -204,7 +222,9 @@ export default function RegisterPage() {
 
                         {/* Phone Number */}
                         <div className="space-y-2">
-                            <label htmlFor="phoneNumber" className={labelClass}>Phone Number</label>
+                            <label htmlFor="phoneNumber" className={labelClass}>
+                                Phone Number
+                            </label>
                             <input
                                 id="phoneNumber"
                                 name="phoneNumber"
@@ -245,7 +265,9 @@ export default function RegisterPage() {
 
                         {/* Password */}
                         <div className="space-y-2">
-                            <label htmlFor="password" className={labelClass}>Password</label>
+                            <label htmlFor="password" className={labelClass}>
+                                Password
+                            </label>
                             <input
                                 id="password"
                                 name="password"
@@ -262,7 +284,9 @@ export default function RegisterPage() {
 
                         {/* Confirm Password */}
                         <div className="space-y-2">
-                            <label htmlFor="confirmPassword" className={labelClass}>Confirm Password</label>
+                            <label htmlFor="confirmPassword" className={labelClass}>
+                                Confirm Password
+                            </label>
                             <input
                                 id="confirmPassword"
                                 name="confirmPassword"

@@ -15,7 +15,8 @@ type Item = {
 let landlordBenefits: Item[] = [
     {
         name: 'Reach Verified Students',
-        description: 'Connect with university-enrolled students actively looking for accommodation.',
+        description:
+            'Connect with university-enrolled students actively looking for accommodation.',
         time: 'Just now',
         icon: '🎓',
         color: '#4f8ef7',

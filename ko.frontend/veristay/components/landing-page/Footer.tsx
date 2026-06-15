@@ -7,7 +7,6 @@ function Footer() {
         <footer id="footer" className="w-full py-8 sm:py-12 border-t bg-muted/30">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
-
                     {/* Brand */}
                     <div className="text-center md:text-left">
                         <div className="flex items-center justify-center md:justify-start gap-2 mb-2 sm:mb-3">
@@ -17,34 +16,44 @@ function Footer() {
                             </h3>
                         </div>
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                            Verified student accommodation — connecting students with
-                            trusted, university-approved landlords.
+                            Verified student accommodation — connecting students with trusted,
+                            university-approved landlords.
                         </p>
                     </div>
 
                     {/* Quick Links */}
                     <div className="text-center md:text-left">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3">
-                            Quick Links
-                        </h3>
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3">Quick Links</h3>
                         <ul className="space-y-1.5 text-xs sm:text-sm text-muted-foreground">
                             <li>
-                                <Link href="/register" className="hover:text-blue-600 transition-colors">
+                                <Link
+                                    href="/register"
+                                    className="hover:text-blue-600 transition-colors"
+                                >
                                     Register as Student
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/landlord-register" className="hover:text-blue-600 transition-colors">
+                                <Link
+                                    href="/landlord-register"
+                                    className="hover:text-blue-600 transition-colors"
+                                >
                                     List Your Property
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/login" className="hover:text-blue-600 transition-colors">
+                                <Link
+                                    href="/login"
+                                    className="hover:text-blue-600 transition-colors"
+                                >
                                     Sign In
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/#process" className="hover:text-blue-600 transition-colors">
+                                <Link
+                                    href="/#process"
+                                    className="hover:text-blue-600 transition-colors"
+                                >
                                     How It Works
                                 </Link>
                             </li>

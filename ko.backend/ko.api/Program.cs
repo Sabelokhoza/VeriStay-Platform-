@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Supabase;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -83,6 +84,21 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+builder.Services.AddScoped<Client>(_ =>
+    new Client(
+        builder.Configuration["Supabase:Url"],
+        builder.Configuration["Supabase:Key"],
+        new SupabaseOptions
+        {
+            AutoConnectRealtime = true
+
+        }));
+
+
+
+
+
 
 builder.Services.AddHttpLogging(logging =>
 {
@@ -181,4 +197,6 @@ app.UseHttpLogging();
 app.MapControllers();
 
 app.Logger.LogInformation(5, "The Api is ready");
+app.Logger.LogInformation("Using Supabase key ending in: {KeyTail}",
+    builder.Configuration["Supabase:Key"]?[^10..]);
 app.Run();

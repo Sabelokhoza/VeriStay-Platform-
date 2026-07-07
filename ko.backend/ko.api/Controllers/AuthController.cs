@@ -29,6 +29,13 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "User registered successfully"));
         }
 
+        [HttpPost("register-landlord")]
+        public async Task<ActionResult<ApiResponse<RegistrationResponse>>> RegisterLandlord([FromBody] RegisterLandlordDto registerDto)
+        {
+            var result = await _authService.RegisterLandLordAsync(registerDto);
+            return Ok(ApiResponse.Success(result, "User registered successfully"));
+        }
+
         [HttpPost("reset-password")]
         public async Task<ActionResult<ApiResponse<bool>>> ResetPassword(ResetPasswordRequestDto resetPasswordRequestDto)
         {

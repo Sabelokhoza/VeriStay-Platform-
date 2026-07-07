@@ -127,6 +127,7 @@ namespace ko.core.MappingProfiles
             CreateMap<Student, StudentDto>().ReverseMap();
             CreateMap<Student, RegisterStudentDto>().ReverseMap();
             CreateMap<ApplicationUser, RegisterStudentDto>().ReverseMap();
+            CreateMap<ApplicationUser, RegisterLandlordDto>().ReverseMap();
             CreateMap<ApplicationUser, ProfileDto>().ReverseMap();
         }
     }

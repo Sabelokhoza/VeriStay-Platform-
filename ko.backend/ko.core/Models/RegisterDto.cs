@@ -38,6 +38,8 @@ namespace ko.core.Models
         public string Password { get; set; }
     }
 
+  
+
     public class ProfileDto
     {
         public string Id { get; set; }

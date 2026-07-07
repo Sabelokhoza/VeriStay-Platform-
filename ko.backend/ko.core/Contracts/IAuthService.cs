@@ -8,12 +8,14 @@ namespace ko.core.Contracts
         Task<RegistrationResponse> RegisterStudentAsync(RegisterStudentDto registerDto);
         Task<bool> ForgotPassword(RequestForgotPasswordDto model);
         Task<bool> ResetPassword(ResetPasswordRequestDto model);
+        Task<RegistrationResponse> RegisterLandLordAsync(RegisterLandlordDto registerDto);
 
     }
 
     public interface IUserService
     {
         Task<ProfileDto> GetUser(string userId);
+        Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false);
 
     }
     // =============================================

@@ -8,10 +8,18 @@ namespace ko.entity_framework.entities
         public string FullName { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string StudentNumber { get; set; }
+        public string StudentNumber { get; set; } = string.Empty;
         public string University { get; set; } = "University Of The Freestate";
-        public string PhoneNumber { get; set; }
-        public decimal Budget { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
+        public decimal Budget { get; set; } = 0;
+
+        public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
+        public double ReputationScore { get; set; } = 0.0;
+
+        public List<VerificationDocument> Documents { get; set; } = new();
+        public List<Property> Properties { get; set; } = new();
+        public List<Review> Reviews { get; set; } = new();
+        public List<Announcement> Announcements { get; set; } = new();
 
     }
 

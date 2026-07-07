@@ -19,5 +19,12 @@ namespace ko.api.Controllers
             var user = await _userService.GetUser(user_id);
             return Ok(ApiResponse.Success(user, "User retrieved successfully"));
         }
+
+        [HttpGet("update-landlord-status")]
+        public async Task<ActionResult<ApiResponse<ProfileDto>>> UpdateLandLordStatus(string user_id , bool isAppproved)
+        {
+            var user = await _userService.UpdateLandLordStatus(user_id , isAppproved);
+            return Ok(ApiResponse.Success(user, "Landlord status updated successfully"));
+        }
     }
 }

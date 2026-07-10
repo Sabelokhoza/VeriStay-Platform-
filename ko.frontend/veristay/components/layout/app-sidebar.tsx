@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Role, useUser } from '@/hooks/use-user';
-import { redirect } from 'next/navigation';
 
 const navMainStudent = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }];
 
@@ -83,8 +82,7 @@ export function AppSidebar() {
                 return navMainPartner;
             case Role.Admin:
                 return navMainAdmin;
-            default:
-                redirect('/login');
+            
         }
     }
     const navmenu = getNavMainByRole(currentUser.role);

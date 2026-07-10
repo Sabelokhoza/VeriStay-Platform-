@@ -9,8 +9,13 @@ namespace ko.core.MappingProfiles
     {
         public PropertyMappingProfile()
         {
+            CreateMap<ListingDetailsDto, PropertyDto>().ReverseMap();
+            CreateMap<Property, PropertyDto>().ReverseMap(); 
+            CreateMap<ListingDto, PropertyDto>().ReverseMap();
+            CreateMap<ListingDto, Property>().ReverseMap();
             CreateMap<Property, PropertyDto>().ReverseMap();
             CreateMap<Property, AddPropertyDto>().ReverseMap();
+            CreateMap<Property, ListingDetailsDto>().ReverseMap();
             CreateMap<PropertyImage, PropertyImageDto>().ReverseMap();
             CreateMap<PropertyImage, AddPropertyImageDto>().ReverseMap();
         }

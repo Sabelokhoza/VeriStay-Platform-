@@ -18,34 +18,7 @@ namespace ko.core.Contracts
         Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false);
 
     }
-    // =============================================
-    // IPropertyService
-    // =============================================
-
-    public interface IPropertyService
-    {
-        Task<PropertyDto?> AddAsync(AddPropertyDto dto);
-        Task<List<PropertyDto>> GetAllAsync();
-        Task<PropertyDto?> GetByIdAsync(int? id);
-        Task<List<PropertyDto>> GetByLandlordIdAsync(string landlordId);
-        Task<bool> DeleteAsync(int? id);
-        Task<bool> UpdateAsync(int id, PropertyDto dto);
-        Task<bool> ApproveAsync(int id);
-        Task<bool> RejectAsync(int id);
-        // Events
-        Task<bool> onInsert(AddPropertyDto dto);
-        Task<bool> afterInsert(PropertyDto dto);
-        Task<bool> onUpdate(PropertyDto dto);
-        Task<bool> afterUpdate(PropertyDto dto);
-        Task<bool> onDelete(PropertyDto dto);
-        Task<bool> afterDelete(PropertyDto dto);
-    }
-
-
-    // =============================================
-    // IPropertyImageService
-    // =============================================
-
+ 
     public interface IPropertyImageService
     {
         Task<PropertyImageDto?> AddAsync(AddPropertyImageDto dto);

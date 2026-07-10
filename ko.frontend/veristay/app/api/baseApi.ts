@@ -2,8 +2,8 @@ import { BaseQueryApi, FetchArgs, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { toast } from 'react-toastify';
 
 const customBaseQuery = fetchBaseQuery({
-    baseUrl: 'http://veristay2.runasp.net/api',
-    // baseUrl: 'https://localhost:7078/api',
+    //baseUrl: 'http://veristay2.runasp.net/api',
+     baseUrl: 'https://localhost:7078/api',
     prepareHeaders: (headers) => {
         const token = localStorage.getItem('token');
         if (token) {

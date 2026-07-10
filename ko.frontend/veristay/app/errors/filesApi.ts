@@ -45,4 +45,4 @@ export const filesApi = createApi({
     }),
 });
 
-export const { useGetSignedUrlQuery, useLazyGetSignedUrlQuery, useAddPaymentMutation } = filesApi;
+export const { useGetSignedUrlQuery, useLazyGetSignedUrlQuery, useAddPaymentMutation } = filesApi ;

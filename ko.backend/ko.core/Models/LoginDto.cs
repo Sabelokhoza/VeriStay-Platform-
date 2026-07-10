@@ -1,4 +1,5 @@
 ﻿using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace ko.core.Models
@@ -61,8 +62,47 @@ namespace ko.core.Models
         public List<PropertyImageDto> Images { get; set; }
     }
 
+    public class ListingDto
+    {
+        public int Id { get; set; }
+        public string LandlordId { get; set; }
+        public string LandlordName { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public decimal MonthlyRent { get; set; }
+        public int AvailableBeds { get; set; }
+        public bool IsAvailable { get; set; }
+        public PropertyStatus Status { get; set; }
+        public List<string> Amenities { get; set; }
+        public DateTime AvailableFrom { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public  PropertyImageDto Image { get; set; }
+    }
+    public class ListingDetailsDto
+    {
+        public int Id { get; set; }
+        public string LandlordId { get; set; }
+        public string LandlordName { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public decimal MonthlyRent { get; set; }
+        public int AvailableBeds { get; set; }
+        public bool IsAvailable { get; set; }
+        public PropertyStatus Status { get; set; }
+        public List<string> Amenities { get; set; }
+        public DateTime AvailableFrom { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public List<PropertyImageDto> Images { get; set; }
+    }
+
     public class AddPropertyDto
     {
+        [Required]
+        public string LandlordId { get; set; }
         [Required]
         public string Title { get; set; }
 
@@ -99,6 +139,10 @@ namespace ko.core.Models
 
     public class AddPropertyImageDto
     {
+        [Required]
+        public IFormFile image { get; set; }
+
+
         [Required]
         public int PropertyId { get; set; }
 

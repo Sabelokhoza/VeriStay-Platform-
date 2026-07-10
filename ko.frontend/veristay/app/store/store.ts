@@ -14,6 +14,7 @@ import { coursesApi } from '../errors/coursesApi';
 import { studentDashboardReducer } from './studentStore/studentDashboardSlice';
 import { studentEnrollmentsReducer } from './studentStore/studentEnrollmentSlice';
 import { filesApi } from '../errors/filesApi';
+import { listingsApi } from '../errors/listingsApi';
 
 // --- Combine reducers ---
 const appReducer = combineReducers({
@@ -29,6 +30,7 @@ const appReducer = combineReducers({
     [trainingCenterApi.reducerPath]: trainingCenterApi.reducer,
     [coursesApi.reducerPath]: coursesApi.reducer,
     [filesApi.reducerPath]: filesApi.reducer,
+    [listingsApi.reducerPath]: listingsApi.reducer, // Add listingsApi reducer
     //todo: might need to fix this idk whats going on here
     studentsStore: studentEnrollmentsReducer, // change this, should return list of students in training center
 });
@@ -78,7 +80,8 @@ export const store = configureStore({
             .concat(studentApi.middleware)
             .concat(trainingCenterApi.middleware)
             .concat(coursesApi.middleware)
-            .concat(filesApi.middleware),
+            .concat(filesApi.middleware)
+            .concat(listingsApi.middleware),
 });
 
 // --- Persistor ---

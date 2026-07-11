@@ -50,8 +50,6 @@ function availabilityLabel(availableFrom: string) {
 }
 
 function bedroomLabel(count: number) {
-    // Guard against placeholder/unset values coming back from the API (e.g. INT_MAX)
-    if (!Number.isFinite(count) || count <= 0 || count > 20) return null;
     return `${count} Bedroom${count === 1 ? '' : 's'}`;
 }
 
@@ -59,20 +57,32 @@ function bedroomLabel(count: number) {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function ListingsPage({ city = '' }: { city?: string }) {
-    const [sortBy, setSortBy] = useState<SortOption>('default');
-    const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+// =============================================
+// ListingsPage.tsx — updated search section
+// =============================================
 
-    const [search, setSearch] = useState(city);
+export default function ListingsPage({ city = '' }: { city?: string }) {
+    const [sortBy, setSortBy]   = useState<SortOption>('default');
+    const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+    const [search, setSearch]   = useState(city);
+    const [searchField, setSearchField] = useState<'city' | 'title' | 'address' | 'description'>('city');
     const [debouncedSearch, setDebouncedSearch] = useState(city);
+    const [debouncedField, setDebouncedField]   = useState<'city' | 'title' | 'address' | 'description'>('city');
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
+            setDebouncedField(searchField);
         }, 400);
-
         return () => clearTimeout(timer);
-    }, [search]);
+    }, [search, searchField]);
+
+    const queryParams = useMemo(() => ({
+        city:        debouncedField === 'city'        ? debouncedSearch : undefined,
+        title:       debouncedField === 'title'       ? debouncedSearch : undefined,
+        address:     debouncedField === 'address'     ? debouncedSearch : undefined,
+        description: debouncedField === 'description' ? debouncedSearch : undefined,
+    }), [debouncedSearch, debouncedField]);
 
     const {
         data: listings,
@@ -80,23 +90,15 @@ export default function ListingsPage({ city = '' }: { city?: string }) {
         isFetching,
         isError,
         error,
-    } = useGetListingsQuery({
-        city: debouncedSearch,
-    });
+    } = useGetListingsQuery(queryParams);
 
     const sortedListings = useMemo(() => {
         const list = [...(listings ?? [])];
         switch (sortBy) {
-            case 'price-asc':
-                return list.sort((a, b) => a.monthlyRent - b.monthlyRent);
-            case 'price-desc':
-                return list.sort((a, b) => b.monthlyRent - a.monthlyRent);
-            case 'newest':
-                return list.sort(
-                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                );
-            default:
-                return list;
+            case 'price-asc':  return list.sort((a, b) => a.monthlyRent - b.monthlyRent);
+            case 'price-desc': return list.sort((a, b) => b.monthlyRent - a.monthlyRent);
+            case 'newest':     return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            default:           return list;
         }
     }, [listings, sortBy]);
 
@@ -106,22 +108,63 @@ export default function ListingsPage({ city = '' }: { city?: string }) {
 
     const loading = isLoading || isFetching;
 
+    const placeholderMap = {
+        city:        'Search by city...',
+        title:       'Search by title...',
+        address:     'Search by address...',
+        description: 'Search by description...',
+    };
+
     return (
         <div className="min-h-screen w-full bg-muted/30">
             {/* Search / filter bar */}
             <div className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur">
                 <div className="container mx-auto flex items-center gap-3 overflow-x-auto px-4 py-3">
-                   <div className="flex flex-1 max-w-xl items-center rounded-full border bg-white px-4 py-2 shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-600">
-                    <Search className="mr-3 h-5 w-5 text-gray-500" />
 
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search by city..."
-                        className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
-                    />
-                </div>  
+                    {/* Search field selector + input */}
+                    <div className="flex flex-1 max-w-2xl items-center rounded-full border bg-white shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-600 overflow-hidden">
+                        
+                        {/* Field selector */}
+                        <div className="relative border-r">
+                            <select
+                                value={searchField}
+                                onChange={(e) => {
+                                    setSearchField(e.target.value as typeof searchField);
+                                    setSearch('');
+                                }}
+                                className="appearance-none bg-transparent py-2 pl-4 pr-8 text-sm font-medium text-foreground focus:outline-none cursor-pointer"
+                            >
+                                <option value="city">City</option>
+                                <option value="title">Title</option>
+                                <option value="address">Address</option>
+                                <option value="description">Description</option>
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                        </div>
+
+                        {/* Search input */}
+                        <div className="flex flex-1 items-center px-4 py-2">
+                            <Search className="mr-3 h-5 w-5 shrink-0 text-gray-500" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder={placeholderMap[searchField]}
+                                className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                            />
+                            {search && (
+                                <button
+                                    onClick={() => setSearch('')}
+                                    className="ml-2 shrink-0 text-muted-foreground hover:text-foreground text-lg leading-none"
+                                    aria-label="Clear search"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Filter buttons */}
                     <div className="ml-auto flex items-center gap-2">
                         <button className="flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
                             <Home className="h-4 w-4" />
@@ -142,18 +185,19 @@ export default function ListingsPage({ city = '' }: { city?: string }) {
             <div className="container mx-auto px-4 py-6 sm:py-8">
                 {/* Breadcrumb */}
                 <nav className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-                    <span>South Africa</span>
+                    <span>Free State</span>
                     <ChevronRight className="h-3 w-3" />
-                    <span>Western Cape</span>
+                    <span>University of the Free State</span>
                     <ChevronRight className="h-3 w-3" />
-                    <span>Cape Town</span>
                     <ChevronRight className="h-3 w-3" />
                     <span className="font-medium text-foreground">{city}</span>
                 </nav>
 
                 {/* Heading */}
                 <h1 className={`${montserrat.className} text-2xl font-bold sm:text-3xl lg:text-4xl`}>
-                    Property to rent in {city}
+                    {search
+                        ? `Results for "${search}" in ${searchField}`
+                        : `Rooms to rent in ${city || 'Free State'}`}
                 </h1>
 
                 {/* Results bar */}
@@ -211,7 +255,7 @@ export default function ListingsPage({ city = '' }: { city?: string }) {
 
                 {!loading && !isError && sortedListings.length === 0 && (
                     <div className="mt-8 rounded-xl border bg-background p-10 text-center text-muted-foreground">
-                        No listings found in {city} yet. Try widening your search.
+                        No listings found{search ? ` for "${search}"` : ` in ${city}`}. Try widening your search.
                     </div>
                 )}
 
@@ -231,9 +275,11 @@ export default function ListingsPage({ city = '' }: { city?: string }) {
             </div>
         </div>
     );
+
+    
 }
 
-// ---------------------------------------------------------------------------
+              // ---------------------------------------------------------------------------
 // Listing Card
 // ---------------------------------------------------------------------------
 
@@ -302,8 +348,7 @@ function ListingCard({
                     </div>
 
                     <p className="mt-1 text-sm font-medium">
-                        {beds ?? 'Room'}{' '}
-                        {listing.title && listing.title !== 'string' ? `· ${listing.title}` : ''}
+                        {beds} · {listing.title}
                     </p>
 
                     <p className="flex items-center gap-1 text-sm font-semibold text-foreground">
@@ -312,14 +357,12 @@ function ListingCard({
                     </p>
 
                     <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                        {beds && (
-                            <span className="flex items-center gap-1">
-                                <BedDouble className="h-4 w-4" /> {listing.availableBeds}
-                            </span>
-                        )}
+                        <span className="flex items-center gap-1">
+                            <BedDouble className="h-4 w-4" /> {listing.availableBeds}
+                        </span>
                     </div>
 
-                    {listing.description && listing.description !== 'string' && (
+                    {listing.description && (
                         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
                             {listing.description}
                         </p>

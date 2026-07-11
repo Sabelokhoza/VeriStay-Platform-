@@ -17,6 +17,7 @@ namespace ko.core.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPropertyService, PropertyService>();
+            services.AddScoped<IApplicationService, ApplicationService>();
 
             services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 

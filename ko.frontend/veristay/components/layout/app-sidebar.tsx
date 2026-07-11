@@ -82,7 +82,6 @@ export function AppSidebar() {
                 return navMainPartner;
             case Role.Admin:
                 return navMainAdmin;
-            
         }
     }
     const navmenu = getNavMainByRole(currentUser.role);

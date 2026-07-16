@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
 import { montserrat } from '@/lib/fonts';
 import {
     ArrowLeft,

@@ -17,6 +17,7 @@ import {
     ShieldCheck,
 } from 'lucide-react';
 import { ListingDto, useGetListingsQuery } from '@/app/errors/listingsApi';
+import { useSearchParams } from 'next/navigation';
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'newest';
 
@@ -61,8 +62,11 @@ function bedroomLabel(count: number) {
 // ListingsPage.tsx — updated search section
 // =============================================
 
-export default function ListingsPage({ city = '' }: { city?: string }) {
+export default function ListingsPage() {
+
+     const searchParams = useSearchParams();
     const [sortBy, setSortBy] = useState<SortOption>('default');
+    const city = searchParams.get('city') ?? '';
     const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
     const [search, setSearch] = useState(city);
     const [searchField, setSearchField] = useState<'city' | 'title' | 'address' | 'description'>(

@@ -1,15 +1,16 @@
 # Use the official .NET SDK image for building
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
+
 WORKDIR /src
 
 # Copy solution and project files
-COPY ko.backend.sln ./
+COPY ko.backend.slnx ./
 COPY ko.api/*.csproj ./ko.api/
 COPY ko.core/*.csproj ./ko.core/
 COPY ko.entity_framework/*.csproj ./ko.entity_framework/
 
 # Restore dependencies
-RUN dotnet restore ko.backend.sln
+RUN dotnet restore ko.backend.slnx
 
 # Copy the remaining source code
 COPY ko.api/ ./ko.api/
@@ -27,10 +28,12 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 WORKDIR /app
 
+# Copy the published application
 COPY --from=build-env /app/publish .
 
-EXPOSE 8080
-
+# Configure ASP.NET Core
 ENV ASPNETCORE_URLS=http://+:8080
+
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "ko.api.dll"]

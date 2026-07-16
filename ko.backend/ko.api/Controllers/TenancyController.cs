@@ -53,6 +53,16 @@ namespace ko.api.Controllers
         }
 
         /// <summary>
+        /// Get user housemates
+        /// </summary>
+        [HttpGet("get-housemates")]
+        public async Task<ActionResult<ApiResponse<ProfileDto>>> GetHousematesByUserId(string userId)
+        {
+            var result = await _tenancyService.GetHousematesByUserId(userId);
+            return Ok(ApiResponse.Success(result, "Housemates retrieved successfully"));
+        }
+
+        /// <summary>
         /// Get tenancies by student id — Admin and Student
         /// </summary>
         [HttpGet("student/{studentId}")]
@@ -61,6 +71,15 @@ namespace ko.api.Controllers
             _logger.LogInformation("GET api/tenancy/student/{0} - Retrieving tenancies for student", studentId);
             var result = await _tenancyService.GetByStudentIdAsync(studentId);
             return Ok(ApiResponse.Success(result, "Student tenancies retrieved successfully"));
+        }
+        /// <summary>
+        /// Get tenancies by student id — Admin and Student
+        /// </summary>
+        [HttpGet("get-tenancy-info")]
+        public async Task<ActionResult<ApiResponse<List<TenancyDto>>>> GetTenacyInfoByStudentIdAsync(string studentId)
+        {
+            var result = await _tenancyService.GetTenacyInfoByStudentIdAsync(studentId);
+            return Ok(ApiResponse.Success(result, "Student tenanciy retrieved successfully"));
         }
 
         /// <summary>

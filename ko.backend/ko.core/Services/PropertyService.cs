@@ -3,6 +3,7 @@ using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using static ko.core.Exceptions.ApiException;
@@ -16,19 +17,22 @@ namespace ko.core.Services
         private readonly IAppLogger<PropertyService> _logger;
         private readonly IMapper _mapper;
         private readonly IFileUploadService _fileUploadService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public PropertyService(
             AppDbContext appDbContext,
             IGenericService<Property> genericService,
             IAppLogger<PropertyService> logger,
             IMapper mapper,
-            IFileUploadService fileUploadService)
+            IFileUploadService fileUploadService,
+            UserManager<ApplicationUser> userManager)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
             _mapper = mapper;
             _fileUploadService = fileUploadService;
+            _userManager = userManager;
         }
 
         #region CRUD
@@ -401,6 +405,10 @@ namespace ko.core.Services
             var item = await GetByIdAsync(id);
 
             var listing = _mapper.Map<ListingDetailsDto>(item);
+            var landlord = await _userManager.FindByIdAsync(listing.LandlordId);
+            listing.LandLordPhoneNumber = landlord.PhoneNumber;
+            listing.LandLordEmail = landlord.Email;
+            listing.LandlordName = landlord.FullName;
             listing.Images = await GetImagesByPropertyIdAsync(item.Id);
             if (listing.Images != null)
             {

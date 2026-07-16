@@ -3,13 +3,12 @@
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
 import { montserrat } from '@/lib/fonts';
 import {
     ArrowLeft,
     Share2,
     Heart,
-    Phone,
-    MessageCircle,
     BedDouble,
     ShieldCheck,
     MapPin,
@@ -20,8 +19,16 @@ import {
     ChevronLeft,
     ChevronRight,
     Home,
+    Mail,
+    Phone,
+    User,
+    FileText,
+    Loader2,
+    CheckCircle,
+    XCircle,
 } from 'lucide-react';
-import { useGetListingByIdQuery } from '@/app/errors/listingsApi';
+import { useGetListingByIdQuery, useApplyForPropertyMutation } from '@/app/errors/listingsApi';
+import { useAppSelector } from '@/app/store/store';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -50,7 +57,228 @@ function availabilityLabel(availableFrom: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Apply Modals
+// ---------------------------------------------------------------------------
+
+function SuccessModal({ propertyTitle, onClose }: { propertyTitle: string; onClose: () => void }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-2xl bg-background p-8 shadow-xl text-center">
+                <button
+                    onClick={onClose}
+                    className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+
+                <div className="mb-4 flex justify-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                    </div>
+                </div>
+
+                <h2 className="mb-2 text-xl font-bold">Application Sent! 🎉</h2>
+                <p className="mb-1 text-sm text-muted-foreground">Your application for</p>
+                <p className="mb-4 font-semibold text-foreground">{propertyTitle}</p>
+                <p className="mb-6 text-sm text-muted-foreground">
+                    has been submitted successfully. The landlord will review your application and
+                    get back to you. You can track your application status in your dashboard.
+                </p>
+
+                <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-left text-xs text-blue-800">
+                    <p className="mb-1 font-semibold">What happens next?</p>
+                    <ul className="list-inside list-disc space-y-1">
+                        <li>The landlord reviews your application</li>
+                        <li>You&apos;ll receive a notification on approval or rejection</li>
+                        <li>Track your status in the Applications tab</li>
+                    </ul>
+                </div>
+
+                <button
+                    onClick={onClose}
+                    className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                >
+                    Go to Dashboard
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function ErrorModal({ message, onClose }: { message: string; onClose: () => void }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-2xl bg-background p-8 shadow-xl text-center">
+                <button
+                    onClick={onClose}
+                    className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+
+                <div className="mb-4 flex justify-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                        <XCircle className="h-8 w-8 text-red-600" />
+                    </div>
+                </div>
+
+                <h2 className="mb-2 text-xl font-bold">Application Failed</h2>
+                <p className="mb-4 text-sm text-muted-foreground">
+                    We couldn&apos;t submit your application.
+                </p>
+
+                <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    {message}
+                </div>
+
+                <button
+                    onClick={onClose}
+                    className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function LoginRequiredModal({ onClose }: { onClose: () => void }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-2xl bg-background p-8 shadow-xl text-center">
+                <button
+                    onClick={onClose}
+                    className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+
+                <div className="mb-4 flex justify-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+                        <ShieldCheck className="h-8 w-8 text-yellow-600" />
+                    </div>
+                </div>
+
+                <h2 className="mb-2 text-xl font-bold">Sign In Required</h2>
+                <p className="mb-6 text-sm text-muted-foreground">
+                    You need to be logged in as a student to apply for accommodation.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                    <a
+                        href="/login"
+                        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                    >
+                        Sign In
+                    </a>
+                    <a
+                        href="/register"
+                        className="w-full rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                    >
+                        Create Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Apply Button
+// ---------------------------------------------------------------------------
+
+type ModalState =
+    | { type: 'none' }
+    | { type: 'login' }
+    | { type: 'success'; propertyTitle: string }
+    | { type: 'error'; message: string };
+
+function ApplyButton({ propertyId, propertyTitle }: { propertyId: number; propertyTitle: string }) {
+    const [modal, setModal] = useState<ModalState>({ type: 'none' });
+    const [applyForProperty, { isLoading }] = useApplyForPropertyMutation();
+
+    const userId = useAppSelector((state) => state.userAuthStore?.id);
+    const isLoggedIn = !!userId;
+    const isStudent = useAppSelector((state) => state.userAuthStore?.role === 'Student');
+
+    async function handleApply() {
+        if (!isLoggedIn) {
+            setModal({ type: 'login' });
+            return;
+        }
+
+        if (!isStudent) {
+            setModal({
+                type: 'error',
+                message: 'Only registered students can apply for accommodation.',
+            });
+            return;
+        }
+
+        try {
+            const response = await applyForProperty({
+                studentId: userId,
+                propertyId,
+                supportingDocumentUrl: '',
+            });
+
+            if ('data' in response && response.data?.success) {
+                setModal({ type: 'success', propertyTitle });
+            } else if ('error' in response) {
+                const err = response.error as any;
+                const message =
+                    err?.data?.Message ||
+                    err?.data?.message ||
+                    err?.data?.details?.[0] ||
+                    'Something went wrong. Please try again.';
+                setModal({ type: 'error', message });
+            }
+        } catch {
+            setModal({
+                type: 'error',
+                message: 'An unexpected error occurred. Please try again.',
+            });
+        }
+    }
+
+    return (
+        <>
+            <button
+                onClick={handleApply}
+                disabled={isLoading}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                {isLoading ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Submitting...
+                    </>
+                ) : (
+                    <>
+                        <FileText className="h-4 w-4" />
+                        Apply Now
+                    </>
+                )}
+            </button>
+
+            {modal.type === 'login' && (
+                <LoginRequiredModal onClose={() => setModal({ type: 'none' })} />
+            )}
+            {modal.type === 'success' && (
+                <SuccessModal
+                    propertyTitle={modal.propertyTitle}
+                    onClose={() => setModal({ type: 'none' })}
+                />
+            )}
+            {modal.type === 'error' && (
+                <ErrorModal message={modal.message} onClose={() => setModal({ type: 'none' })} />
+            )}
+        </>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Page
 // ---------------------------------------------------------------------------
 
 export default function ListingDetailsPage() {
@@ -68,7 +296,6 @@ export default function ListingDetailsPage() {
     });
 
     const [saved, setSaved] = useState(false);
-    const [contactRevealed, setContactRevealed] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -130,7 +357,6 @@ export default function ListingDetailsPage() {
     return (
         <div className="min-h-screen w-full bg-muted/30">
             <div className="container mx-auto px-4 py-6">
-
                 {/* Back link */}
                 <button
                     onClick={() => router.back()}
@@ -218,13 +444,17 @@ export default function ListingDetailsPage() {
 
                 {/* Content */}
                 <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-
                     {/* Main details */}
                     <div className="rounded-xl border bg-background p-6 lg:col-span-2">
                         <div className="flex items-start justify-between gap-4">
-                            <p className={`${montserrat.className} text-3xl font-bold text-blue-700`}>
+                            <p
+                                className={`${montserrat.className} text-3xl font-bold text-blue-700`}
+                            >
                                 R {formatRent(listing.monthlyRent)}
-                                <span className="text-base font-normal text-muted-foreground"> per month</span>
+                                <span className="text-base font-normal text-muted-foreground">
+                                    {' '}
+                                    per month
+                                </span>
                             </p>
                             <div className="flex items-center gap-2">
                                 <button
@@ -238,14 +468,14 @@ export default function ListingDetailsPage() {
                                     aria-label={saved ? 'Remove from saved' : 'Save listing'}
                                     className="rounded-full border p-2 text-muted-foreground hover:bg-muted"
                                 >
-                                    <Heart className={`h-4 w-4 ${saved ? 'fill-blue-600 text-blue-600' : ''}`} />
+                                    <Heart
+                                        className={`h-4 w-4 ${saved ? 'fill-blue-600 text-blue-600' : ''}`}
+                                    />
                                 </button>
                             </div>
                         </div>
 
-                        <p className="mt-2 text-base font-medium">
-                            {listing.title}
-                        </p>
+                        <p className="mt-2 text-base font-medium">{listing.title}</p>
 
                         <p className="mt-1 flex items-center gap-1.5 text-sm text-blue-600">
                             <MapPin className="h-3.5 w-3.5" />
@@ -263,12 +493,16 @@ export default function ListingDetailsPage() {
                                         : 'bg-muted text-muted-foreground'
                                 }`}
                             >
-                                {listing.isAvailable ? availabilityLabel(listing.availableFrom) : 'Not available'}
+                                {listing.isAvailable
+                                    ? availabilityLabel(listing.availableFrom)
+                                    : 'Not available'}
                             </span>
                         </div>
 
                         <div className="mt-4">
-                            <h2 className={`${montserrat.className} text-lg font-semibold`}>Description</h2>
+                            <h2 className={`${montserrat.className} text-lg font-semibold`}>
+                                Description
+                            </h2>
                             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                                 {listing.description}
                             </p>
@@ -276,7 +510,9 @@ export default function ListingDetailsPage() {
 
                         {listing.amenities?.length > 0 && (
                             <div className="mt-4">
-                                <h2 className={`${montserrat.className} text-lg font-semibold`}>Amenities</h2>
+                                <h2 className={`${montserrat.className} text-lg font-semibold`}>
+                                    Amenities
+                                </h2>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                     {listing.amenities.map((amenity, i) => (
                                         <span
@@ -291,29 +527,44 @@ export default function ListingDetailsPage() {
                         )}
                     </div>
 
-                    {/* Sidebar */}
+                    {/* Sidebar — Landlord info + Apply */}
                     <div className="h-fit rounded-xl border bg-background p-6">
-                        <h2 className={`${montserrat.className} text-lg font-semibold`}>Contact Agents</h2>
+                        <h2 className={`${montserrat.className} text-lg font-semibold`}>
+                            Landlord
+                        </h2>
 
-                        <div className="mt-4 flex flex-col gap-3">
-                            <button
-                                onClick={() => setContactRevealed(true)}
-                                className="flex items-center justify-center gap-2 rounded-full border border-blue-600 px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-50"
-                            >
-                                <Phone className="h-4 w-4" />
-                                {contactRevealed ? 'Contact Number Sent' : 'Show Contact Number'}
-                            </button>
-                            <button className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
-                                <MessageCircle className="h-4 w-4" />
-                                WhatsApp Agent
-                            </button>
+                        <div className="mt-4 flex items-center gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                                <User className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold">
+                                    {listing.landlordName ?? 'Verified Landlord'}
+                                </p>
+                                <span className="flex items-center gap-1 text-xs text-emerald-600">
+                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                    Verified
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="mt-5 flex items-center gap-2 border-t pt-4">
-                            <ShieldCheck className="h-4 w-4 text-blue-600" />
-                            <span className="text-xs font-semibold text-muted-foreground">
-                                {listing.landlordName ?? 'Verified Landlord'}
-                            </span>
+                        <div className="mt-4 flex flex-col gap-2 border-t pt-4 text-sm text-muted-foreground">
+                            {listing.landLordEmail && (
+                                <span className="flex items-center gap-2 truncate">
+                                    <Mail className="h-4 w-4 shrink-0" />
+                                    <span className="truncate">{listing.landLordEmail}</span>
+                                </span>
+                            )}
+                            {listing.landLordPhoneNumber && (
+                                <span className="flex items-center gap-2">
+                                    <Phone className="h-4 w-4 shrink-0" />
+                                    {listing.landLordPhoneNumber}
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="mt-5 border-t pt-4">
+                            <ApplyButton propertyId={listing.id} propertyTitle={listing.title} />
                         </div>
                     </div>
                 </div>

@@ -11,6 +11,58 @@ export interface ListingImageDto {
     imageUrl: string;
     isPrimary: boolean;
 }
+export interface HousemateDto {
+    id: string;
+    fullName: string;
+    email: string;
+    studentNumber: string;
+    university: string;
+    phoneNumber: string;
+    budget: number;
+}
+
+export enum MaintenancePriority {
+    Low = 0,
+    Medium = 1,
+    High = 2,
+    Emergency = 3,
+}
+
+export enum MaintenanceStatus {
+    Open = 0,
+    InProgress = 1,
+    Resolved = 2,
+    Rejected = 3,
+}
+
+export interface MaintenanceRequestDto {
+    id: number;
+    studentId: string;
+    studentName: string | null;
+    propertyId: number;
+    propertyTitle: string | null;
+    title: string;
+    description: string;
+    priority: MaintenancePriority;
+    status: MaintenanceStatus;
+    photoUrls: string[];
+    landlordResponse: string;
+    submittedAt: string;
+    resolvedAt: string | null;
+}
+export interface AddApplicationDto {
+    studentId: string;
+    propertyId: number;
+    supportingDocumentUrl?: string;
+}
+
+export interface ApplicationResponseDto {
+    id: number;
+    studentId: string;
+    propertyId: number;
+    status: number;
+    appliedAt: string;
+}
 
 export interface ListingDto {
     id: number;
@@ -36,6 +88,8 @@ export interface ListingDetailsDto {
     id: number;
     landlordId: string;
     landlordName: string | null;
+    landLordEmail: string | null;
+    landLordPhoneNumber: string | null;
     title: string;
     description: string;
     address: string;
@@ -49,7 +103,19 @@ export interface ListingDetailsDto {
     createdAt: string;
     images: ListingImageDto[];
 }
-
+export interface TenancyDto {
+    id: number;
+    studentId: string;
+    studentName: string;
+    landlordName: string;
+    location: string;
+    propertyId: number;
+    propertyTitle: string;
+    leaseStartDate: string;
+    leaseEndDate: string;
+    monthlyRent: number;
+    status: number; // 0=Active, 1=Ended, 2=Terminated
+}
 export interface ApiResponse<T> {
     data: T;
     success: boolean;
@@ -57,6 +123,61 @@ export interface ApiResponse<T> {
     details: string | null;
     traceId: string | null;
     timestamp: string;
+}
+
+export interface StudentDto {
+    id: string;
+    fullName: string;
+    email: string;
+    studentNumber: string;
+    university: string;
+    phoneNumber: string;
+    budget: number;
+}
+
+export interface ApplicationDto {
+    id: number;
+    studentId: string;
+    studentName: string | null;
+    propertyId: number;
+    propertyTitle: string;
+    propertyDescription: string;
+    propertyLocation: string;
+    price: number;
+    status: number; // 0=Pending, 1=Approved, 2=Rejected
+    supportingDocumentUrl: string;
+    landlordNotes: string;
+    landlordName: string;
+    appliedAt: string;
+    reviewedAt: string | null;
+}
+
+export interface AnnouncementDto {
+    id: number;
+    landlordId: string;
+    landlordName: string;
+    propertyId: number;
+    propertyTitle: string;
+    message: string;
+    postedAt: string;
+}
+
+export interface StudentDashboardDataDto {
+    student: StudentDto;
+    applicationsCount: number;
+    approvedCount: number;
+    paymentsCount: number;
+    requestsCount: number;
+    applications: ApplicationDto[];
+    waitingList: ApplicationDto[];
+    announcementDtos: AnnouncementDto[];
+}
+
+export interface AddMaintenanceRequestDto {
+    propertyId: number;
+    title: string;
+    description: string;
+    priority: MaintenancePriority;
 }
 
 // =============================================
@@ -100,7 +221,77 @@ export const listingsApi = createApi({
                       ]
                     : [{ type: 'Listing' as const, id: 'LIST' }],
         }),
-
+        applyForProperty: builder.mutation<ApiResponse<ApplicationResponseDto>, AddApplicationDto>({
+            query: (body) => ({
+                url: 'Application/apply',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: [{ type: 'Listing', id: 'LIST' }],
+        }),
+        getStudentDashboard: builder.query<StudentDashboardDataDto, string>({
+            query: (userId) => ({
+                url: `User/get-student-dashboarddata?user_id=${userId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<StudentDashboardDataDto>) => response.data,
+            providesTags: (_result, _error, userId) => [
+                { type: 'Listing' as const, id: `dashboard-${userId}` },
+            ],
+        }),
+        getTenancyInfo: builder.query<TenancyDto, string>({
+            query: (studentId) => ({
+                url: `Tenancy/get-tenancy-info?studentId=${studentId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<TenancyDto>) => response.data,
+            providesTags: (_result, _error, studentId) => [
+                { type: 'Listing' as const, id: `tenancy-${studentId}` },
+            ],
+        }),getHousemates: builder.query<HousemateDto[], string>({
+            query: (userId) => ({
+                url: `Tenancy/get-housemates?userId=${userId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<HousemateDto[]>) => response.data,
+            providesTags: (_result, _error, userId) => [
+                { type: 'Listing' as const, id: `housemates-${userId}` },
+            ],
+        }),
+        getStudentMaintenanceRequests: builder.query<MaintenanceRequestDto[], string>({
+            query: (studentId) => ({
+                url: `MaintenanceRequest/student/${studentId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<MaintenanceRequestDto[]>) => response.data,
+            providesTags: (_result, _error, studentId) => [
+                { type: 'Listing' as const, id: `maintenance-${studentId}` },
+            ],
+        }),
+        getTenanciesByStudentId: builder.query<TenancyDto[], string>({
+            query: (studentId) => ({
+                url: `Tenancy/student/${studentId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<TenancyDto[]>) => response.data,
+            providesTags: (_result, _error, studentId) => [
+                { type: 'Listing' as const, id: `tenancies-${studentId}` },
+            ],
+        }),
+        addMaintenanceRequest: builder.mutation<
+            MaintenanceRequestDto,
+            { studentId: string; dto: AddMaintenanceRequestDto }
+        >({
+            query: ({ studentId, dto }) => ({
+                url: `MaintenanceRequest/${studentId}`,
+                method: 'POST',
+                body: dto,
+            }),
+            transformResponse: (response: ApiResponse<MaintenanceRequestDto>) => response.data,
+            invalidatesTags: (_result, _error, { studentId }) => [
+                { type: 'Listing' as const, id: `maintenance-${studentId}` },
+            ],
+        }),
         getListingById: builder.query<ListingDetailsDto, number>({
             query: (propertyId) => ({
                 url: `Property/get-listing-by-details-id?propertyId=${propertyId}`,
@@ -119,4 +310,11 @@ export const {
     useLazyGetListingsQuery,
     useGetListingByIdQuery,
     useLazyGetListingByIdQuery,
+    useGetStudentDashboardQuery,
+    useGetHousematesQuery,
+    useGetStudentMaintenanceRequestsQuery,
+    useGetTenancyInfoQuery,
+    useApplyForPropertyMutation,
+    useGetTenanciesByStudentIdQuery,
+    useAddMaintenanceRequestMutation,
 } = listingsApi;

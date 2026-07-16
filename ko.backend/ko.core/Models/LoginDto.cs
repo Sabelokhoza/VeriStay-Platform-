@@ -18,6 +18,21 @@ namespace ko.core.Models
         public string Body { get; set; }
     }
 
+
+    public class StudentDashboardDataDto
+    {
+       public ProfileDto Student { get; set; }
+
+        public int ApplicationsCount { get; set; } = 0;
+        public int ApprovedCount { get; set; } = 0;
+        public int PaymentsCount { get; set; } = 0;
+        public int RequestsCount { get; set; } = 0;
+        public List<ApplicationDto> Applications { get; set; } = new List<ApplicationDto>();
+        public List<ApplicationDto> WaitingList { get; set; } = new List<ApplicationDto>();
+        public List<AnnouncementDto> announcementDtos { get; set; } = new List<AnnouncementDto>();
+
+
+    }
     public class ResetPasswordRequestDto
     {
         [Required]
@@ -85,6 +100,8 @@ namespace ko.core.Models
         public int Id { get; set; }
         public string LandlordId { get; set; }
         public string LandlordName { get; set; }
+        public string LandLordEmail { get; set; }
+        public string LandLordPhoneNumber { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Address { get; set; }
@@ -201,15 +218,21 @@ namespace ko.core.Models
         public string StudentName { get; set; }
         public int PropertyId { get; set; }
         public string PropertyTitle { get; set; }
+        public string PropertyDescription { get; set; }
+        public string PropertyLocation { get; set; }
+        public decimal Price { get; set; }
         public ApplicationStatus Status { get; set; }
         public string SupportingDocumentUrl { get; set; }
-        public string LandlordNotes { get; set; }
+        public string LandlordNotes { get; set; } 
+        public string LandlordName { get; set; } 
         public DateTime AppliedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
     }
 
     public class AddApplicationDto
     {
+        [Required]
+        public string studentId { get; set; }
         [Required]
         public int PropertyId { get; set; }
 
@@ -260,6 +283,8 @@ namespace ko.core.Models
         public int Id { get; set; }
         public string StudentId { get; set; }
         public string StudentName { get; set; }
+        public string LandlordName { get; set; }
+        public string Location { get; set; }
         public int PropertyId { get; set; }
         public string PropertyTitle { get; set; }
         public DateTime LeaseStartDate { get; set; }
@@ -389,7 +414,7 @@ namespace ko.core.Models
         [Required]
         public MaintenancePriority Priority { get; set; }
 
-        public List<string> PhotoUrls { get; set; } = new();
+        //public List<string> PhotoUrls { get; set; } = new();
     }
 
     public class UpdateMaintenanceRequestDto

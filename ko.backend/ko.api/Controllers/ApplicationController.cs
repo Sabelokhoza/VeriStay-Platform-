@@ -25,11 +25,11 @@ namespace ko.api.Controllers
         /// <summary>
         /// Add a new application — Student only
         /// </summary>
-        [HttpPost("{studentId}")]
-        public async Task<ActionResult<ApiResponse<ApplicationDto>>> Add(string studentId, [FromBody] AddApplicationDto dto)
+        [HttpPost("apply")]
+        public async Task<ActionResult<ApiResponse<ApplicationDto>>> Add([FromBody] AddApplicationDto dto)
         {
-            _logger.LogInformation("POST api/application/{0} - Adding new application", studentId);
-            var result = await _applicationService.AddAsync(studentId, dto);
+            _logger.LogInformation("POST api/application/{0} - Adding new application", dto.studentId);
+            var result = await _applicationService.AddAsync(dto.studentId, dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id },
                 ApiResponse.Success(result, "Application added successfully"));
         }
@@ -102,6 +102,16 @@ namespace ko.api.Controllers
             _logger.LogInformation("PATCH api/application/review - Reviewing application {0}", dto.ApplicationId);
             var result = await _applicationService.ReviewAsync(dto);
             return Ok(ApiResponse.Success(result, "Application reviewed successfully"));
+        }
+
+        /// <summary>
+        /// Accept/Decline Offer for an application — Student only
+        /// </summary>
+        [HttpGet("accept-decline")]
+        public async Task<ActionResult<ApiResponse<bool>>> Review(int applicationId , bool isAccepted = false)
+        {
+            var result = await _applicationService.AcceptDeclineOffer(applicationId,isAccepted);
+            return Ok(ApiResponse.Success(result, "Apllication status updated successfully"));
         }
     }
 }

@@ -115,16 +115,16 @@ namespace ko.entity_framework.entities
     {
         public string StudentId { get; set; }
         public Student Student { get; set; }
-        public int PropertyId { get; set; }
+        public int PropertyId { get; set; }  
         public Property Property { get; set; }
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Pending;
-        public string SupportingDocumentUrl { get; set; }
-        public string LandlordNotes { get; set; }
+        public string SupportingDocumentUrl { get; set; } = string.Empty;
+        public string LandlordNotes { get; set; } = string.Empty;
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReviewedAt { get; set; }
     }
 
-    public enum ApplicationStatus { Pending, Approved, Rejected }
+    public enum ApplicationStatus { Pending, Approved, Rejected , WaitingList , Accepted , Declined }
 
     public class WaitingListEntry : BaseEntity
     {
@@ -186,12 +186,12 @@ namespace ko.entity_framework.entities
         public Student Student { get; set; }
         public int PropertyId { get; set; }
         public Property Property { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public MaintenancePriority Priority { get; set; } = MaintenancePriority.Low;
         public MaintenanceStatus Status { get; set; } = MaintenanceStatus.Open;
         public List<string> PhotoUrls { get; set; } = new();
-        public string LandlordResponse { get; set; }
+        public string LandlordResponse { get; set; } = string.Empty;
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ResolvedAt { get; set; }
     }

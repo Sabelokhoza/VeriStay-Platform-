@@ -20,10 +20,11 @@ namespace ko.core.Services
         private readonly IStorageFileService _storageFileService;
         private readonly IServiceProvider _serviceProvider;
         private readonly IEmailService _emailService;
+        private readonly IApplicationService _applicationService;
         private readonly IConfiguration _configuration;
 
 
-        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration)
+        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService)
         {
             _userManager = userManager;
             _logger = logger;
@@ -32,7 +33,42 @@ namespace ko.core.Services
             _serviceProvider = serviceProvider;
             _emailService = emailService;
             _configuration = configuration;
+            _applicationService = applicationService;
         }
+
+
+        public async Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false)
+        {
+            _logger.LogInformation("Updating LandlordStatus for user {0}", userId);
+
+            var landlord = await _userManager.FindByIdAsync(userId);
+            if (landlord == null) throw new NotFoundException(nameof(UpdateLandLordStatus), userId);
+
+            landlord.IsActive = isApproved;
+            landlord.VerificationStatus = isApproved ? VerificationStatus.Approved : VerificationStatus.Rejected;
+
+            await _userManager.UpdateAsync(landlord);
+            await SendStatusUpdateEmailAsync(landlord, isApproved);
+
+            return true;
+        }
+
+        public async Task<StudentDashboardDataDto> GetStudentDashboardData(string userId)
+        {
+            _logger.LogInformation("Student dashboard data for user {0}", userId);
+
+            var studentDashboardDataDto = new StudentDashboardDataDto();
+            studentDashboardDataDto.Student = await GetUser(userId);
+            studentDashboardDataDto.Applications = await _applicationService.GetByStudentIdAsync(userId);
+            studentDashboardDataDto.ApplicationsCount = studentDashboardDataDto.Applications.Count();
+            studentDashboardDataDto.ApprovedCount = studentDashboardDataDto.Applications.Count(w => w.Status == ApplicationStatus.Approved);
+            studentDashboardDataDto.WaitingList = studentDashboardDataDto.Applications.Where(w => w.Status == ApplicationStatus.WaitingList).ToList();
+
+            return studentDashboardDataDto;
+        }
+
+
+
         public async Task<ProfileDto> GetUser(string userId)
         {
             _logger.LogInformation("Fetching user with ID: {UserId}", userId);
@@ -53,22 +89,6 @@ namespace ko.core.Services
             }
 
             return user;
-        }
-
-        public async Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false)
-        {
-            _logger.LogInformation("Updating LandlordStatus for user {0}", userId);
-
-            var landlord = await _userManager.FindByIdAsync(userId);
-            if (landlord == null) throw new NotFoundException(nameof(UpdateLandLordStatus), userId);
-
-            landlord.IsActive = isApproved;
-            landlord.VerificationStatus = isApproved ? VerificationStatus.Approved : VerificationStatus.Rejected;
-
-            await _userManager.UpdateAsync(landlord);
-            await SendStatusUpdateEmailAsync(landlord, isApproved);
-
-            return true;
         }
 
         private async Task<bool> SendStatusUpdateEmailAsync(ApplicationUser user, bool isApproved)

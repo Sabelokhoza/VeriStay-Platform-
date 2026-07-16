@@ -3,7 +3,9 @@ using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using static ko.core.Exceptions.ApiException;
 
 namespace ko.core.Services
@@ -14,17 +16,25 @@ namespace ko.core.Services
         private readonly IGenericService<Tenancy> _genericService;
         private readonly IAppLogger<TenancyService> _logger;
         private readonly IMapper _mapper;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+
 
         public TenancyService(
             AppDbContext appDbContext,
             IGenericService<Tenancy> genericService,
             IAppLogger<TenancyService> logger,
-            IMapper mapper)
+            IMapper mapper,
+        UserManager<ApplicationUser> userManager,
+        IServiceProvider serviceProvider)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
             _mapper = mapper;
+            _userManager = userManager;
+            _serviceProvider = serviceProvider;
         }
 
         #region CRUD
@@ -67,8 +77,6 @@ namespace ko.core.Services
             _logger.LogInformation("Attempting to retrieve tenancy with id {0}", id);
 
             var entity = await _appDbContext.Tenancies
-                .Include(t => t.Student)
-                .Include(t => t.Property)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (entity == null)
@@ -90,6 +98,31 @@ namespace ko.core.Services
                 .ToListAsync();
 
             return _mapper.Map<List<TenancyDto>>(data);
+        }
+
+        public async Task<TenancyDto> GetTenacyInfoByStudentIdAsync(string studentId)
+        {
+            _logger.LogInformation("Retrieving tenancies for student {0}", studentId);
+
+            var data = await _appDbContext.Tenancies
+                .Where(t => t.StudentId == studentId)
+                .FirstOrDefaultAsync();
+
+            var dto = _mapper.Map<TenancyDto>(data);
+
+            if (dto != null)
+            {
+                var _propertyService = _serviceProvider.GetService<IPropertyService>();
+                var property = await _propertyService.GetByIdAsync(dto.PropertyId);
+                dto.PropertyTitle = property.Title;
+                var student = await _userManager.FindByIdAsync(dto.StudentId);
+                var landlord =  await _userManager.FindByIdAsync(property.LandlordId);
+                dto.StudentName = student.FullName;
+                dto.LandlordName = landlord.FullName;
+                dto.Location = $"{property.Address} - {property.City}";
+            }
+
+            return dto;
         }
 
         public async Task<List<TenancyDto>> GetByPropertyIdAsync(int propertyId)
@@ -174,7 +207,33 @@ namespace ko.core.Services
         #region Events
 
         public Task<bool> onInsert(AddTenancyDto dto) => Task.FromResult(true);
-        public Task<bool> afterInsert(TenancyDto dto) => Task.FromResult(true);
+        public async Task<bool> afterInsert(TenancyDto dto)
+        {
+            var _propertyService = _serviceProvider.GetService<IPropertyService>();
+            var propery = await _propertyService.GetByIdAsync(dto.Id);
+            propery.AvailableBeds = propery.AvailableBeds - 1;
+            await _propertyService.UpdateAsync(propery.Id, propery);
+
+            return true;
+        }
+
+        public async Task<List<ProfileDto>> GetHousematesByUserId(string userId)
+        {
+            var tenancy = await GetTenacyInfoByStudentIdAsync(userId);
+            var tenacies = await _appDbContext.Tenancies.Where(w => w.PropertyId == tenancy.PropertyId).ToListAsync();
+
+            var userService = _serviceProvider.GetService<IUserService>();
+            var houseMates = new List<ProfileDto>();
+
+            foreach (var item in tenacies)
+            {
+                var user = await userService.GetUser(item.StudentId);
+                houseMates.Add(user);
+            }
+
+            return houseMates;
+        }
+
         public Task<bool> onUpdate(TenancyDto dto) => Task.FromResult(true);
         public Task<bool> afterUpdate(TenancyDto dto) => Task.FromResult(true);
         public Task<bool> onDelete(TenancyDto dto) => Task.FromResult(true);

@@ -11,13 +11,6 @@ namespace ko.core.Contracts
         Task<RegistrationResponse> RegisterLandLordAsync(RegisterLandlordDto registerDto);
 
     }
-
-    public interface IUserService
-    {
-        Task<ProfileDto> GetUser(string userId);
-        Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false);
-
-    }
  
     public interface IPropertyImageService
     {
@@ -57,29 +50,6 @@ namespace ko.core.Contracts
 
 
     // =============================================
-    // IApplicationService
-    // =============================================
-
-    public interface IApplicationService
-    {
-        Task<ApplicationDto?> AddAsync(string studentId, AddApplicationDto dto);
-        Task<List<ApplicationDto>> GetAllAsync();
-        Task<ApplicationDto?> GetByIdAsync(int? id);
-        Task<List<ApplicationDto>> GetByStudentIdAsync(string studentId);
-        Task<List<ApplicationDto>> GetByPropertyIdAsync(int propertyId);
-        Task<bool> DeleteAsync(int? id);
-        Task<bool> ReviewAsync(ReviewApplicationDto dto);
-        // Events
-        Task<bool> onInsert(AddApplicationDto dto);
-        Task<bool> afterInsert(ApplicationDto dto);
-        Task<bool> onUpdate(ApplicationDto dto);
-        Task<bool> afterUpdate(ApplicationDto dto);
-        Task<bool> onDelete(ApplicationDto dto);
-        Task<bool> afterDelete(ApplicationDto dto);
-    }
-
-
-    // =============================================
     // IWaitingListService
     // =============================================
 
@@ -97,30 +67,6 @@ namespace ko.core.Contracts
         Task<bool> afterInsert(WaitingListEntryDto dto);
         Task<bool> onDelete(WaitingListEntryDto dto);
         Task<bool> afterDelete(WaitingListEntryDto dto);
-    }
-
-
-    // =============================================
-    // ITenancyService
-    // =============================================
-
-    public interface ITenancyService
-    {
-        Task<TenancyDto?> AddAsync(AddTenancyDto dto);
-        Task<List<TenancyDto>> GetAllAsync();
-        Task<TenancyDto?> GetByIdAsync(int? id);
-        Task<List<TenancyDto>> GetByStudentIdAsync(string studentId);
-        Task<List<TenancyDto>> GetByPropertyIdAsync(int propertyId);
-        Task<bool> DeleteAsync(int? id);
-        Task<bool> UpdateAsync(int id, TenancyDto dto);
-        Task<bool> EndTenancyAsync(int id);
-        // Events
-        Task<bool> onInsert(AddTenancyDto dto);
-        Task<bool> afterInsert(TenancyDto dto);
-        Task<bool> onUpdate(TenancyDto dto);
-        Task<bool> afterUpdate(TenancyDto dto);
-        Task<bool> onDelete(TenancyDto dto);
-        Task<bool> afterDelete(TenancyDto dto);
     }
 
 
@@ -179,8 +125,6 @@ namespace ko.core.Contracts
         Task<List<MaintenanceRequestDto>> GetByPropertyIdAsync(int propertyId);
         Task<List<MaintenanceRequestDto>> GetByStudentIdAsync(string studentId);
         Task<bool> DeleteAsync(int? id);
-        Task<bool> UpdateAsync(UpdateMaintenanceRequestDto dto);
-        Task<bool> ResolveAsync(int id, string landlordResponse);
         // Events
         Task<bool> onInsert(AddMaintenanceRequestDto dto);
         Task<bool> afterInsert(MaintenanceRequestDto dto);
@@ -188,28 +132,6 @@ namespace ko.core.Contracts
         Task<bool> afterUpdate(MaintenanceRequestDto dto);
         Task<bool> onDelete(MaintenanceRequestDto dto);
         Task<bool> afterDelete(MaintenanceRequestDto dto);
-    }
-
-
-    // =============================================
-    // IAnnouncementService
-    // =============================================
-
-    public interface IAnnouncementService
-    {
-        Task<AnnouncementDto?> AddAsync(string landlordId, AddAnnouncementDto dto);
-        Task<List<AnnouncementDto>> GetAllAsync();
-        Task<AnnouncementDto?> GetByIdAsync(int? id);
-        Task<List<AnnouncementDto>> GetByPropertyIdAsync(int propertyId);
-        Task<bool> DeleteAsync(int? id);
-        Task<bool> UpdateAsync(int id, AnnouncementDto dto);
-        // Events
-        Task<bool> onInsert(AddAnnouncementDto dto);
-        Task<bool> afterInsert(AnnouncementDto dto);
-        Task<bool> onUpdate(AnnouncementDto dto);
-        Task<bool> afterUpdate(AnnouncementDto dto);
-        Task<bool> onDelete(AnnouncementDto dto);
-        Task<bool> afterDelete(AnnouncementDto dto);
     }
 
 

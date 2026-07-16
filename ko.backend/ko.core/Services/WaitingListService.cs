@@ -136,8 +136,8 @@ namespace ko.core.Services
                 return false;
             }
 
-            next.IsNotified = true;
-            next.DateNotified = DateTime.UtcNow;
+            //next.IsNotified = true;
+            //next.DateNotified = DateTime.UtcNow;
 
             await _appDbContext.SaveChangesAsync();
 

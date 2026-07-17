@@ -1,6 +1,7 @@
 ﻿using ko.core.Contracts;
 using ko.core.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace ko.api.Controllers
 {
@@ -23,9 +24,9 @@ namespace ko.api.Controllers
 
 
         [HttpPost("register")]
-        public async Task<ActionResult<ApiResponse<RegistrationResponse>>> Register([FromBody] RegisterStudentDto registerDto)
+        public async Task<ActionResult<ApiResponse<RegistrationResponse>>> Register([Required(ErrorMessage ="Proof of registration is Required")] IFormFile proofOfRegistration, [Required(ErrorMessage = "Proof of income/funding is Required")] IFormFile proofOfIncome, [FromQuery] RegisterStudentDto registerDto)
         {
-            var result = await _authService.RegisterStudentAsync(registerDto);
+            var result = await _authService.RegisterStudentAsync(proofOfIncome,proofOfRegistration, registerDto);
             return Ok(ApiResponse.Success(result, "User registered successfully"));
         }
 

@@ -3,6 +3,7 @@ using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ namespace ko.core.Services
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAppLogger<AuthService> _logger;
         private readonly IEmailService _emailService;
+        private readonly IFileUploadService _fileUploadService;
         //private readonly IUserService _userService;
         private readonly IMapper _mapper;
         //private readonly ICentreAdminService _centreAdminService;
@@ -29,7 +31,7 @@ namespace ko.core.Services
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _appDbContext;
 
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings, IConfiguration configuration, IEmailService emailService)
+        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings, IConfiguration configuration, IEmailService emailService, IFileUploadService fileUploadService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -43,6 +45,7 @@ namespace ko.core.Services
             _jwtSettings = jwtSettings.Value;
             _configuration = configuration;
             _emailService = emailService;
+            _fileUploadService = fileUploadService;
             //_trainingCentreService = trainingCentreService;
         }
 
@@ -350,9 +353,8 @@ namespace ko.core.Services
         }
 
 
-        public async Task<RegistrationResponse> RegisterStudentAsync(RegisterStudentDto registerDto)
+        public async Task<RegistrationResponse> RegisterStudentAsync(IFormFile proofOfIncome, IFormFile proofOfRegistration, RegisterStudentDto registerDto)
         {
-
 
             if (await CheckIfEmailExists(registerDto.Email))
             {
@@ -368,6 +370,9 @@ namespace ko.core.Services
             user.UserName = registerDto.Email;
             user.EmailConfirmed = true;
             user.IsActive = false;
+            user.ProofOfIncomeUrl = await _fileUploadService.UploadFileAsync(proofOfIncome, "uploads", "ProofOfIncome");
+            user.ProofOfRegistrationUrl = await _fileUploadService.UploadFileAsync(proofOfIncome, "uploads", "ProofOfRegistration");
+
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (result.Succeeded)

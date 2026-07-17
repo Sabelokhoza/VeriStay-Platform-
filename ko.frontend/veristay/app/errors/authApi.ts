@@ -20,7 +20,25 @@ export const authApi = createApi({
                 body: creds,
             }),
         }),
+        registerLandlord: builder.mutation({
+    query: ({ identificationDocument, ...registerDto }) => {
+        const formData = new FormData();
+        formData.append('identificationDocument', identificationDocument);
 
+        const params = new URLSearchParams();
+        Object.entries(registerDto).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                params.append(key, String(value));
+            }
+        });
+
+        return {
+            url: `Auth/register-landlord?${params.toString()}`,
+            method: 'POST',
+            body: formData,
+        };
+    },
+}),
         register: builder.mutation({
             query: ({ proofOfRegistration, proofOfIncome, ...registerDto }) => {
                 const formData = new FormData();
@@ -85,6 +103,7 @@ export const {
     useLoginMutation,
     useRegisterMutation,
     useForgotPasswordMutation,
+    useRegisterLandlordMutation,
     useResetPasswordMutation,
     useUpdateProfileMutation,
     useRegisterConsultantMutation,

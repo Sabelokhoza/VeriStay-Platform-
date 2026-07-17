@@ -176,22 +176,7 @@ export default function ListingsPage() {
                             )}
                         </div>
                     </div>
-
-                    {/* Filter buttons */}
-                    <div className="ml-auto flex items-center gap-2">
-                        <button className="flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
-                            <Home className="h-4 w-4" />
-                            Property type
-                        </button>
-                        <button className="flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
-                            <Tag className="h-4 w-4" />
-                            Price
-                        </button>
-                        <button className="hidden items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors sm:flex">
-                            <SlidersHorizontal className="h-4 w-4" />
-                            More filters
-                        </button>
-                    </div>
+                   
                 </div>
             </div>
 

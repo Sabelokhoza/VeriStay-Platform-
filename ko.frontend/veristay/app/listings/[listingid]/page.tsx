@@ -434,10 +434,6 @@ export default function ListingDetailsPage() {
                             <LayoutGrid className="h-4 w-4" />
                             Photo Grid
                         </button>
-                        <button className="flex items-center gap-2 rounded-lg border border-white/20 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10">
-                            <MapIcon className="h-4 w-4" />
-                            Map
-                        </button>
                     </div>
                 </div>
 
@@ -455,23 +451,7 @@ export default function ListingDetailsPage() {
                                     per month
                                 </span>
                             </p>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    aria-label="Share listing"
-                                    className="rounded-full border p-2 text-muted-foreground hover:bg-muted"
-                                >
-                                    <Share2 className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => setSaved((s) => !s)}
-                                    aria-label={saved ? 'Remove from saved' : 'Save listing'}
-                                    className="rounded-full border p-2 text-muted-foreground hover:bg-muted"
-                                >
-                                    <Heart
-                                        className={`h-4 w-4 ${saved ? 'fill-blue-600 text-blue-600' : ''}`}
-                                    />
-                                </button>
-                            </div>
+                          
                         </div>
 
                         <p className="mt-2 text-base font-medium">{listing.title}</p>

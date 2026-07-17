@@ -14,6 +14,7 @@ namespace ko.core.Extensions
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IEmailServiceMailJet, EmailServiceMailJet>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPropertyService, PropertyService>();

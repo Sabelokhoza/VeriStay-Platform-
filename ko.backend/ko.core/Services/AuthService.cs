@@ -29,9 +29,10 @@ namespace ko.core.Services
         //private readonly ITrainingCentreService _trainingCentreService;
         private readonly JwtSettings _jwtSettings;
         private readonly IConfiguration _configuration;
+        private readonly IEmailServiceMailJet _emailServiceMailJet;
         private readonly AppDbContext _appDbContext;
 
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings, IConfiguration configuration, IEmailService emailService, IFileUploadService fileUploadService)
+        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAppLogger<AuthService> logger, IMapper mapper, AppDbContext appDbContext, IOptions<JwtSettings> jwtSettings, IConfiguration configuration, IEmailService emailService, IFileUploadService fileUploadService, IEmailServiceMailJet emailServiceMailJet)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -46,6 +47,7 @@ namespace ko.core.Services
             _configuration = configuration;
             _emailService = emailService;
             _fileUploadService = fileUploadService;
+            _emailServiceMailJet = emailServiceMailJet;
             //_trainingCentreService = trainingCentreService;
         }
 
@@ -181,16 +183,11 @@ namespace ko.core.Services
                 </html>";
 
             var emailSend = new EmailMessage(user.Email, "VeriStay - Reset Your Password", body);
-            await _emailService.SendEmailAsync(
-                _configuration["Email:From"],
-                "VeriStay",
-                emailSend.To,
-                emailSend.Subject,
-                emailSend.Body,
-                true
-            );
+            await _emailServiceMailJet.SendEmailAsync(emailSend);
+               
 
             return true;
+
         }
 
         public async Task<bool> ResetPassword(ResetPasswordRequestDto model)

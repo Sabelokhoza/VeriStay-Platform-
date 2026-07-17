@@ -23,9 +23,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: "Trainer's Council",
+    title: "VeriStay",
     description:
-        'Enroll in accredited security training courses from leading training centers nationwide.',
+        "VeriStay is a verified student accommodation platform that helps students find safe, trusted, and verified accommodation near their campus.",
 };
 
 export default function RootLayout({

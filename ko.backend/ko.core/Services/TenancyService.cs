@@ -220,6 +220,12 @@ namespace ko.core.Services
         public async Task<List<ProfileDto>> GetHousematesByUserId(string userId)
         {
             var tenancy = await GetTenacyInfoByStudentIdAsync(userId);
+
+            if (tenancy == null)
+            {
+                return new List<ProfileDto>();
+            }
+
             var tenacies = await _appDbContext.Tenancies.Where(w => w.PropertyId == tenancy.PropertyId).ToListAsync();
 
             var userService = _serviceProvider.GetService<IUserService>();

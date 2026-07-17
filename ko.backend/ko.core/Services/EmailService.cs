@@ -104,7 +104,8 @@ namespace ko.core.Services
 
         private async Task SendMessageAsync(MimeMessage message)
         {
-            using var client = new MailKit.Net.Smtp.SmtpClient();
+            using var protocolLog = File.Create("smtp.log");
+            using var client = new MailKit.Net.Smtp.SmtpClient(new MailKit.ProtocolLogger(protocolLog));
 
             try
             {

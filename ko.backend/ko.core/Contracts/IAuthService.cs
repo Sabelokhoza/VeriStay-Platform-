@@ -9,7 +9,7 @@ namespace ko.core.Contracts
         Task<RegistrationResponse> RegisterStudentAsync(IFormFile proofOfIncome, IFormFile proofOfRegistration , RegisterStudentDto registerDto);
         Task<bool> ForgotPassword(RequestForgotPasswordDto model);
         Task<bool> ResetPassword(ResetPasswordRequestDto model);
-        Task<RegistrationResponse> RegisterLandLordAsync(RegisterLandlordDto registerDto);
+        Task<RegistrationResponse> RegisterLandLordAsync(IFormFile identificationDocument,  RegisterLandlordDto registerDto);
 
     }
  

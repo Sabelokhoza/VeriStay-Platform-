@@ -13,6 +13,7 @@ namespace ko.entity_framework.entities
         public string PhoneNumber { get; set; } = string.Empty;
         public string ProofOfRegistrationUrl { get; set; } = string.Empty;
         public string ProofOfIncomeUrl { get; set; } = string.Empty;
+        public string IdentificationDocument { get; set; } = string.Empty;
         public decimal Budget { get; set; } = 0;
 
         public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;

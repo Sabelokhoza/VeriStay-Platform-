@@ -307,7 +307,7 @@ namespace ko.core.Services
         //    }
         //}
 
-        public async Task<RegistrationResponse> RegisterLandLordAsync(RegisterLandlordDto registerDto)
+        public async Task<RegistrationResponse> RegisterLandLordAsync(IFormFile identificationDocument, RegisterLandlordDto registerDto)
         {
 
 
@@ -316,11 +316,11 @@ namespace ko.core.Services
                 throw new BadRequestException("An existing account is using {0} , email address . Please  try with another email address", new string[] { "Duplicate email , Please Login" });
             }
 
-
             var user = _mapper.Map<ApplicationUser>(registerDto);
             user.UserName = registerDto.Email;
             user.EmailConfirmed = true;
-            user.IsActive = false;
+            user.IsActive = true;
+            user.IdentificationDocument = await _fileUploadService.UploadFileAsync(identificationDocument, "uploads", "IdentificationDocuments");
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (result.Succeeded)

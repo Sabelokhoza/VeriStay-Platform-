@@ -31,9 +31,9 @@ namespace ko.api.Controllers
         }
 
         [HttpPost("register-landlord")]
-        public async Task<ActionResult<ApiResponse<RegistrationResponse>>> RegisterLandlord([FromBody] RegisterLandlordDto registerDto)
+        public async Task<ActionResult<ApiResponse<RegistrationResponse>>> RegisterLandlord([Required(ErrorMessage = "Identification document is Required")] IFormFile identificationDocument, [FromQuery] RegisterLandlordDto registerDto)
         {
-            var result = await _authService.RegisterLandLordAsync(registerDto);
+            var result = await _authService.RegisterLandLordAsync(identificationDocument, registerDto);
             return Ok(ApiResponse.Success(result, "User registered successfully"));
         }
 

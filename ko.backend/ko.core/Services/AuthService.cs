@@ -596,15 +596,7 @@ namespace ko.core.Services
                 </html>";
 
             var emailSend = new EmailMessage(user.Email, "VeriStay — Your Landlord Application is Under Review 📋", body);
-            await _emailService.SendEmailAsync(
-                _configuration["Email:From"],
-                "VeriStay",
-                emailSend.To,
-                emailSend.Subject,
-                emailSend.Body,
-                true
-            );
-
+            await _emailServiceMailJet.SendEmailAsync(emailSend);
             return true;
         }
 
@@ -740,14 +732,7 @@ namespace ko.core.Services
         </html>";
 
             var emailSend = new EmailMessage(user.Email, "Welcome to VeriStay — You're all set! 🏠", body);
-            await _emailService.SendEmailAsync(
-                _configuration["Email:From"],
-                "VeriStay",
-                emailSend.To,
-                emailSend.Subject,
-                emailSend.Body,
-                true
-            );
+            await _emailServiceMailJet.SendEmailAsync(emailSend);
 
             return true;
         }

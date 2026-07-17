@@ -22,9 +22,10 @@ namespace ko.core.Services
         private readonly IEmailService _emailService;
         private readonly IApplicationService _applicationService;
         private readonly IConfiguration _configuration;
+        private readonly IEmailServiceMailJet _emailServiceMailJet;
 
 
-        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService)
+        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet)
         {
             _userManager = userManager;
             _logger = logger;
@@ -34,6 +35,7 @@ namespace ko.core.Services
             _emailService = emailService;
             _configuration = configuration;
             _applicationService = applicationService;
+            _emailServiceMailJet = emailServiceMailJet;
         }
 
 
@@ -448,14 +450,7 @@ namespace ko.core.Services
             var body = isApproved ? approvedBody : rejectedBody;
             var emailSend = new EmailMessage(user.Email, subject, body);
 
-            await _emailService.SendEmailAsync(
-                _configuration["Email:From"],
-                "VeriStay",
-                emailSend.To,
-                emailSend.Subject,
-                emailSend.Body,
-                true
-            );
+            await _emailServiceMailJet.SendEmailAsync(emailSend);
 
             return true;
         }

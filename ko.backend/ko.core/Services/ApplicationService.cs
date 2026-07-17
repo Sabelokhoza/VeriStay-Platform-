@@ -21,6 +21,7 @@ namespace ko.core.Services
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly ITenancyService _tenancyService;
+        private readonly IEmailServiceMailJet _emailServiceMailJet;
 
         public ApplicationService(
             AppDbContext appDbContext,
@@ -31,7 +32,8 @@ namespace ko.core.Services
             IPropertyService propertyService,
             IEmailService emailService,
             IConfiguration configuration,
-            ITenancyService tenancyService)
+            ITenancyService tenancyService,
+            IEmailServiceMailJet emailServiceMailJet)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
@@ -42,6 +44,7 @@ namespace ko.core.Services
             _emailService = emailService;
             _configuration = configuration;
             _tenancyService = tenancyService;
+            _emailServiceMailJet = emailServiceMailJet;
         }
 
         #region CRUD
@@ -412,15 +415,7 @@ namespace ko.core.Services
                 </html>";
 
             var emailSend = new EmailMessage(student.Email, subject, body);
-
-            await _emailService.SendEmailAsync(
-                _configuration["Email:From"],
-                "VeriStay",
-                emailSend.To,
-                emailSend.Subject,
-                emailSend.Body,
-                true
-            );
+            await _emailServiceMailJet.SendEmailAsync(emailSend);
 
             return true;
         }
@@ -583,15 +578,7 @@ namespace ko.core.Services
             </html>";
 
             var emailSend = new EmailMessage(landlord.Email, subject, body);
-
-            await _emailService.SendEmailAsync(
-                _configuration["Email:From"],
-                "VeriStay",
-                emailSend.To,
-                emailSend.Subject,
-                emailSend.Body,
-                true
-            );
+            await _emailServiceMailJet.SendEmailAsync(emailSend);
 
             return true;
         }

@@ -240,6 +240,22 @@ namespace ko.core.Services
             return houseMates;
         }
 
+        public async Task<List<ProfileDto>> GetTenanciesByProperties(List<PropertyDto> properties)
+        {
+            var tenacies = await _appDbContext.Tenancies.Where(w => properties.Select(s => s.Id).Contains(w.PropertyId)).ToListAsync();
+
+            var userService = _serviceProvider.GetService<IUserService>();
+            var houseMates = new List<ProfileDto>();
+
+            foreach (var item in tenacies)
+            {
+                var user = await userService.GetUser(item.StudentId);
+                houseMates.Add(user);
+            }
+
+            return houseMates;
+        }
+
         public Task<bool> onUpdate(TenancyDto dto) => Task.FromResult(true);
         public Task<bool> afterUpdate(TenancyDto dto) => Task.FromResult(true);
         public Task<bool> onDelete(TenancyDto dto) => Task.FromResult(true);

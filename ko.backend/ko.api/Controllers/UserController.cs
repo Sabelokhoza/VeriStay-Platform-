@@ -26,6 +26,13 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(studentDashboardDataDto, "Student Dashboard data retrieved successfully"));
         }
 
+        [HttpGet("get-landlord-dashboarddata")]
+        public async Task<ActionResult<ApiResponse<StudentDashboardDataDto>>> GetLandlordDashboardData(string user_id)
+        {
+            var studentDashboardDataDto = await _userService.GetLandlordDashboardData(user_id);
+            return Ok(ApiResponse.Success(studentDashboardDataDto, "Landlord Dashboard data retrieved successfully"));
+        }
+
         [HttpGet("update-landlord-status")]
         public async Task<ActionResult<ApiResponse<ProfileDto>>> UpdateLandLordStatus(string user_id , bool isAppproved)
         {

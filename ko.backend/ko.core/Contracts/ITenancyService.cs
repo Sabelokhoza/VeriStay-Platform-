@@ -18,6 +18,7 @@ namespace ko.core.Contracts
         Task<bool> UpdateAsync(int id, TenancyDto dto);
         Task<bool> EndTenancyAsync(int id);
         Task<List<ProfileDto>> GetHousematesByUserId(string userId);
+        Task<List<ProfileDto>> GetTenanciesByProperties(List<PropertyDto> properties);
         // Events
         Task<bool> onInsert(AddTenancyDto dto);
         Task<bool> afterInsert(TenancyDto dto);

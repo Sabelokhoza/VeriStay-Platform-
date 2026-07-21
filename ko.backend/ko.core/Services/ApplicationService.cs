@@ -22,6 +22,7 @@ namespace ko.core.Services
         private readonly IConfiguration _configuration;
         private readonly ITenancyService _tenancyService;
         private readonly IEmailServiceMailJet _emailServiceMailJet;
+        private readonly IFileUploadService _fileUploadService;
 
         public ApplicationService(
             AppDbContext appDbContext,
@@ -33,7 +34,8 @@ namespace ko.core.Services
             IEmailService emailService,
             IConfiguration configuration,
             ITenancyService tenancyService,
-            IEmailServiceMailJet emailServiceMailJet)
+            IEmailServiceMailJet emailServiceMailJet,
+            IFileUploadService fileUploadService)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
@@ -45,6 +47,7 @@ namespace ko.core.Services
             _configuration = configuration;
             _tenancyService = tenancyService;
             _emailServiceMailJet = emailServiceMailJet;
+            _fileUploadService = fileUploadService;
         }
 
         #region CRUD
@@ -87,6 +90,8 @@ namespace ko.core.Services
             return _mapper.Map<List<ApplicationDto>>(data);
         }
 
+       
+
         public async Task<ApplicationDto?> GetByIdAsync(int? id)
         {
             _logger.LogInformation("Attempting to retrieve application with id {0}", id);
@@ -105,6 +110,32 @@ namespace ko.core.Services
             return _mapper.Map<ApplicationDto>(entity);
         }
 
+        public async Task<StudentApplication?> ViewStudentApplicationByIdAsync(int applicationId)
+        {
+            _logger.LogInformation("Attempting to retrieve application with id {0}", applicationId);
+
+            var entity = await _appDbContext.Applications
+                .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+            var propery = await _propertyService.GetByIdAsync(entity.PropertyId);
+
+            var studentApplication = _mapper.Map<StudentApplication>(entity);
+            var user = await _userManager.FindByIdAsync(entity.StudentId);
+
+            studentApplication.StudentName = user.FullName;
+            studentApplication.Price = propery.MonthlyRent;
+            studentApplication.PropertyDescription = propery.Description;
+            studentApplication.PropertyTitle = propery.Title;
+            studentApplication.PropertyLocation = propery.Address + " - " + propery.City;
+
+
+            studentApplication.ProofOfIncomeUrl = await _fileUploadService.GetSignedUrlAsync("uploads", user.ProofOfIncomeUrl);
+            studentApplication.ProofOfRegistrationUrl = await _fileUploadService.GetSignedUrlAsync("uploads", user.ProofOfRegistrationUrl);
+
+
+            return studentApplication;
+        }
+
         public async Task<List<ApplicationDto>> GetByStudentIdAsync(string studentId)
         {
             _logger.LogInformation("Retrieving applications for student {0}", studentId);
@@ -112,6 +143,35 @@ namespace ko.core.Services
             var data = await _appDbContext.Applications
                 .Include(a => a.Property)
                 .Where(a => a.StudentId == studentId)
+                .ToListAsync();
+
+            var applicationDtos = _mapper.Map<List<ApplicationDto>>(data);
+
+            foreach (var item in applicationDtos)
+            {
+                var property = await _propertyService.GetByIdAsync(item.PropertyId);
+                var landlord = await _userManager.FindByIdAsync(property.LandlordId);
+                item.PropertyDescription = property.Description;
+                item.Price = property.MonthlyRent;
+                item.PropertyLocation = $"{property.Address} - {property.City}";
+                item.LandlordName = landlord.FullName;
+            }
+
+            return applicationDtos;
+
+        }
+
+        public async Task<List<ApplicationDto>> GetByLandlordIdAsync(string landlordId)
+        {
+            _logger.LogInformation("Retrieving applications for landlord {0}", landlordId);
+
+            var properties = await _propertyService.GetByLandlordIdAsync(landlordId);
+
+            if (properties == null || properties.Count <= 0)
+                return new List<ApplicationDto>();
+
+            var data = await _appDbContext.Applications
+                .Where(a => properties.Select(s => s.Id).Contains(a.PropertyId))
                 .ToListAsync();
 
             var applicationDtos = _mapper.Map<List<ApplicationDto>>(data);

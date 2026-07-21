@@ -14,17 +14,20 @@ namespace ko.core.Services
         private readonly IGenericService<MaintenanceRequest> _genericService;
         private readonly IAppLogger<MaintenanceRequestService> _logger;
         private readonly IMapper _mapper;
+        private readonly IEmailServiceMailJet _emailServiceMailJet;
 
         public MaintenanceRequestService(
             AppDbContext appDbContext,
             IGenericService<MaintenanceRequest> genericService,
             IAppLogger<MaintenanceRequestService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            IEmailServiceMailJet emailServiceMailJet)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
             _mapper = mapper;
+            _emailServiceMailJet = emailServiceMailJet;
         }
 
         #region CRUD
@@ -49,6 +52,20 @@ namespace ko.core.Services
 
             await afterInsert(result);
             return result;
+        }
+
+        public async Task<bool> MarkAsResolvedAsync(UpdateMaintenanceRequestDto updateMaintenanceRequestDto)
+        {
+            updateMaintenanceRequestDto.Status = MaintenanceStatus.Resolved;
+            await _genericService.UpdateAsync(updateMaintenanceRequestDto.Id ,updateMaintenanceRequestDto);
+
+            SendMaintainanceFeedbackEmailAsync(updateMaintenanceRequestDto);
+            return true;
+        }
+
+        private void SendMaintainanceFeedbackEmailAsync(UpdateMaintenanceRequestDto updateMaintenanceRequestDto)
+        {
+            
         }
 
         public async Task<List<MaintenanceRequestDto>> GetAllAsync()
@@ -97,6 +114,30 @@ namespace ko.core.Services
                 .Include(m => m.Student)
                 .Where(m => m.PropertyId == propertyId)
                 .OrderByDescending(m => m.DateCreated)
+                .ToListAsync();
+
+            return _mapper.Map<List<MaintenanceRequestDto>>(data);
+        }
+
+        public async Task<List<MaintenanceRequestDto>> GetOpenMantainanceByPropertiesAsync(List<PropertyDto> properties)
+        {
+            _logger.LogInformation("Retrieving maintenance requests for properties {0}", properties);
+
+            var data = await _appDbContext.MaintenanceRequests
+                .Where( m => m.Status == MaintenanceStatus.Open &&  properties.Select(s => s.Id).Contains(m.PropertyId ))
+                .OrderByDescending(m => m.Id)
+                .ToListAsync();
+
+            return _mapper.Map<List<MaintenanceRequestDto>>(data);
+        }
+
+        public async Task<List<MaintenanceRequestDto>> GetMantainanceByPropertiesAsync(List<PropertyDto> properties)
+        {
+            _logger.LogInformation("Retrieving maintenance requests for properties {0}", properties);
+
+            var data = await _appDbContext.MaintenanceRequests
+                .Where(m => properties.Select(s => s.Id).Contains(m.PropertyId))
+                .OrderByDescending(m => m.Id)
                 .ToListAsync();
 
             return _mapper.Map<List<MaintenanceRequestDto>>(data);

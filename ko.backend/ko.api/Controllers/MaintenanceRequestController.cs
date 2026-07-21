@@ -72,7 +72,15 @@ namespace ko.api.Controllers
             var result = await _maintenanceRequestService.GetByPropertyIdAsync(propertyId);
             return Ok(ApiResponse.Success(result, "Property maintenance requests retrieved successfully"));
         }
-
+        /// <summary>
+        ///Mark as resolved
+        /// </summary>
+        [HttpPut("mark-as-resolved")]
+        public async Task<ActionResult<ApiResponse<List<MaintenanceRequestDto>>>> MarkAsResolved(UpdateMaintenanceRequestDto updateMaintenanceRequestDto)
+        {
+            var result = await _maintenanceRequestService.MarkAsResolvedAsync(updateMaintenanceRequestDto);
+            return Ok(ApiResponse.Success(result, "Request updated Successfully successfully"));
+        }
 
         /// <summary>
         /// Delete a maintenance request — Admin and Student

@@ -21,6 +21,38 @@ export interface HousemateDto {
     budget: number;
 }
 
+export interface PropertyInfoDto {
+    id:            number;
+    landlordId:    string;
+    landlordName:  string | null;
+    title:         string;
+    description:   string;
+    address:       string;
+    city:          string;
+    monthlyRent:   number;
+    availableBeds: number;
+    isAvailable:   boolean;
+    status:        number;
+    amenities:     string[];
+    availableFrom: string;
+    createdAt:     string;
+    image:         ListingImageDto | null;
+}
+
+export interface UpdatePropertyDto {
+    id: number;
+    landlordId: string;
+    title: string;
+    description: string;
+    address: string;
+    city: string;
+    monthlyRent: number;
+    availableBeds: number;
+    amenities: string[];
+    availableFrom: string;
+    isAvailable: boolean;
+}
+
 export enum MaintenancePriority {
     Low = 0,
     Medium = 1,
@@ -162,6 +194,47 @@ export interface AnnouncementDto {
     postedAt: string;
 }
 
+export interface LandlordProfileDto {
+    id:          string;
+    fullName:    string;
+    email:       string;
+    phoneNumber: string;
+    budget:      number;
+}
+
+export interface LandlordPropertyDto {
+    id:            number;
+    landlordId:    string;
+    landlordName:  string | null;
+    title:         string;
+    description:   string;
+    address:       string;
+    city:          string;
+    monthlyRent:   number;
+    availableBeds: number;
+    isAvailable:   boolean;
+    status:        number;
+    amenities:     string[];
+    availableFrom: string;
+    createdAt:     string;
+    images:        ListingImageDto[];
+}
+
+export interface LandlordMaintenanceDto {
+    id:               number;
+    studentId:        string;
+    studentName:      string | null;
+    propertyId:       number;
+    propertyTitle:    string;
+    title:            string;
+    description:      string;
+    priority:         number; // 0=Low, 1=Medium, 2=High, 3=Emergency
+    status:           number; // 0=Open, 1=InProgress, 2=Resolved
+    photoUrls:        string[];
+    landlordResponse: string;
+    submittedAt:      string;
+    resolvedAt:       string | null;
+}
 export interface StudentDashboardDataDto {
     student: StudentDto;
     applicationsCount: number;
@@ -179,6 +252,31 @@ export interface AddMaintenanceRequestDto {
     description: string;
     priority: MaintenancePriority;
 }
+
+export interface AddPropertyDto {
+    landlordId:    string;
+    title:         string;
+    description:   string;
+    address:       string;
+    city:          string;
+    monthlyRent:   number;
+    availableBeds: number;
+    amenities:     string[];
+    availableFrom: string;
+}
+
+export interface LandlordDashboardDataDto {
+    landlord:            LandlordProfileDto;
+    applicationsCount:   number;
+    propertiesCount:     number;
+    tenantsCount:        number;
+    requestsCount:       number;
+    recentApplications:  ApplicationDto[];
+    waitingList:         ApplicationDto[];
+    propertiesDto:       LandlordPropertyDto[];
+    openMantainances:    LandlordMaintenanceDto[];
+}
+
 
 // =============================================
 // listingsApi.ts
@@ -248,7 +346,18 @@ export const listingsApi = createApi({
             providesTags: (_result, _error, studentId) => [
                 { type: 'Listing' as const, id: `tenancy-${studentId}` },
             ],
-        }),getHousemates: builder.query<HousemateDto[], string>({
+        }),
+        getLandlordDashboard: builder.query<LandlordDashboardDataDto, string>({
+            query: (userId) => ({
+                url: `User/get-landlord-dashboarddata?user_id=${userId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<LandlordDashboardDataDto>) => response.data,
+            providesTags: (_result, _error, userId) => [
+                { type: 'Listing' as const, id: `landlord-dashboard-${userId}` },
+            ],
+        }),
+        getHousemates: builder.query<HousemateDto[], string>({
             query: (userId) => ({
                 url: `Tenancy/get-housemates?userId=${userId}`,
                 method: 'GET',
@@ -292,6 +401,18 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: `maintenance-${studentId}` },
             ],
         }),
+        addProperty: builder.mutation<LandlordPropertyDto, AddPropertyDto>({
+            query: (body) => ({
+                url: 'Property',
+                method: 'POST',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<LandlordPropertyDto>) => response.data,
+            invalidatesTags: (_result, _error, dto) => [
+                { type: 'Listing' as const, id: `landlord-dashboard-${dto.landlordId}` },
+                { type: 'Listing' as const, id: 'LIST' },
+            ],
+        }),
         getListingById: builder.query<ListingDetailsDto, number>({
             query: (propertyId) => ({
                 url: `Property/get-listing-by-details-id?propertyId=${propertyId}`,
@@ -302,19 +423,97 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: propertyId },
             ],
         }),
+        getPropertyInfo: builder.query<PropertyInfoDto, number>({
+            query: (propertyId) => ({
+                url: `Property/get-property-info?propertyId=${propertyId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<PropertyInfoDto>) => response.data,
+            providesTags: (_result, _error, id) => [{ type: 'Listing' as const, id }],
+        }),
+
+       updateProperty: builder.mutation<boolean, UpdatePropertyDto>({
+            query: (property) => ({
+                url: `Property/update-propery/${property.id}`,
+                method: 'PUT',
+                body: property,
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: (_result, _error, property) => [
+                { type: 'Listing', id: property.id },
+                { type: 'Listing', id: 'LIST' },
+            ],
+        }),
+        deletePropertyImage: builder.mutation<ApiResponse<boolean>, number>({
+            query: (imageId) => ({
+                url: `Property/images/${imageId}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: [{ type: 'Listing' as const, id: 'LIST' }],
+        }),
+        getImagesByPropertyId: builder.query<ListingImageDto[], number>({
+    query: (propertyId) => ({
+        url: `Property/${propertyId}/images`,
+        method: 'GET',
     }),
-});
+    transformResponse: (response: ApiResponse<ListingImageDto[]>) => response.data,
+    providesTags: (_result, _error, propertyId) => [
+        { type: 'Listing' as const, id: propertyId },
+    ],
+}),
+
+       addPropertyImage: builder.mutation<
+    ListingImageDto,
+    {
+        propertyId: number;
+        image: File;
+        isPrimary: boolean;
+    }
+        >({
+            query: ({ propertyId, image, isPrimary }) => {
+                const formData = new FormData();
+                formData.append("image", image);
+
+                return {
+                    url: `Property/add-image?propertyId=${propertyId}&isPrimary=${isPrimary}`,
+                    method: "POST",
+                    body: formData,
+                };
+            },
+            transformResponse: (response: ApiResponse<ListingImageDto>) => response.data,
+            invalidatesTags: (_result, _error, { propertyId }) => [
+                { type: "Listing", id: propertyId },
+                { type: "Listing", id: "LIST" },
+            ],
+        }),
+        setPrimaryImage: builder.mutation<ApiResponse<boolean>, number>({
+            query: (imageId) => ({
+                url: `Property/images/${imageId}/set-primary`,
+                method: 'PATCH',
+            }),
+            invalidatesTags: [{ type: 'Listing' as const, id: 'LIST' }],
+        }),
+            }),
+        });
 
 export const {
     useGetListingsQuery,
     useLazyGetListingsQuery,
     useGetListingByIdQuery,
     useLazyGetListingByIdQuery,
+    useAddPropertyImageMutation,
+useGetImagesByPropertyIdQuery,
     useGetStudentDashboardQuery,
     useGetHousematesQuery,
     useGetStudentMaintenanceRequestsQuery,
     useGetTenancyInfoQuery,
     useApplyForPropertyMutation,
     useGetTenanciesByStudentIdQuery,
+    useGetLandlordDashboardQuery,
     useAddMaintenanceRequestMutation,
+    useAddPropertyMutation,
+     useGetPropertyInfoQuery,
+    useUpdatePropertyMutation,
+    useDeletePropertyImageMutation,
+    useSetPrimaryImageMutation,
 } = listingsApi;

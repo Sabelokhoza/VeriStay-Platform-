@@ -35,7 +35,9 @@ namespace ko.core.MappingProfiles
     {
         public ApplicationMappingProfile()
         {
+            CreateMap<StudentApplication, ApplicationDto>().ReverseMap();
             CreateMap<Application, ApplicationDto>().ReverseMap();
+            CreateMap<Application, StudentApplication>().ReverseMap();
             CreateMap<Application, AddApplicationDto>().ReverseMap();
             CreateMap<Application, ReviewApplicationDto>().ReverseMap();
         }

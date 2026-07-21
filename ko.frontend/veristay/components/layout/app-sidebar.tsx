@@ -34,6 +34,7 @@ import Link from 'next/link';
 import { Role, useUser } from '@/hooks/use-user';
 
 const navMainStudent = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }];
+const navMainLandlord = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }];
 
 const navMainPartner = [
     { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
@@ -82,6 +83,9 @@ export function AppSidebar() {
                 return navMainPartner;
             case Role.Admin:
                 return navMainAdmin;
+            case Role.Landlord:
+                return navMainLandlord;
+
         }
     }
     const navmenu = getNavMainByRole(currentUser.role);

@@ -10,6 +10,7 @@ namespace ko.core.Contracts
         Task<List<PropertyDto>> GetByLandlordIdAsync(string landlordId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> UpdateAsync(int id, PropertyDto dto);
+        Task<bool> UpdatePropertyAsync(int id, UpdatePropertyDto dto);
         Task<bool> ApproveAsync(int id);
         Task<bool> RejectAsync(int id);
         // Events
@@ -47,6 +48,7 @@ namespace ko.core.Contracts
         Task<bool> SetPrimaryImageAsync(int imageId);
         Task<List<ListingDto>> GetListings();
         Task<ListingDetailsDto> GetListingDetailsbyPropertyId(int id);
+        Task<ListingDto> GetProperyInfoAsync(int propertyId);
         Task<List<ListingDto>> GetListings(
               string? city = null,
               string? title = null,

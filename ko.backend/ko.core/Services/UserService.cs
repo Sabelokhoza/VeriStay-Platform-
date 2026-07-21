@@ -7,6 +7,7 @@ using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using static ko.core.Exceptions.ApiException;
 
 namespace ko.core.Services
@@ -23,9 +24,10 @@ namespace ko.core.Services
         private readonly IApplicationService _applicationService;
         private readonly IConfiguration _configuration;
         private readonly IEmailServiceMailJet _emailServiceMailJet;
+        private readonly IMaintenanceRequestService _maintenanceRequestService;
 
 
-        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet)
+        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest)
         {
             _userManager = userManager;
             _logger = logger;
@@ -36,6 +38,7 @@ namespace ko.core.Services
             _configuration = configuration;
             _applicationService = applicationService;
             _emailServiceMailJet = emailServiceMailJet;
+            _maintenanceRequestService  = maintenanceRequest;
         }
 
 
@@ -65,6 +68,31 @@ namespace ko.core.Services
             studentDashboardDataDto.ApplicationsCount = studentDashboardDataDto.Applications.Count();
             studentDashboardDataDto.ApprovedCount = studentDashboardDataDto.Applications.Count(w => w.Status == ApplicationStatus.Approved);
             studentDashboardDataDto.WaitingList = studentDashboardDataDto.Applications.Where(w => w.Status == ApplicationStatus.WaitingList).ToList();
+
+            return studentDashboardDataDto;
+        }
+        public async Task<LandlordDashboardDataDto> GetLandlordDashboardData(string userId)
+        {
+            _logger.LogInformation("landlord dashboard data for user {0}", userId);
+
+            var _propertyService = _serviceProvider.GetService<IPropertyService>();
+            var _tenancyService = _serviceProvider.GetService<ITenancyService>();
+
+            var studentDashboardDataDto = new LandlordDashboardDataDto();
+            studentDashboardDataDto.landlord = await GetUser(userId);
+            studentDashboardDataDto.propertiesDto = await _propertyService.GetByLandlordIdAsync(userId);
+            if (studentDashboardDataDto.propertiesDto == null || studentDashboardDataDto.propertiesDto.Count <= 0)
+            {
+                return new LandlordDashboardDataDto();
+            }
+            studentDashboardDataDto.recentApplications = await _applicationService.GetByLandlordIdAsync(userId);
+            studentDashboardDataDto.applicationsCount = studentDashboardDataDto.recentApplications.Count();
+            studentDashboardDataDto.propertiesCount = studentDashboardDataDto.propertiesDto.Count();
+            studentDashboardDataDto.WaitingList = studentDashboardDataDto.recentApplications.Where(w => w.Status == ApplicationStatus.WaitingList).ToList();
+            studentDashboardDataDto.openMantainances = await _maintenanceRequestService.GetMantainanceByPropertiesAsync(studentDashboardDataDto.propertiesDto);
+            studentDashboardDataDto.RequestsCount = (await _maintenanceRequestService.GetOpenMantainanceByPropertiesAsync(studentDashboardDataDto.propertiesDto)).Count;
+            studentDashboardDataDto.tenants = (await _tenancyService.GetTenanciesByProperties(studentDashboardDataDto.propertiesDto));
+
 
             return studentDashboardDataDto;
         }

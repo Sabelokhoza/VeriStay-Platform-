@@ -113,5 +113,14 @@ namespace ko.api.Controllers
             var result = await _applicationService.AcceptDeclineOffer(applicationId,isAccepted);
             return Ok(ApiResponse.Success(result, "Apllication status updated successfully"));
         }
+        /// <summary>
+        /// View Student application
+        /// </summary>
+        [HttpGet("view-student-application")]
+        public async Task<ActionResult<ApiResponse<StudentApplication>>> Review(int applicationId )
+        {
+            var result = await _applicationService.ViewStudentApplicationByIdAsync(applicationId);
+            return Ok(ApiResponse.Success(result, "A successfully"));
+        }
     }
 }

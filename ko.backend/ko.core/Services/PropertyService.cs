@@ -45,7 +45,7 @@ namespace ko.core.Services
             _logger.LogInformation("Adding property to the database");
 
             var entity = _mapper.Map<Property>(dto);
-            entity.Status = PropertyStatus.PendingApproval;
+            entity.Status = PropertyStatus.Approved;
             entity.IsAvailable = true;
             entity.DateCreated = DateTime.UtcNow;
 
@@ -91,8 +91,6 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving properties for landlord {0}", landlordId);
 
             var data = await _appDbContext.Properties
-                .Include(p => p.Landlord)
-                .Include(p => p.Images)
                 .Where(p => p.LandlordId == landlordId)
                 .ToListAsync();
 
@@ -110,6 +108,49 @@ namespace ko.core.Services
                 .ToListAsync();
 
             return _mapper.Map<List<PropertyDto>>(data);
+        }
+
+        public async Task<bool> UpdatePropertyAsync(int id, UpdatePropertyDto dto)
+        {
+            _logger.LogInformation("Attempting to update property with id {PropertyId}", id);
+
+            if (id != dto.Id)
+                return false;
+
+            var property = await _appDbContext.Properties
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (property == null)
+                throw new NotFoundException(nameof(Property), id);
+
+            try
+            {
+                
+
+                property.Title = dto.Title;
+                property.Description = dto.Description;
+                property.Address = dto.Address;
+                property.City = dto.City;
+                property.MonthlyRent = dto.MonthlyRent;
+                property.AvailableBeds = dto.AvailableBeds;
+                property.AvailableFrom = dto.AvailableFrom;
+                property.IsAvailable = dto.IsAvailable;
+                property.Amenities = dto.Amenities;
+               
+
+                await _appDbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Property with id {PropertyId} updated successfully", id);
+
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _appDbContext.Properties.AnyAsync(p => p.Id == id))
+                    return false;
+
+                throw;
+            }
         }
 
         public async Task<bool> UpdateAsync(int id, PropertyDto dto)
@@ -274,6 +315,13 @@ namespace ko.core.Services
                 .Where(i => i.PropertyId == propertyId)
                 .ToListAsync();
 
+            foreach (var item in images)
+            {
+                item.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads" ,item.ImageUrl);
+            }
+
+            
+
             return _mapper.Map<List<PropertyImageDto>>(images);
         }
         public async Task<PropertyImageDto> GetPrimaryImageByPropertyIdAsync(int propertyId)
@@ -357,6 +405,21 @@ namespace ko.core.Services
             return listings;
         }
 
+        public async Task<ListingDto> GetProperyInfoAsync(int propertyId)
+        {
+            var property = await _appDbContext.Properties.FirstOrDefaultAsync(w => w.Id == propertyId);
+
+            var listing = _mapper.Map<ListingDto>(property);
+
+
+            listing.Image = await GetPrimaryImageByPropertyIdAsync(property.Id);
+            if (listing.Image != null)
+            {
+                listing.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listing.Image.ImageUrl);
+            }
+
+            return listing;
+        }
 
         public async Task<List<ListingDto>> GetListings(
               string? city = null,
@@ -365,7 +428,7 @@ namespace ko.core.Services
               string? description = null)
         {
             var query = _appDbContext.Properties
-                .Where(p =>  p.IsAvailable) // add isAvaila
+                .Where(p => p.IsAvailable) // add isAvaila
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(city))
@@ -410,13 +473,7 @@ namespace ko.core.Services
             listing.LandLordEmail = landlord.Email;
             listing.LandlordName = landlord.FullName;
             listing.Images = await GetImagesByPropertyIdAsync(item.Id);
-            if (listing.Images != null)
-            {
-                foreach (var image in listing.Images)
-                {
-                    image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", image.ImageUrl);
-                }
-            }
+           
 
             return listing;
         }

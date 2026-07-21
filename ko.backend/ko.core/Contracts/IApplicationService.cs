@@ -11,7 +11,9 @@ namespace ko.core.Contracts
         Task<ApplicationDto?> AddAsync(string studentId, AddApplicationDto dto);
         Task<List<ApplicationDto>> GetAllAsync();
         Task<ApplicationDto?> GetByIdAsync(int? id);
+        Task<StudentApplication> ViewStudentApplicationByIdAsync(int applicationId);
         Task<List<ApplicationDto>> GetByStudentIdAsync(string studentId);
+        Task<List<ApplicationDto>> GetByLandlordIdAsync(string landlordId);
         Task<List<ApplicationDto>> GetByPropertyIdAsync(int propertyId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> ReviewAsync(ReviewApplicationDto dto);

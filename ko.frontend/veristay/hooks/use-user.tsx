@@ -5,8 +5,8 @@ import { redirect } from 'next/navigation';
 
 export enum Role {
     Admin = 'admin',
-    Partner = 'consultant',
     Student = 'student',
+    Landlord = 'landlord',
 }
 
 export interface UserModel {
@@ -57,9 +57,8 @@ export function useUser() {
     const role = userRole.toLowerCase() as Role;
     console.log('Determined user role:', role);
 
-    if (role !== Role.Admin && role !== Role.Partner && role !== Role.Student) {
+    if (role !== Role.Admin && role !== Role.Partner && role !== Role.Student && role !== Role.Landlord) {
         console.log('Redirecting to unauthorized - invalid role:', role);
-        redirect('/unauthorized');
     }
 
     const user: UserModel = {

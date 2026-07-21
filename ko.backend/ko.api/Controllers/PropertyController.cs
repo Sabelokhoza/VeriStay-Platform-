@@ -100,7 +100,18 @@ namespace ko.api.Controllers
             var result = await _propertyService.GetListingDetailsbyPropertyId(propertyId);
             return Ok(ApiResponse.Success(result, "Listings details retrieved successfully"));
         }
-      
+
+        /// <summary>
+        /// Get  property details by id
+        /// </summary>
+        [HttpGet("get-property-info")]
+        public async Task<ActionResult<ApiResponse<ListingDetailsDto>>> GetProperyInfoAsync(int propertyId)
+        {
+            _logger.LogInformation("GET api/property/get-property-info - Retrieving listings");
+            var result = await _propertyService.GetProperyInfoAsync(propertyId);
+            return Ok(ApiResponse.Success(result, "Listings details retrieved successfully"));
+        }
+
         /// <summary>
         /// Search approved properties with filters — All authenticated users
         /// </summary>
@@ -127,7 +138,20 @@ namespace ko.api.Controllers
             var result = await _propertyService.UpdateAsync(id, dto);
             return Ok(ApiResponse.Success(result, "Property updated successfully"));
         }
+        /// <summary>
+        /// Update a property — Landlord only
+        /// </summary>
+        [HttpPut("update-propery/{id:int}")]
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateProperty(
+            int id,
+            [FromBody] UpdatePropertyDto dto)
+        {
+            _logger.LogInformation("PUT api/property/{PropertyId}", id);
 
+            var result = await _propertyService.UpdatePropertyAsync(id, dto);
+
+            return Ok(ApiResponse.Success(true, "Property updated successfully."));
+        }
         /// <summary>
         /// Delete property — Admin and Landlord
         /// </summary>

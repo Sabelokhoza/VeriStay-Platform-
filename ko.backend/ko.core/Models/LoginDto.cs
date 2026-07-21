@@ -33,6 +33,21 @@ namespace ko.core.Models
 
 
     }
+    public class LandlordDashboardDataDto
+    {
+       public ProfileDto landlord { get; set; }
+
+        public int applicationsCount { get; set; } = 0;
+        public int propertiesCount { get; set; } = 0;
+        public List<ProfileDto> tenants { get; set; } = new List<ProfileDto>();
+        public int RequestsCount { get; set; } = 0;
+        public List<ApplicationDto> recentApplications { get; set; } = new List<ApplicationDto>();
+        public List<ApplicationDto> WaitingList { get; set; } = new List<ApplicationDto>();
+        public List<PropertyDto> propertiesDto { get; set; } = new List<PropertyDto>();
+        public List<MaintenanceRequestDto> openMantainances { get; set; } = new List<MaintenanceRequestDto>();
+
+
+    }
     public class ResetPasswordRequestDto
     {
         [Required]
@@ -57,6 +72,43 @@ namespace ko.core.Models
     // =============================================
     // PROPERTY DTOs
     // =============================================
+    public class UpdatePropertyDto
+    {
+        [Required]
+        public int Id { get; set; }
+
+        [Required]
+        public string LandlordId { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(120)]
+        public string Title { get; set; } = string.Empty;
+
+        [MaxLength(1000)]
+        public string Description { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(255)]
+        public string Address { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(100)]
+        public string City { get; set; } = string.Empty;
+
+        [Range(0, double.MaxValue)]
+        public decimal MonthlyRent { get; set; }
+
+        [Range(0, 100)]
+        public int AvailableBeds { get; set; }
+
+        public List<string> Amenities { get; set; } = new();
+
+        [Required]
+        public DateTime AvailableFrom { get; set; }
+
+        public bool IsAvailable { get; set; }
+    }
+
 
     public class PropertyDto
     {
@@ -227,6 +279,22 @@ namespace ko.core.Models
         public string LandlordName { get; set; } 
         public DateTime AppliedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
+    }
+
+    public class StudentApplication
+    {
+        public int Id { get; set; }
+        public string StudentId { get; set; }
+        public string StudentName { get; set; }
+        public int PropertyId { get; set; }
+        public string PropertyTitle { get; set; }
+        public string PropertyDescription { get; set; }
+        public string PropertyLocation { get; set; }
+        public decimal Price { get; set; }
+        public string ProofOfRegistrationUrl { get; set; } = string.Empty;
+        public string ProofOfIncomeUrl { get; set; } = string.Empty;
+
+
     }
 
     public class AddApplicationDto

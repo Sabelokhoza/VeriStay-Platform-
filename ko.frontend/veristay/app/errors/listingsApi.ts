@@ -184,6 +184,22 @@ export interface ApplicationDto {
     reviewedAt: string | null;
 }
 
+// Returned by Application/view-student-application — the full application
+// detail view used when a landlord reviews a submission, including the
+// downloadable supporting documents.
+export interface StudentApplicationDetailsDto {
+    id: number;
+    studentId: string;
+    studentName: string | null;
+    propertyId: number;
+    propertyTitle: string;
+    propertyDescription: string;
+    propertyLocation: string;
+    price: number;
+    proofOfRegistrationUrl: string;
+    proofOfIncomeUrl: string;
+}
+
 export interface AnnouncementDto {
     id: number;
     landlordId: string;
@@ -269,12 +285,18 @@ export interface LandlordDashboardDataDto {
     landlord:            LandlordProfileDto;
     applicationsCount:   number;
     propertiesCount:     number;
-    tenantsCount:        number;
+    tenants:             StudentDto[];
     requestsCount:       number;
     recentApplications:  ApplicationDto[];
     waitingList:         ApplicationDto[];
     propertiesDto:       LandlordPropertyDto[];
     openMantainances:    LandlordMaintenanceDto[];
+}
+
+export interface UpdateMaintenanceRequestDto {
+    id:                number;
+    status:            MaintenanceStatus;
+    landlordResponse:  string;
 }
 
 
@@ -326,6 +348,16 @@ export const listingsApi = createApi({
                 body,
             }),
             invalidatesTags: [{ type: 'Listing', id: 'LIST' }],
+        }),
+        getStudentApplication: builder.query<StudentApplicationDetailsDto, number>({
+            query: (applicationId) => ({
+                url: `Application/view-student-application?applicationId=${applicationId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<StudentApplicationDetailsDto>) => response.data,
+            providesTags: (_result, _error, applicationId) => [
+                { type: 'Listing' as const, id: `application-${applicationId}` },
+            ],
         }),
         getStudentDashboard: builder.query<StudentDashboardDataDto, string>({
             query: (userId) => ({
@@ -400,6 +432,15 @@ export const listingsApi = createApi({
             invalidatesTags: (_result, _error, { studentId }) => [
                 { type: 'Listing' as const, id: `maintenance-${studentId}` },
             ],
+        }),
+        markMaintenanceResolved: builder.mutation<boolean, UpdateMaintenanceRequestDto>({
+            query: (dto) => ({
+                url: 'MaintenanceRequest/mark-as-resolved',
+                method: 'PUT',
+                body: dto,
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: [{ type: 'Listing' as const, id: 'LIST' }],
         }),
         addProperty: builder.mutation<LandlordPropertyDto, AddPropertyDto>({
             query: (body) => ({
@@ -516,4 +557,6 @@ useGetImagesByPropertyIdQuery,
     useUpdatePropertyMutation,
     useDeletePropertyImageMutation,
     useSetPrimaryImageMutation,
+    useGetStudentApplicationQuery,
+    useMarkMaintenanceResolvedMutation,
 } = listingsApi;

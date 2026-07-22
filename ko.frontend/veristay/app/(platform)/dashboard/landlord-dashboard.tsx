@@ -30,6 +30,8 @@ import {
     useGetLandlordDashboardQuery,
     useAddPropertyMutation,
     useGetStudentApplicationQuery,
+    useMarkMaintenanceResolvedMutation,
+    MaintenanceStatus,
     ApplicationDto,
     LandlordPropertyDto,
     LandlordMaintenanceDto,
@@ -376,6 +378,8 @@ function ApplicationReviewModal({
         isError: isDetailsError,
     } = useGetStudentApplicationQuery(app.id, { skip: !app.id });
 
+    const studentName = details?.studentName ?? app.studentName;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
             <div className="relative w-full max-w-md rounded-2xl bg-background shadow-xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
@@ -394,10 +398,10 @@ function ApplicationReviewModal({
                     <div className="px-6 py-4 border-b bg-muted/30">
                         <div className="flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white shrink-0">
-                                {(app.studentName ?? app.studentId)?.charAt(0).toUpperCase() ?? 'S'}
+                                {(studentName ?? app.studentId)?.charAt(0).toUpperCase() ?? 'S'}
                             </div>
                             <div>
-                                <p className="font-semibold">{app.studentName ?? `Student #${app.studentId.slice(0, 8)}`}</p>
+                                <p className="font-semibold">{studentName ?? `Student #${app.studentId.slice(0, 8)}`}</p>
                                 <p className="text-sm text-muted-foreground">Applied {formatDate(app.appliedAt)}</p>
                                 {app.price > 0 && (
                                     <p className="text-sm font-bold text-blue-600">R {formatRent(app.price)} / month</p>
@@ -593,6 +597,11 @@ export function LandlordDashboard() {
     const applications = data?.recentApplications  ?? [];
     const maintenance  = data?.openMantainances     ?? [];
 
+    // De-duped in case the API repeats a tenant per active lease
+    const tenants = Array.from(
+        new Map((data?.tenants ?? []).map(t => [t.id, t])).values()
+    );
+
     const pendingApps = applications.filter(a => a.status === 0);
     const openMaint   = maintenance.filter(m => m.status === 0 || m.status === 1);
 
@@ -628,12 +637,17 @@ export function LandlordDashboard() {
         }
     }
 
+    const [markMaintenanceResolved] = useMarkMaintenanceResolvedMutation();
+
     async function handleResolve(response: string) {
         if (!selectedMaint) return;
         setActionLoading(true);
         try {
-            // TODO: await resolveMaintenance({ id: selectedMaint.id, landlordResponse: response })
-            await new Promise(r => setTimeout(r, 800));
+            await markMaintenanceResolved({
+                id: selectedMaint.id,
+                status: MaintenanceStatus.Resolved,
+                landlordResponse: response,
+            }).unwrap();
             setSelectedMaint(null);
             refetch();
         } finally {
@@ -754,7 +768,7 @@ export function LandlordDashboard() {
                             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                 <StatCard icon={Home}          label="Properties"      value={data.propertiesCount}   sub={`${properties.filter(p => p.status === 0).length} pending`}     color="bg-blue-600"   onClick={() => setActiveTab('properties')}   />
                                 <StatCard icon={ClipboardList} label="Applications"    value={data.applicationsCount} sub={`${pendingApps.length} pending review`}                           color="bg-orange-500" onClick={() => setActiveTab('applications')} />
-                                <StatCard icon={Users}         label="Tenants"         value={data.tenantsCount}      sub="active tenancies"                                                  color="bg-green-600"  onClick={() => setActiveTab('tenants')}      />
+                                <StatCard icon={Users}         label="Tenants"         value={tenants.length}         sub="active tenancies"                                                  color="bg-green-600"  onClick={() => setActiveTab('tenants')}      />
                                 <StatCard icon={Wrench}        label="Open Maintenance" value={data.requestsCount}    sub="requests"                                                          color="bg-red-500"    onClick={() => setActiveTab('maintenance')}  />
                             </div>
 
@@ -1080,8 +1094,8 @@ export function LandlordDashboard() {
                     {/* ======== TENANTS ======== */}
                     {activeTab === 'tenants' && (
                         <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">Active Tenants ({data.tenantsCount})</h2>
-                            {applications.filter(a => a.status === 1).length === 0 ? (
+                            <h2 className="text-lg font-semibold">Active Tenants ({tenants.length})</h2>
+                            {tenants.length === 0 ? (
                                 <div className="rounded-xl border bg-background p-10 text-center text-muted-foreground">
                                     <Users className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                     <p>No active tenants yet.</p>
@@ -1089,26 +1103,26 @@ export function LandlordDashboard() {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {applications.filter(a => a.status === 1).map(tenant => (
+                                    {tenants.map(tenant => (
                                         <div key={tenant.id} className="rounded-xl border bg-background p-4 shadow-sm">
                                             <div className="flex items-center gap-4">
                                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-base font-bold text-white shrink-0">
-                                                    {(tenant.studentName ?? tenant.studentId).charAt(0).toUpperCase()}
+                                                    {(isPlaceholder(tenant.fullName) ? tenant.id : tenant.fullName).charAt(0).toUpperCase()}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold">{tenant.studentName ?? `Student #${tenant.studentId.slice(0, 8)}...`}</p>
-                                                    <p className="text-sm text-muted-foreground truncate">
-                                                        {isPlaceholder(tenant.propertyTitle) ? `Property #${tenant.propertyId}` : tenant.propertyTitle}
+                                                    <p className="font-semibold">
+                                                        {isPlaceholder(tenant.fullName) ? `Tenant #${tenant.id.slice(0, 8)}` : tenant.fullName}
                                                     </p>
-                                                    {tenant.price > 0 && (
-                                                        <p className="text-sm font-bold text-blue-600">R {formatRent(tenant.price)} / month</p>
+                                                    {!isPlaceholder(tenant.email) && (
+                                                        <p className="text-sm text-muted-foreground truncate">{tenant.email}</p>
                                                     )}
+                                                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                                        {!isPlaceholder(tenant.phoneNumber) && <span>{tenant.phoneNumber}</span>}
+                                                        {!isPlaceholder(tenant.university) && <span>{tenant.university}</span>}
+                                                    </div>
                                                 </div>
                                                 <div className="text-right shrink-0">
                                                     <StatusBadge label="Active Tenant" style="bg-green-100 text-green-800 border-green-200" />
-                                                    <p className="text-xs text-muted-foreground mt-1">
-                                                        Since {formatDate(tenant.reviewedAt ?? tenant.appliedAt)}
-                                                    </p>
                                                 </div>
                                             </div>
                                         </div>

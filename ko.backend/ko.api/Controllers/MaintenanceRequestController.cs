@@ -76,7 +76,7 @@ namespace ko.api.Controllers
         ///Mark as resolved
         /// </summary>
         [HttpPut("mark-as-resolved")]
-        public async Task<ActionResult<ApiResponse<List<MaintenanceRequestDto>>>> MarkAsResolved(UpdateMaintenanceRequestDto updateMaintenanceRequestDto)
+        public async Task<ActionResult<ApiResponse<bool>>> MarkAsResolved(UpdateMaintenanceRequestDto updateMaintenanceRequestDto)
         {
             var result = await _maintenanceRequestService.MarkAsResolvedAsync(updateMaintenanceRequestDto);
             return Ok(ApiResponse.Success(result, "Request updated Successfully successfully"));

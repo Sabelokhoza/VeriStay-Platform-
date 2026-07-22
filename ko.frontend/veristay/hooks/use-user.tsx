@@ -7,6 +7,7 @@ export enum Role {
     Admin = 'admin',
     Student = 'student',
     Landlord = 'landlord',
+    Partner = 'partner',
 }
 
 export interface UserModel {

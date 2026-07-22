@@ -323,23 +323,23 @@ function ImageManager({ propertyId }: { propertyId: number }) {
 // Main Page
 // =============================================
 
-export default function PropertyManagePage({ propertyId }: { propertyId: number }) {
+export default function PropertyManagePage() {
     const router  = useRouter();
     const userId  = useAppSelector((state: any) => state.userAuthStore?.id ?? '');
 
    const params = useParams();
 
-    const p = Number(params.id);
+    const propertyId = Number(params.id);
 
-    console.log("Property ID:", p);
+    console.log("Property ID:", propertyId);
 
     const {
         data: property,
         isLoading,
         isError,
         refetch,
-    } = useGetPropertyInfoQuery(p, {
-        skip: isNaN(p),
+    } = useGetPropertyInfoQuery(propertyId, {
+        skip: isNaN(propertyId),
     });
 
     const [updateProperty, { isLoading: isSaving }] = useUpdatePropertyMutation();

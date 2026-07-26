@@ -8,6 +8,7 @@ namespace ko.core.Contracts
         Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false);
         Task<StudentDashboardDataDto> GetStudentDashboardData(string userId);
         Task<LandlordDashboardDataDto> GetLandlordDashboardData(string userId);
+        Task<AdminDashboardDto> GetAdminDashboardData(string userId);
 
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 using static ko.core.Exceptions.ApiException;
 
 namespace ko.core.Services
@@ -25,9 +26,10 @@ namespace ko.core.Services
         private readonly IConfiguration _configuration;
         private readonly IEmailServiceMailJet _emailServiceMailJet;
         private readonly IMaintenanceRequestService _maintenanceRequestService;
+        private readonly IFileUploadService _fileUploadService;
 
 
-        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest)
+        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest , IFileUploadService fileUploadService)
         {
             _userManager = userManager;
             _logger = logger;
@@ -39,6 +41,7 @@ namespace ko.core.Services
             _applicationService = applicationService;
             _emailServiceMailJet = emailServiceMailJet;
             _maintenanceRequestService  = maintenanceRequest;
+            _fileUploadService = fileUploadService;
         }
 
 
@@ -71,6 +74,85 @@ namespace ko.core.Services
 
             return studentDashboardDataDto;
         }
+
+
+        public async Task<AdminDashboardDto> GetAdminDashboardData(string userId)
+        {
+            _logger.LogInformation("Student dashboard data for user {0}", userId);
+
+            var adminDashboardDto = new AdminDashboardDto();
+
+            var landlords = (await _userManager.GetUsersInRoleAsync("Landlord")).ToList();
+            var students = (await _userManager.GetUsersInRoleAsync("Student")).ToList();
+            var _propertiesService = _serviceProvider.GetRequiredService<IPropertyService>();
+            var _applicationService = _serviceProvider.GetRequiredService<IApplicationService>();
+            var _tenenciesService = _serviceProvider.GetRequiredService<ITenancyService>();
+            var _mantainanceRequestService = _serviceProvider.GetRequiredService<IMaintenanceRequestService>();
+
+            var properties = (await _propertiesService.GetAllAsync());
+            var applications = (await _applicationService.GetAllAsync());
+            var tenencies = (await _tenenciesService.GetAllAsync());
+            var mantainances =  await _appDbContext.MaintenanceRequests.CountAsync(w => w.Status == MaintenanceStatus.Open);
+
+            var pendingLandlords = landlords.Where(w => w.VerificationStatus != VerificationStatus.Approved).Select(s => new AdminLandlordDto()
+            {
+                Id = s.Id,
+                FullName = s.FullName,
+                Email = s.Email,
+                PhoneNumber = s.PhoneNumber,
+                VerificationStatus = s.VerificationStatus,
+                CreatedAt = s.CreatedAt,
+                PropertiesCount = _appDbContext.Properties.Count(w => w.LandlordId == s.Id),
+                DocumentsUrl = _fileUploadService.GetPublicUrl("uploads",s.IdentificationDocument)
+
+            }).ToList();
+
+            var pendingPropetyList = properties.Where(w => w.IsAvailable).Select(s => new AdminPropertyDto()
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Address = s.Address,
+                City = s.City,
+                MonthlyRent = s.MonthlyRent,
+                AvailableBeds = s.AvailableBeds,
+                LandlordId = s.LandlordId,
+                Status = s.Status == PropertyStatus.Approved ? 0
+                : s.Status == PropertyStatus.PendingApproval ? 1
+                : s.Status == PropertyStatus.Rejected ? 3
+                : 0,
+                CreatedAt = s.CreatedAt
+
+            }).ToList();
+
+            adminDashboardDto.TotalLandlords = landlords.Count;
+            adminDashboardDto.PendingLandlords  = pendingLandlords.Count();
+
+            pendingLandlords = landlords.Select(s => new AdminLandlordDto()
+            {
+                Id = s.Id,
+                FullName = s.FullName,
+                Email = s.Email,
+                PhoneNumber = s.PhoneNumber,
+                VerificationStatus = s.VerificationStatus,
+                CreatedAt = s.CreatedAt,
+                PropertiesCount = _appDbContext.Properties.Count(w => w.LandlordId == s.Id),
+                DocumentsUrl = _fileUploadService.GetPublicUrl("uploads", s.IdentificationDocument)
+
+            }).ToList();
+
+            adminDashboardDto.TotalProperties = properties.Count;
+            adminDashboardDto.PendingProperties = properties.Count(w => w.IsAvailable = false);
+            adminDashboardDto.TotalStudents = students.Count;
+            adminDashboardDto.TotalTenancies = tenencies.Count;
+            adminDashboardDto.PendingLandlordsList = pendingLandlords;
+            adminDashboardDto.PendingPropertiesList = pendingPropetyList;
+            adminDashboardDto.OpenMaintenanceCount = mantainances;
+            adminDashboardDto.TotalApplications = applications.Count;
+
+            return adminDashboardDto;
+            
+        }
+
         public async Task<LandlordDashboardDataDto> GetLandlordDashboardData(string userId)
         {
             _logger.LogInformation("landlord dashboard data for user {0}", userId);

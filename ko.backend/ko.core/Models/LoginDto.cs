@@ -496,6 +496,73 @@ namespace ko.core.Models
         public string LandlordResponse { get; set; }
     }
 
+    public class AdminDashboardDto
+    {
+        public int TotalLandlords { get; set; }
+        public int PendingLandlords { get; set; }
+        public int TotalProperties { get; set; }
+        public int PendingProperties { get; set; }
+        public int TotalStudents { get; set; }
+        public int TotalApplications { get; set; }
+        public int TotalTenancies { get; set; }
+        public int OpenMaintenanceCount { get; set; }
+        public List<AdminLandlordDto> PendingLandlordsList { get; set; } = new();
+        public List<AdminPropertyDto> PendingPropertiesList { get; set; } = new();
+        public List<AdminDisputeDto> RecentDisputes { get; set; } = new();
+        public List<CityDistributionDto> CityDistribution { get; set; } = new();
+    }
+
+    public class AdminLandlordDto
+    {
+        public string Id { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+
+        /// <summary>
+        /// 0=Pending, 1=Approved, 2=Rejected, 3=Suspended
+        /// </summary>
+        public VerificationStatus VerificationStatus { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public int PropertiesCount { get; set; }
+        public string? DocumentsUrl { get; set; }
+    }
+
+    public class AdminPropertyDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public decimal MonthlyRent { get; set; }
+        public int AvailableBeds { get; set; }
+        public string LandlordName { get; set; }
+        public string LandlordId { get; set; }
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AdminDisputeDto
+    {
+        public int Id { get; set; }
+        public string StudentName { get; set; }
+        public string LandlordName { get; set; }
+        public string Description { get; set; }
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string? AdminResolutionNotes { get; set; }
+    }
+
+    public class CityDistributionDto
+    {
+        public string City { get; set; }
+        public int PropertyCount { get; set; }
+        public int TenancyCount { get; set; }
+    }
+
+   
+
 
     // =============================================
     // ANNOUNCEMENT DTOs

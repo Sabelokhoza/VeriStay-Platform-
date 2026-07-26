@@ -58,11 +58,6 @@ const navMainPartner = [
 
 const navMainAdmin = [
     { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-    { title: 'Manage Students', url: '/students', icon: GraduationCap },
-    { title: 'Manage Courses', url: 'courses/', icon: Folders },
-    { title: 'Enrollments', url: 'enrollments/', icon: BookOpenCheck },
-    { title: 'Certificates', url: 'certifications/', icon: Award },
-    { title: 'Billing', url: 'billing/', icon: HandCoins },
 ];
 
 const navSecondary = [

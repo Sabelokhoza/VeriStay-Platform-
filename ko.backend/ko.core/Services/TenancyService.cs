@@ -65,8 +65,7 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving all tenancies from the database");
 
             var data = await _appDbContext.Tenancies
-                .Include(t => t.Student)
-                .Include(t => t.Property)
+               
                 .ToListAsync();
 
             return _mapper.Map<List<TenancyDto>>(data);

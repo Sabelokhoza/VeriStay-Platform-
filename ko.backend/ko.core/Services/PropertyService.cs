@@ -206,6 +206,7 @@ namespace ko.core.Services
             entity.Status = PropertyStatus.Approved;
             await _appDbContext.SaveChangesAsync();
 
+
             _logger.LogInformation("Property with id {0} has been approved", id);
             return true;
         }

@@ -83,8 +83,7 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving all applications from the database");
 
             var data = await _appDbContext.Applications
-                .Include(a => a.Student)
-                .Include(a => a.Property)
+                
                 .ToListAsync();
 
             return _mapper.Map<List<ApplicationDto>>(data);

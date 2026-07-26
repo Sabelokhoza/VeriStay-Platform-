@@ -300,6 +300,61 @@ export interface UpdateMaintenanceRequestDto {
 }
 
 
+export interface AdminDashboardDto {
+    totalLandlords:        number;
+    pendingLandlords:      number;
+    totalProperties:       number;
+    pendingProperties:     number;
+    totalStudents:         number;
+    totalApplications:     number;
+    totalTenancies:        number;
+    openMaintenanceCount:  number;
+    pendingLandlordsList:  AdminLandlordDto[];
+    pendingPropertiesList: AdminPropertyDto[];
+    recentDisputes:        AdminDisputeDto[];
+    cityDistribution:      CityDistributionDto[];
+}
+
+export interface AdminLandlordDto {
+    id:                 string;
+    fullName:           string;
+    email:              string;
+    phoneNumber:        string;
+    verificationStatus: number; // 0=Pending, 1=Approved, 2=Rejected, 3=Suspended
+    createdAt:          string;
+    propertiesCount:    number;
+    documentsUrl:       string | null;
+}
+
+export interface AdminPropertyDto {
+    id:            number;
+    title:         string;
+    address:       string;
+    city:          string;
+    monthlyRent:   number;
+    availableBeds: number;
+    landlordName:  string;
+    landlordId:    string;
+    status:        number;
+    createdAt:     string;
+}
+
+export interface AdminDisputeDto {
+    id:                  number;
+    studentName:         string;
+    landlordName:        string;
+    description:         string;
+    status:              number;
+    createdAt:           string;
+    adminResolutionNotes: string | null;
+}
+
+export interface CityDistributionDto {
+    city:            string;
+    propertyCount:   number;
+    tenancyCount:    number;
+}
+
 // =============================================
 // listingsApi.ts
 // =============================================
@@ -472,6 +527,37 @@ export const listingsApi = createApi({
             transformResponse: (response: ApiResponse<PropertyInfoDto>) => response.data,
             providesTags: (_result, _error, id) => [{ type: 'Listing' as const, id }],
         }),
+        getAdminDashboard: builder.query<AdminDashboardDto, void>({
+    query: () => ({ url: 'User/get-admin-dashboard', method: 'GET' }),
+    transformResponse: (response: ApiResponse<AdminDashboardDto>) => response.data,
+    providesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
+}),
+
+approveLandlord: builder.mutation<ApiResponse<boolean>, string>({
+    query: (userId) => ({
+        url: `User/update-landlord-status?user_id=${userId}&isAppproved=true`,
+        method: 'POST',
+    }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
+}),
+
+rejectLandlord: builder.mutation<ApiResponse<boolean>, string>({
+    query: (userId) => ({
+        url: `User/update-landlord-status?user_id=${userId}&isAppproved=false`,
+        method: 'POST',
+    }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
+}),
+
+adminApproveProperty: builder.mutation<ApiResponse<boolean>, number>({
+    query: (id) => ({ url: `Property/${id}/approve`, method: 'PATCH' }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
+}),
+
+adminRejectProperty: builder.mutation<ApiResponse<boolean>, number>({
+    query: (id) => ({ url: `Property/${id}/reject`, method: 'PATCH' }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
+}),
 
        updateProperty: builder.mutation<boolean, UpdatePropertyDto>({
             query: (property) => ({
@@ -559,4 +645,9 @@ useGetImagesByPropertyIdQuery,
     useSetPrimaryImageMutation,
     useGetStudentApplicationQuery,
     useMarkMaintenanceResolvedMutation,
+    useGetAdminDashboardQuery,
+    useApproveLandlordMutation,
+    useRejectLandlordMutation,
+    useAdminApprovePropertyMutation,
+    useAdminRejectPropertyMutation,
 } = listingsApi;

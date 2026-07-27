@@ -74,9 +74,17 @@ namespace ko.core.MappingProfiles
     {
         public RentPaymentMappingProfile()
         {
-            CreateMap<RentPayment, RentPaymentDto>().ReverseMap();
-            CreateMap<RentPayment, AddRentPaymentDto>().ReverseMap();
-            CreateMap<RentPayment, MarkRentPaidDto>().ReverseMap();
+            CreateMap<RentPayment, RentPaymentDto>()
+            .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.Tenancy.Student.FullName))
+            .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.Tenancy.StudentId))
+            .ForMember(dest => dest.PropertyTitle, opt => opt.MapFrom(src => src.Tenancy.Property.Title))
+            .ForMember(dest => dest.PropertyLocation, opt => opt.MapFrom(src =>
+                src.Tenancy.Property.Address + " - " + src.Tenancy.Property.City));
+
+            CreateMap<AddRentPaymentDto, RentPayment>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => PaymentStatus.Pending));
+
+            CreateMap<RentPaymentDto, RentPayment>();
         }
     }
 

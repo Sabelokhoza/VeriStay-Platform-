@@ -150,9 +150,12 @@ namespace ko.entity_framework.entities
         public DateTime LeaseEndDate { get; set; }
         public decimal MonthlyRent { get; set; }
         public TenancyStatus Status { get; set; } = TenancyStatus.Active;
-
         public List<RentPayment> RentPayments { get; set; } = new();
-        public List<LeaseDocument> LeaseDocuments { get; set; } = new();
+        public string LeaseDocument { get; set; } = string.Empty;
+        public string LandLordName = string.Empty;
+        public string StudentName = string.Empty;
+        public string PropertyTittle = string.Empty;
+
     }
 
     public enum TenancyStatus { Active, Ended, Terminated }

@@ -14,5 +14,6 @@ namespace ko.core.Contracts
         Task<byte[]> DownloadFileAsync(string bucketName, string filePath);
         string GetPublicUrl(string bucketName, string filePath);
         Task<string> GetSignedUrlAsync(string bucketName, string filePath, int expiresIn = 3600);
+        Task<string> UploadStreamAsync(Stream stream, string bucketName, string? folder, string fileName, string contentType);
     }
 }

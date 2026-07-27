@@ -3,6 +3,7 @@ using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,8 @@ namespace ko.core.Services
         private readonly IMapper _mapper;
         private readonly IServiceProvider _serviceProvider;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILeaseAgreementService _leaseAgreementService;
+        private readonly IFileUploadService _fileUploadService;
 
 
 
@@ -27,7 +30,9 @@ namespace ko.core.Services
             IAppLogger<TenancyService> logger,
             IMapper mapper,
         UserManager<ApplicationUser> userManager,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ILeaseAgreementService leaseAgreementService,
+        IFileUploadService fileUploadService)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
@@ -35,11 +40,13 @@ namespace ko.core.Services
             _mapper = mapper;
             _userManager = userManager;
             _serviceProvider = serviceProvider;
+            _leaseAgreementService = leaseAgreementService;
+            _fileUploadService = fileUploadService;
         }
 
         #region CRUD
 
-        public async Task<TenancyDto?> AddAsync(AddTenancyDto dto)
+        public async Task<TenancyDto?>  AddAsync(AddTenancyDto dto)
         {
             var canAdd = await onInsert(dto);
             if (!canAdd) return null;
@@ -49,6 +56,16 @@ namespace ko.core.Services
             var entity = _mapper.Map<Tenancy>(dto);
             entity.Status = TenancyStatus.Active;
             entity.DateCreated = DateTime.UtcNow;
+
+            var student = await _appDbContext.Students.FindAsync(entity.StudentId);
+            var property = await _appDbContext.Properties
+                .Include(p => p.Landlord)
+                .FirstOrDefaultAsync(p => p.Id == entity.PropertyId);
+
+            entity.StudentName = student?.FullName ?? string.Empty;
+            entity.PropertyTittle = property?.Title ?? string.Empty;
+            entity.LandLordName = property?.Landlord?.FullName ?? string.Empty;
+
 
             await _appDbContext.Tenancies.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
@@ -105,6 +122,7 @@ namespace ko.core.Services
 
             var data = await _appDbContext.Tenancies
                 .Where(t => t.StudentId == studentId)
+                .OrderByDescending(o => o.Id)
                 .FirstOrDefaultAsync();
 
             var dto = _mapper.Map<TenancyDto>(data);
@@ -119,9 +137,34 @@ namespace ko.core.Services
                 dto.StudentName = student.FullName;
                 dto.LandlordName = landlord.FullName;
                 dto.Location = $"{property.Address} - {property.City}";
+                dto.LeaseDocument = string.IsNullOrEmpty( data.LeaseDocument) ? "" : await _fileUploadService.GetSignedUrlAsync("uploads", data.LeaseDocument);
             }
 
             return dto;
+        }
+
+        public async Task<TenancyDto> UploadLeaseDocumentAsync(int tenancyId, IFormFile leaseDocument)
+        {
+            _logger.LogInformation("Uploading lease document for tenancy {0}", tenancyId);
+
+            var tenancy = await _appDbContext.Tenancies
+                .FirstOrDefaultAsync(t => t.Id == tenancyId);
+
+            if (tenancy == null)
+                throw new NotFoundException(nameof(UploadLeaseDocumentAsync), tenancyId);
+
+            var documentUrl = await _fileUploadService.UploadFileAsync(leaseDocument,"uploads" , "leases");
+
+            if (string.IsNullOrEmpty(documentUrl))
+                throw new BadRequestException("Failed to upload lease document");
+
+            tenancy.LeaseDocument = documentUrl;
+
+            await _appDbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Lease document uploaded successfully for tenancy {0}", tenancyId);
+
+            return _mapper.Map<TenancyDto>(tenancy);
         }
 
         public async Task<List<TenancyDto>> GetByPropertyIdAsync(int propertyId)
@@ -209,10 +252,35 @@ namespace ko.core.Services
         public async Task<bool> afterInsert(TenancyDto dto)
         {
             var _propertyService = _serviceProvider.GetService<IPropertyService>();
-            var propery = await _propertyService.GetByIdAsync(dto.Id);
+            var propery = await _propertyService.GetByIdAsync(dto.PropertyId);
+            if (propery.IsAvailable == false)
+            {
+                throw new  BadRequestException("Propery is fulli occupied , Try again next time");
+            }
+
             propery.AvailableBeds = propery.AvailableBeds - 1;
             await _propertyService.UpdateAsync(propery.Id, propery);
 
+            var entity = await _appDbContext.Tenancies.FindAsync(dto.Id);
+            if (entity == null) return false;
+
+            _logger.LogInformation("Generating lease agreement PDF for tenancy {0}", entity.Id);
+
+            var student = await _userManager.FindByIdAsync(dto.StudentId);
+            var landlord = await _userManager.FindByIdAsync(propery.LandlordId);
+            entity.PropertyTittle = propery.Title;
+            entity.LandLordName = landlord.FullName;
+            entity.StudentName = student.FullName;
+            var pdfBytes = _leaseAgreementService.Generate(entity);
+            var fileName = $"lease-{entity.Id}-{Guid.NewGuid()}.pdf";
+
+            using var stream = new MemoryStream(pdfBytes);
+            var url = await _fileUploadService.UploadStreamAsync(stream, "uploads", "leases", fileName, "application/pdf");
+
+            entity.LeaseDocument = url;
+            await _appDbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Lease agreement generated and saved for tenancy {0}", entity.Id);
             return true;
         }
 

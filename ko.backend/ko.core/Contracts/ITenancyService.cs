@@ -1,4 +1,5 @@
 ﻿using ko.core.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace ko.core.Contracts
 {
@@ -13,6 +14,7 @@ namespace ko.core.Contracts
         Task<TenancyDto?> GetByIdAsync(int? id);
         Task<List<TenancyDto>> GetByStudentIdAsync(string studentId);
         Task<TenancyDto> GetTenacyInfoByStudentIdAsync(string studentId);
+        Task<TenancyDto> UploadLeaseDocumentAsync(int tenancyId, IFormFile leaseDocument);
         Task<List<TenancyDto>> GetByPropertyIdAsync(int propertyId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> UpdateAsync(int id, TenancyDto dto);

@@ -97,13 +97,20 @@ namespace ko.core.Contracts
 
     public interface IRentPaymentService
     {
-        Task<RentPaymentDto?> AddAsync(AddRentPaymentDto dto);
-        Task<List<RentPaymentDto>> GetAllAsync();
-        Task<RentPaymentDto?> GetByIdAsync(int? id);
+        // Student
+        Task<StudentPaymentSummaryDto> GetStudentPaymentSummaryAsync(string studentId);
         Task<List<RentPaymentDto>> GetByTenancyIdAsync(int tenancyId);
+        Task<RentPaymentDto?> GetByIdAsync(int? id);
+
+        // Landlord / Admin
+        Task<RentPaymentDto?> AddAsync(AddRentPaymentDto dto);
         Task<bool> DeleteAsync(int? id);
-        Task<bool> MarkAsPaidAsync(MarkRentPaidDto dto);
         Task<List<RentPaymentDto>> GetOverdueAsync();
+        Task<List<RentPaymentDto>> GetAllAsync();
+
+        // Mark paid
+        Task<RentPaymentDto> MarkAsPaidAsync(MarkRentPaidDto dto);
+
         // Events
         Task<bool> onInsert(AddRentPaymentDto dto);
         Task<bool> afterInsert(RentPaymentDto dto);

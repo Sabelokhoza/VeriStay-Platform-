@@ -163,6 +163,39 @@ namespace ko.core.Services
             }
         }
 
+        public async Task<string> UploadStreamAsync(Stream stream, string bucketName, string? folder, string fileName, string contentType)
+        {
+            if (stream == null || stream.Length == 0)
+                throw new ArgumentException("Stream is required");
+
+            try
+            {
+                _logger.LogInformation("Uploading stream {FileName} to bucket {BucketName}", fileName, bucketName);
+
+                var filePath = string.IsNullOrEmpty(folder) ? fileName : $"{folder}/{fileName}";
+
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                var fileBytes = memoryStream.ToArray();
+
+                await _supabaseClient.Storage
+                    .From(bucketName)
+                    .Upload(fileBytes, filePath, new Supabase.Storage.FileOptions
+                    {
+                        ContentType = contentType,
+                        Upsert = false
+                    });
+
+                _logger.LogInformation("Stream uploaded successfully to {FilePath}", filePath);
+                return filePath;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, "Error uploading stream {FileName} to bucket {BucketName}", fileName, bucketName);
+                throw new Exception($"Failed to upload stream: {ex.Message}", ex);
+            }
+        }
+
         public async Task<List<string>> ListFilesAsync(string bucketName, string? folder = null)
         {
             try

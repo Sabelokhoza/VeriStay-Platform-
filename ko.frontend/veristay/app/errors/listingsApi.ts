@@ -21,6 +21,13 @@ export interface HousemateDto {
     budget: number;
 }
 
+export interface AddReviewDto {
+    landlordId: string;
+    propertyId: number;
+    rating:     number;
+    comment:    string;
+}
+
 export interface PropertyInfoDto {
     id:            number;
     landlordId:    string;
@@ -134,6 +141,22 @@ export interface ListingDetailsDto {
     availableFrom: string;
     createdAt: string;
     images: ListingImageDto[];
+    reviews: ReviewDto[]; 
+}
+
+
+
+export interface ReviewDto {
+    id:           number;
+    studentId:    string;
+    studentName:  string;
+    landlordId:   string;
+    landlordName: string;
+    propertyId:   number;
+    propertyTitle: string;
+    rating:       number;
+    comment:      string;
+    createdAt:    string;
 }
 export interface TenancyDto {
     id: number;
@@ -143,6 +166,7 @@ export interface TenancyDto {
     location: string;
     propertyId: number;
     propertyTitle: string;
+    leaseDocument:  string;
     leaseStartDate: string;
     leaseEndDate: string;
     monthlyRent: number;
@@ -251,6 +275,40 @@ export interface LandlordMaintenanceDto {
     submittedAt:      string;
     resolvedAt:       string | null;
 }
+
+export interface RentPaymentDto {
+    id:               number;
+    tenancyId:        number;
+    studentName:      string;
+    studentId:        string;
+    propertyTitle:    string;
+    propertyLocation: string;
+    amount:           number;
+    dueDate:          string;
+    paidAt:           string | null;
+    status:           number; // 0=Pending, 1=Paid, 2=Overdue
+    receiptUrl:       string;
+}
+
+export interface StudentPaymentSummaryDto {
+    tenancyId:        number;
+    propertyTitle:    string;
+    propertyLocation: string;
+    monthlyRent:      number;
+    totalPayments:    number;
+    paidCount:        number;
+    pendingCount:     number;
+    overdueCount:     number;
+    totalPaid:        number;
+    totalOwed:        number;
+    payments:         RentPaymentDto[];
+}
+
+export interface MarkRentPaidDto {
+    rentPaymentId: number;
+    receiptUrl:    string;
+}
+
 export interface StudentDashboardDataDto {
     student: StudentDto;
     applicationsCount: number;
@@ -259,6 +317,7 @@ export interface StudentDashboardDataDto {
     requestsCount: number;
     applications: ApplicationDto[];
     waitingList: ApplicationDto[];
+    activeTenancy:     TenancyDto | null;
     announcementDtos: AnnouncementDto[];
 }
 
@@ -424,6 +483,37 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: `dashboard-${userId}` },
             ],
         }),
+        addReview: builder.mutation<ApiResponse<ReviewDto>, { studentId: string; dto: AddReviewDto }>({
+            query: ({ studentId, dto }) => ({
+                url:    `Review/${studentId}`,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:   dto,
+            }),
+            invalidatesTags: (_result, _error, { dto }) => [
+                { type: 'Listing' as const, id: dto.propertyId },
+            ],
+        }),
+        getStudentPaymentSummary: builder.query<StudentPaymentSummaryDto, string>({
+            query: (studentId) => ({
+                url:    `RentPayment/get-student-summary?studentId=${studentId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<StudentPaymentSummaryDto>) => response.data,
+            providesTags: (_result, _error, studentId) => [
+                { type: 'Listing' as const, id: `payments-${studentId}` },
+            ],
+        }),
+
+        markRentPaid: builder.mutation<ApiResponse<RentPaymentDto>, MarkRentPaidDto>({
+            query: (body) => ({
+                url:    'RentPayment/mark-paid',
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+            }),
+            invalidatesTags: [{ type: 'Listing' as const, id: 'LIST' }],
+        }),
         getTenancyInfo: builder.query<TenancyDto, string>({
             query: (studentId) => ({
                 url: `Tenancy/get-tenancy-info?studentId=${studentId}`,
@@ -444,6 +534,18 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: `landlord-dashboard-${userId}` },
             ],
         }),
+        uploadLeaseDocument: builder.mutation<ApiResponse<TenancyDto>, { tenancyId: number; file: File }>({
+    query: ({ tenancyId, file }) => {
+        const formData = new FormData();
+        formData.append('leaseDocument', file);
+        return {
+            url:  `Tenancy/upload-lease?tenancyId=${tenancyId}`,
+            method: 'POST',
+            body: formData,
+        };
+    },
+    invalidatesTags: [{ type: 'Listing' as const, id: 'LIST' }],
+}),
         getHousemates: builder.query<HousemateDto[], string>({
             query: (userId) => ({
                 url: `Tenancy/get-housemates?userId=${userId}`,
@@ -548,7 +650,21 @@ rejectLandlord: builder.mutation<ApiResponse<boolean>, string>({
     }),
     invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
 }),
-
+ acceptDeclineOffer: builder.mutation<boolean, { applicationId: number; isAccepted: boolean }>({
+            query: ({ applicationId, isAccepted }) => ({
+                url: `Application/accept-decline?applicationId=${applicationId}&isAccepted=${isAccepted}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: ['Listing'],
+        }),
+       downloadReceipt: builder.query<string, number>({
+    query: (paymentId) => ({
+        url:    `RentPayment/${paymentId}/download-receipt`,
+        method: 'GET',
+    }),
+    transformResponse: (response: ApiResponse<string>) => response.data,
+}),
 adminApproveProperty: builder.mutation<ApiResponse<boolean>, number>({
     query: (id) => ({ url: `Property/${id}/approve`, method: 'PATCH' }),
     invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
@@ -587,6 +703,13 @@ adminRejectProperty: builder.mutation<ApiResponse<boolean>, number>({
     providesTags: (_result, _error, propertyId) => [
         { type: 'Listing' as const, id: propertyId },
     ],
+}),
+getReceiptUrl: builder.mutation<string, number>({
+    query: (paymentId) => ({
+        url:    `RentPayment/get-receipt?id=${paymentId}`,  
+        method: 'GET',
+    }),
+    transformResponse: (response: ApiResponse<string>) => response.data,
 }),
 
        addPropertyImage: builder.mutation<
@@ -650,4 +773,12 @@ useGetImagesByPropertyIdQuery,
     useRejectLandlordMutation,
     useAdminApprovePropertyMutation,
     useAdminRejectPropertyMutation,
+    useAcceptDeclineOfferMutation,
+    useAddReviewMutation,
+     useUploadLeaseDocumentMutation,
+     useGetStudentPaymentSummaryQuery,
+    
+     useLazyDownloadReceiptQuery,
+    useMarkRentPaidMutation,
+    useGetReceiptUrlMutation
 } = listingsApi;

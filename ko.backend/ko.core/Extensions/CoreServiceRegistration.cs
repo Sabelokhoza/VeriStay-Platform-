@@ -13,6 +13,7 @@ namespace ko.core.Extensions
             services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddScoped<IFileUploadService, FileUploadService>();
+            services.AddScoped<ILeaseAgreementService, LeaseAgreementService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IEmailServiceMailJet, EmailServiceMailJet>();
             services.AddScoped<IAuthService, AuthService>();
@@ -23,6 +24,9 @@ namespace ko.core.Extensions
             services.AddScoped<IApplicationService, ApplicationService>();
             services.AddScoped<IAnnouncementService, AnnouncementService>();
             services.AddScoped<IMaintenanceRequestService, MaintenanceRequestService>();
+            services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IReceiptGeneratorService, ReceiptGeneratorService>();
+            services.AddScoped<IRentPaymentService, RentPaymentService>();
 
             services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 

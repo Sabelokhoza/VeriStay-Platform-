@@ -5,6 +5,7 @@ using ko.entity_framework;
 using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using static ko.core.Exceptions.ApiException;
 
@@ -18,6 +19,7 @@ namespace ko.core.Services
         private readonly IMapper _mapper;
         private readonly IFileUploadService _fileUploadService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IServiceProvider _serviceProvider;
 
         public PropertyService(
             AppDbContext appDbContext,
@@ -25,7 +27,8 @@ namespace ko.core.Services
             IAppLogger<PropertyService> logger,
             IMapper mapper,
             IFileUploadService fileUploadService,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IServiceProvider serviceProvider)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
@@ -33,6 +36,7 @@ namespace ko.core.Services
             _mapper = mapper;
             _fileUploadService = fileUploadService;
             _userManager = userManager;
+            _serviceProvider = serviceProvider;
         }
 
         #region CRUD
@@ -158,6 +162,11 @@ namespace ko.core.Services
             _logger.LogInformation("Attempting to update property with id {0}", id);
 
             if (id != dto.Id) return false;
+
+            if (dto.AvailableBeds == 0)
+            {
+                dto.IsAvailable = false;
+            }
 
             var entity = await _appDbContext.Properties.FindAsync(id);
             if (entity == null) throw new NotFoundException(nameof(UpdateAsync), id);
@@ -475,6 +484,8 @@ namespace ko.core.Services
             listing.LandlordName = landlord.FullName;
             listing.Images = await GetImagesByPropertyIdAsync(item.Id);
            
+            var _reviewService =  _serviceProvider.GetRequiredService<IReviewService>();
+            listing.Reviews = await _reviewService.GetByPropertyIdAsync(id);
 
             return listing;
         }

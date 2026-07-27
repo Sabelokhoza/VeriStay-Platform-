@@ -298,6 +298,7 @@ namespace ko.core.Services
                     MonthlyRent = propery.MonthlyRent
                 });
 
+
             }
             else
             {
@@ -310,6 +311,15 @@ namespace ko.core.Services
             }
 
             return true;
+        }
+
+        private async Task SendApplicitionApprovedEmailAsync(Application entity)
+        {
+            var propery = await _propertyService.GetByIdAsync(entity.PropertyId);
+            var student = await _userManager.FindByIdAsync(entity.StudentId);
+            var ladlord = await _userManager.FindByIdAsync(propery.LandlordId);
+
+            
         }
 
         public Task<bool> onUpdate(ApplicationDto dto) => Task.FromResult(true);

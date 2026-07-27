@@ -2,6 +2,7 @@
 using ko.core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace ko.api.Controllers
 {
@@ -91,6 +92,20 @@ namespace ko.api.Controllers
             _logger.LogInformation("GET api/tenancy/property/{0} - Retrieving tenancies for property", propertyId);
             var result = await _tenancyService.GetByPropertyIdAsync(propertyId);
             return Ok(ApiResponse.Success(result, "Property tenancies retrieved successfully"));
+        }
+
+        /// <summary>
+        /// Upload a lease document for a tenancy
+        /// </summary>
+        [HttpPost("upload-lease")]
+        [Authorize(Roles = "Student, Landlord, Admin")]
+        public async Task<ActionResult<ApiResponse<TenancyDto>>> UploadLeaseDocument(
+            [Required] int tenancyId,
+            [Required(ErrorMessage = "Lease document is required")] IFormFile leaseDocument)
+        {
+            _logger.LogInformation("POST api/Tenancy/upload-lease - Uploading lease for tenancy {0}", tenancyId);
+            var result = await _tenancyService.UploadLeaseDocumentAsync(tenancyId, leaseDocument);
+            return Ok(ApiResponse.Success(result, "Lease document uploaded successfully"));
         }
 
         /// <summary>

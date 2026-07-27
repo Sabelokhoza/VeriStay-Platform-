@@ -27,6 +27,7 @@ namespace ko.core.Models
         public int ApprovedCount { get; set; } = 0;
         public int PaymentsCount { get; set; } = 0;
         public int RequestsCount { get; set; } = 0;
+        public TenancyDto ActiveTenancy { get; set; } 
         public List<ApplicationDto> Applications { get; set; } = new List<ApplicationDto>();
         public List<ApplicationDto> WaitingList { get; set; } = new List<ApplicationDto>();
         public List<AnnouncementDto> announcementDtos { get; set; } = new List<AnnouncementDto>();
@@ -166,6 +167,7 @@ namespace ko.core.Models
         public DateTime AvailableFrom { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<PropertyImageDto> Images { get; set; }
+        public List<ReviewDto> Reviews { get; set; }
     }
 
     public class AddPropertyDto
@@ -353,6 +355,7 @@ namespace ko.core.Models
         public string StudentName { get; set; }
         public string LandlordName { get; set; }
         public string Location { get; set; }
+        public string LeaseDocument { get; set; } = string.Empty;
         public int PropertyId { get; set; }
         public string PropertyTitle { get; set; }
         public DateTime LeaseStartDate { get; set; }
@@ -417,7 +420,9 @@ namespace ko.core.Models
         public int Id { get; set; }
         public int TenancyId { get; set; }
         public string StudentName { get; set; }
+        public string StudentId { get; set; }
         public string PropertyTitle { get; set; }
+        public string PropertyLocation { get; set; }
         public decimal Amount { get; set; }
         public DateTime DueDate { get; set; }
         public DateTime? PaidAt { get; set; }
@@ -431,7 +436,7 @@ namespace ko.core.Models
         public int TenancyId { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue)]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal Amount { get; set; }
 
         [Required]
@@ -442,10 +447,26 @@ namespace ko.core.Models
     {
         [Required]
         public int RentPaymentId { get; set; }
-
-        public string ReceiptUrl { get; set; }
+        public string ReceiptUrl { get; set; } = string.Empty;
     }
 
+    public class StudentPaymentSummaryDto
+    {
+        public int TenancyId { get; set; }
+        public string PropertyTitle { get; set; }
+        public string PropertyLocation { get; set; }
+        public decimal MonthlyRent { get; set; }
+        public int TotalPayments { get; set; }
+        public int PaidCount { get; set; }
+        public int PendingCount { get; set; }
+        public int OverdueCount { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal TotalOwed { get; set; }
+        public List<RentPaymentDto> Payments { get; set; } = new();
+    }
+
+
+    
 
     // =============================================
     // MAINTENANCE REQUEST DTOs

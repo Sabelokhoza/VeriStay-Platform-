@@ -65,12 +65,15 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Student dashboard data for user {0}", userId);
 
+            var _tenencyService = _serviceProvider.GetRequiredService<ITenancyService>();
+
             var studentDashboardDataDto = new StudentDashboardDataDto();
             studentDashboardDataDto.Student = await GetUser(userId);
             studentDashboardDataDto.Applications = await _applicationService.GetByStudentIdAsync(userId);
             studentDashboardDataDto.ApplicationsCount = studentDashboardDataDto.Applications.Count();
-            studentDashboardDataDto.ApprovedCount = studentDashboardDataDto.Applications.Count(w => w.Status == ApplicationStatus.Approved);
+            studentDashboardDataDto.ApprovedCount = studentDashboardDataDto.Applications.Count(w => w.Status == ApplicationStatus.Accepted);
             studentDashboardDataDto.WaitingList = studentDashboardDataDto.Applications.Where(w => w.Status == ApplicationStatus.WaitingList).ToList();
+            studentDashboardDataDto.ActiveTenancy = await _tenencyService.GetTenacyInfoByStudentIdAsync(userId);
 
             return studentDashboardDataDto;
         }
@@ -178,8 +181,6 @@ namespace ko.core.Services
 
             return studentDashboardDataDto;
         }
-
-
 
         public async Task<ProfileDto> GetUser(string userId)
         {

@@ -35,6 +35,7 @@ import {
     ApplicationDto,
     LandlordPropertyDto,
     LandlordMaintenanceDto,
+    useAcceptDeclineOfferMutation,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
 
@@ -377,6 +378,30 @@ function ApplicationReviewModal({
         isLoading: isLoadingDetails,
         isError: isDetailsError,
     } = useGetStudentApplicationQuery(app.id, { skip: !app.id });
+    const [acceptDeclineOffer, { isLoading: isLoadingAcceptDecline }] = useAcceptDeclineOfferMutation();
+    const [pending, setPending] = useState<'accept' | 'decline' | null>(null);
+
+     async function handleApprove() {
+        setPending('accept');
+        try {
+            const result = await acceptDeclineOffer({ applicationId: app.id, isAccepted: true });
+            if ('data' in result) {
+            }
+        } finally {
+            setPending(null);
+        }
+    }
+
+    async function handleReject() {
+        setPending('decline');
+        try {
+            const result = await acceptDeclineOffer({ applicationId: app.id, isAccepted: false });
+            if ('data' in result) {
+            }
+        } finally {
+            setPending(null);
+        }
+    }
 
     const studentName = details?.studentName ?? app.studentName;
 
@@ -478,14 +503,14 @@ function ApplicationReviewModal({
                             Review this application and choose to approve or reject it.
                             The student will be notified of your decision via email.
                         </p>
-                        <button onClick={onApprove} disabled={isLoading}
+                        <button onClick={handleApprove} disabled={isLoading || pending === 'accept'}
                             className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-colors disabled:opacity-50">
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                            {isLoading || pending === 'accept' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                             Approve Application
                         </button>
-                        <button onClick={onReject} disabled={isLoading}
+                        <button onClick={handleReject} disabled={isLoading || pending === 'decline'}
                             className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50">
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                            {isLoading || pending === 'decline' ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
                             Reject Application
                         </button>
                         <button onClick={onClose} disabled={isLoading}

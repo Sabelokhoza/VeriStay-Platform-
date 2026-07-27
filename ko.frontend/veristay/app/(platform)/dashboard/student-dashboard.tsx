@@ -39,6 +39,8 @@ import {
 import { useAppSelector } from '@/app/store/store';
 import { TenancyTab } from './tenancy-tab';
 import { NewMaintenanceRequestModal } from './new-maintenance-request-modal';
+import { CommunityTab } from './community-tab';
+import { PaymentsTab } from './payments-tab';
 
 // =============================================
 // Helpers
@@ -723,205 +725,308 @@ export function StudentDashboard() {
 
                 {/* Content */}
                 <div className="container mx-auto px-4 py-6 sm:px-8">
-                    {/* ===================== OVERVIEW ===================== */}
-                    {activeTab === 'overview' && (
-                        <>
-                            {(isLoading || isFetching) && <OverviewSkeleton />}
-                            {isError && !isLoading && (
-                                <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
-                                    Failed to load dashboard data. Please try again later.
+                   {/* ===================== OVERVIEW ===================== */}
+{activeTab === 'overview' && (
+    <>
+        {(isLoading || isFetching) && <OverviewSkeleton />}
+
+        {isError && !isLoading && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+                Failed to load dashboard data. Please try again later.
+            </div>
+        )}
+
+        {!isLoading && !isError && dashboardData && (
+            <div className="space-y-6">
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <StatCard
+                        icon={ClipboardList}
+                        label="Applications"
+                        value={dashboardData.applicationsCount}
+                        sub={`${applications.filter(a => a.status === 0).length} pending`}
+                        color="bg-blue-600"
+                    />
+                    <StatCard
+                        icon={CheckCircle}
+                        label="Approved"
+                        value={dashboardData.approvedCount}
+                        sub="accommodations"
+                        color="bg-green-600"
+                    />
+                    <StatCard
+                        icon={CreditCard}
+                        label="Payments Made"
+                        value={dashboardData.paymentsCount}
+                        sub="confirmed"
+                        color="bg-purple-600"
+                    />
+                    <StatCard
+                        icon={Wrench}
+                        label="Open Requests"
+                        value={dashboardData.requestsCount}
+                        sub="maintenance"
+                        color="bg-orange-600"
+                    />
+                </div>
+
+                {/* ── Active Tenancy Card ─────────────────────── */}
+                {dashboardData.activeTenancy ? (
+                    <div className="rounded-xl border bg-background p-5 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <p className="font-semibold flex items-center gap-2">
+                                <Home className="h-4 w-4 text-blue-600" />
+                                Active Tenancy
+                            </p>
+                            <span className="inline-flex items-center rounded-full border border-green-200 bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
+                                ✓ Active
+                            </span>
+                        </div>
+
+                        <div className="flex items-start gap-4">
+                            <div className="rounded-lg bg-blue-50 p-2.5 shrink-0">
+                                <Home className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold truncate">
+                                    {(dashboardData.activeTenancy.propertyTitle)
+                                        ? `Property #${dashboardData.activeTenancy.propertyId}`
+                                        : dashboardData.activeTenancy.propertyTitle}
+                                </p>
+                                {(dashboardData.activeTenancy.location) && (
+                                    <p className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
+                                        <MapPin className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                                        {dashboardData.activeTenancy.location}
+                                    </p>
+                                )}
+                                {(dashboardData.activeTenancy.landlordName) && (
+                                    <p className="text-sm text-muted-foreground mt-0.5">
+                                        Landlord:{' '}
+                                        <span className="font-medium text-foreground">
+                                            {dashboardData.activeTenancy.landlordName}
+                                        </span>
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Tenancy stats */}
+                        <div className="mt-4 grid grid-cols-3 gap-3">
+                            <div className="rounded-lg bg-muted/50 p-3 text-center">
+                                <p className="text-xs text-muted-foreground">Monthly Rent</p>
+                                <p className="text-base font-bold text-blue-600">
+                                    R {formatRent(dashboardData.activeTenancy.monthlyRent)}
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-muted/50 p-3 text-center">
+                                <p className="text-xs text-muted-foreground">Lease End</p>
+                                <p className="text-sm font-semibold">
+                                    {formatDate(dashboardData.activeTenancy.leaseEndDate)}
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-muted/50 p-3 text-center">
+                                <p className="text-xs text-muted-foreground">Days Left</p>
+                                <p className={`text-base font-bold ${
+                                    Math.ceil((new Date(dashboardData.activeTenancy.leaseEndDate).getTime() - Date.now()) / 86400000) <= 30
+                                        ? 'text-red-600'
+                                        : 'text-foreground'
+                                }`}>
+                                    {Math.max(0, Math.ceil(
+                                        (new Date(dashboardData.activeTenancy.leaseEndDate).getTime() - Date.now()) / 86400000
+                                    ))}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Lease document quick access */}
+                        {dashboardData.activeTenancy.leaseDocument &&
+                         dashboardData.activeTenancy.leaseDocument !== '' && (
+                            <div className="mt-3 flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-2.5">
+                                <div className="flex items-center gap-2 text-sm text-green-800">
+                                    <FileText className="h-4 w-4 shrink-0" />
+                                    <span className="font-medium">Lease document available</span>
                                 </div>
-                            )}
-                            {!isLoading && !isError && dashboardData && (
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                                        <StatCard
-                                            icon={ClipboardList}
-                                            label="Applications"
-                                            value={dashboardData.applicationsCount}
-                                            sub={`${applications.filter((a) => a.status === 0).length} pending`}
-                                            color="bg-blue-600"
-                                        />
-                                        <StatCard
-                                            icon={CheckCircle}
-                                            label="Approved"
-                                            value={dashboardData.approvedCount}
-                                            sub="accommodations"
-                                            color="bg-green-600"
-                                        />
-                                        <StatCard
-                                            icon={CreditCard}
-                                            label="Payments Made"
-                                            value={dashboardData.paymentsCount}
-                                            sub="confirmed"
-                                            color="bg-purple-600"
-                                        />
-                                        <StatCard
-                                            icon={Wrench}
-                                            label="Open Requests"
-                                            value={dashboardData.requestsCount}
-                                            sub="maintenance"
-                                            color="bg-orange-600"
-                                        />
-                                    </div>
-
-                                    {/* Approved applications alert */}
-                                    {applications.filter((a) => a.status === 1).length > 0 && (
-                                        <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-start gap-3">
-                                            <CheckCircle className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-semibold text-green-800">
-                                                    You have{' '}
-                                                    {
-                                                        applications.filter((a) => a.status === 1)
-                                                            .length
-                                                    }{' '}
-                                                    approved{' '}
-                                                    {applications.filter((a) => a.status === 1)
-                                                        .length === 1
-                                                        ? 'offer'
-                                                        : 'offers'}
-                                                    !
-                                                </p>
-                                                <p className="text-xs text-green-700 mt-0.5">
-                                                    Tap on the approved application below to accept
-                                                    or decline the offer.
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => setActiveTab('applications')}
-                                                className="text-xs font-medium text-green-700 underline underline-offset-2 shrink-0"
-                                            >
-                                                View
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {student && student.budget > 0 && (
-                                        <div className="rounded-xl border bg-background p-5 shadow-sm">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <p className="font-semibold flex items-center gap-2">
-                                                    <CreditCard className="h-4 w-4 text-blue-600" />
-                                                    Monthly Budget
-                                                </p>
-                                                <span className="text-sm text-muted-foreground">
-                                                    R {formatRent(student.budget)} / month
-                                                </span>
-                                            </div>
-                                            {dashboardData.approvedCount === 0 && (
-                                                <p className="text-sm text-muted-foreground">
-                                                    No active tenancy yet. Budget available for
-                                                    accommodation.
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="grid gap-6 lg:grid-cols-2">
-                                        <Section
-                                            title="Recent Applications"
-                                            icon={ClipboardList}
-                                            href="#"
-                                        >
-                                            {applications.length === 0 ? (
-                                                <div className="text-center py-6 text-sm text-muted-foreground">
-                                                    <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                                    <p>No applications yet.</p>
-                                                    <Link
-                                                        href="/listings"
-                                                        className="mt-1 inline-block text-blue-600 hover:underline text-xs"
-                                                    >
-                                                        Browse properties →
-                                                    </Link>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    {applications
-                                                        .slice(0, 3)
-                                                        .map((app: ApplicationDto) => (
-                                                            <ApplicationCard
-                                                                key={app.id}
-                                                                app={app}
-                                                            />
-                                                        ))}
-                                                </div>
-                                            )}
-                                        </Section>
-
-                                        <Section title="Landlord Announcements" icon={Bell}>
-                                            {announcements.length === 0 ? (
-                                                <div className="text-center py-6 text-sm text-muted-foreground">
-                                                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                                    <p>No announcements yet.</p>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    {announcements.map((a: AnnouncementDto) => (
-                                                        <div
-                                                            key={a.id}
-                                                            className="rounded-lg border border-blue-100 bg-blue-50 p-3"
-                                                        >
-                                                            <p className="text-sm">{a.message}</p>
-                                                            <div className="mt-1 flex items-center justify-between">
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    {a.landlordName}
-                                                                </p>
-                                                                <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                                    <Calendar className="h-3 w-3" />{' '}
-                                                                    {formatDate(a.postedAt)}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </Section>
-                                    </div>
-
-                                    {waitingList.length > 0 && (
-                                        <Section title="Waiting List" icon={Clock}>
-                                            <div className="space-y-3">
-                                                {waitingList.map(
-                                                    (w: ApplicationDto, idx: number) => (
-                                                        <div
-                                                            key={w.id}
-                                                            className="flex items-center justify-between rounded-lg border p-3"
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-medium truncate">
-                                                                    {w.propertyTitle !== 'string'
-                                                                        ? w.propertyTitle
-                                                                        : 'Property'}
-                                                                </p>
-                                                                <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                                    <MapPin className="h-3 w-3" />
-                                                                    {w.propertyLocation !==
-                                                                    'string - string'
-                                                                        ? w.propertyLocation
-                                                                        : 'Location not specified'}
-                                                                </p>
-                                                                <p className="text-xs text-blue-600 font-semibold mt-0.5">
-                                                                    R {formatRent(w.price)} / month
-                                                                </p>
-                                                            </div>
-                                                            <div className="text-right shrink-0">
-                                                                <p className="text-sm font-bold text-blue-600">
-                                                                    #{idx + 1}
-                                                                </p>
-                                                                <p className="text-xs text-muted-foreground">
-                                                                    in queue
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                )}
-                                            </div>
-                                        </Section>
-                                    )}
+                                <div className="flex items-center gap-2">
+                                    <a
+                                        href={dashboardData.activeTenancy.leaseDocument}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-medium text-green-700 underline underline-offset-2 hover:text-green-900"
+                                    >
+                                        View
+                                    </a>
+                                    <span className="text-green-400">·</span>
+                                    <a
+                                        href={dashboardData.activeTenancy.leaseDocument}
+                                        download={`lease-${dashboardData.activeTenancy.id}.pdf`}
+                                        className="text-xs font-medium text-green-700 underline underline-offset-2 hover:text-green-900"
+                                    >
+                                        Download
+                                    </a>
                                 </div>
-                            )}
-                        </>
-                    )}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => setActiveTab('tenancy')}
+                            className="mt-3 w-full rounded-lg border py-2 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                            Manage Tenancy →
+                        </button>
+                    </div>
+                ) : (
+                    // ── Budget card (no tenancy) ──────────────────────────
+                    student && student.budget > 0 && (
+                        <div className="rounded-xl border bg-background p-5 shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="font-semibold flex items-center gap-2">
+                                    <CreditCard className="h-4 w-4 text-blue-600" />
+                                    Monthly Budget
+                                </p>
+                                <span className="text-sm text-muted-foreground">
+                                    R {formatRent(student.budget)} / month
+                                </span>
+                            </div>
+                            <div className="rounded-lg bg-muted/30 border border-dashed border-muted-foreground/30 py-4 text-center">
+                                <Home className="h-6 w-6 mx-auto mb-1.5 text-muted-foreground opacity-40" />
+                                <p className="text-sm text-muted-foreground">
+                                    No active tenancy yet.
+                                </p>
+                                <button
+                                    onClick={() => setActiveTab('applications')}
+                                    className="mt-2 text-xs text-blue-600 hover:underline"
+                                >
+                                    View your applications →
+                                </button>
+                            </div>
+                        </div>
+                    )
+                )}
+
+                {/* Approved offer alert */}
+                {applications.filter(a => a.status === 1).length > 0 && (
+                    <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
+                        <CheckCircle className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-green-800">
+                                You have {applications.filter(a => a.status === 1).length} approved{' '}
+                                {applications.filter(a => a.status === 1).length === 1 ? 'offer' : 'offers'}!
+                            </p>
+                            <p className="text-xs text-green-700 mt-0.5">
+                                Tap on the approved application to accept or decline the offer.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setActiveTab('applications')}
+                            className="text-xs font-medium text-green-700 underline shrink-0"
+                        >
+                            View
+                        </button>
+                    </div>
+                )}
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Recent Applications */}
+                    <Section title="Recent Applications" icon={ClipboardList} href="#">
+                        {applications.length === 0 ? (
+                            <div className="text-center py-6 text-sm text-muted-foreground">
+                                <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                                <p>No applications yet.</p>
+                                <Link href="/listings" className="mt-1 inline-block text-blue-600 hover:underline text-xs">
+                                    Browse properties →
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {applications.slice(0, 3).map((app: ApplicationDto) => (
+                                    <div key={app.id}
+                                        onClick={app.status === 1 ? () => openOfferModal(app) : undefined}
+                                        className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition-all
+                                            ${app.status === 1 ? 'cursor-pointer hover:border-green-300 hover:bg-green-50 ring-1 ring-green-100' : ''}`}>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate">
+                                                {(app.propertyTitle) ? `Property #${app.propertyId}` : app.propertyTitle}
+                                            </p>
+                                            <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                                                <MapPin className="h-3 w-3" />
+                                                {(app.propertyLocation) ? 'Location not specified' : app.propertyLocation}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                Applied: {formatDate(app.appliedAt)}
+                                            </p>
+                                            {app.price > 0 && (
+                                                <p className="text-xs font-semibold text-blue-600 mt-0.5">
+                                                    R {formatRent(app.price)} / month
+                                                </p>
+                                            )}
+                                        </div>
+                                        <StatusBadge status={getStatusLabel(app.status)} />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Section>
+
+                    {/* Announcements */}
+                    <Section title="Landlord Announcements" icon={Bell}>
+                        {announcements.length === 0 ? (
+                            <div className="text-center py-6 text-sm text-muted-foreground">
+                                <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                                <p>No announcements yet.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {announcements.map((a: AnnouncementDto) => (
+                                    <div key={a.id} className="rounded-lg border border-blue-100 bg-blue-50 p-3">
+                                        <p className="text-sm">{a.message}</p>
+                                        <div className="mt-1 flex items-center justify-between">
+                                            <p className="text-xs text-muted-foreground">{a.landlordName}</p>
+                                            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Calendar className="h-3 w-3" />
+                                                {formatDate(a.postedAt)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Section>
+                </div>
+
+                {/* Waiting List */}
+                {waitingList.length > 0 && (
+                    <Section title="Waiting List" icon={Clock}>
+                        <div className="space-y-3">
+                            {waitingList.map((w: ApplicationDto, idx: number) => (
+                                <div key={w.id} className="flex items-center justify-between rounded-lg border p-3">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium truncate">
+                                            {(w.propertyTitle) ? `Property #${w.propertyId}` : w.propertyTitle}
+                                        </p>
+                                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <MapPin className="h-3 w-3" />
+                                            {(w.propertyLocation) ? 'Location not specified' : w.propertyLocation}
+                                        </p>
+                                        {w.price > 0 && (
+                                            <p className="text-xs text-blue-600 font-semibold mt-0.5">
+                                                R {formatRent(w.price)} / month
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <p className="text-sm font-bold text-blue-600">#{idx + 1}</p>
+                                        <p className="text-xs text-muted-foreground">in queue</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </Section>
+                )}
+            </div>
+        )}
+    </>
+)}
 
                     {/* ===================== APPLICATIONS ===================== */}
                     {activeTab === 'applications' && (
@@ -979,78 +1084,10 @@ export function StudentDashboard() {
                     )}
 
                     {/* ===================== PAYMENTS ===================== */}
+                   
                     {activeTab === 'payments' && (
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">Rent Payments</h2>
-                            <div className="grid grid-cols-3 gap-4">
-                                <StatCard
-                                    icon={CheckCircle}
-                                    label="Paid"
-                                    value={mockPayments.filter((p) => p.status === 'Paid').length}
-                                    sub="months"
-                                    color="bg-green-600"
-                                />
-                                <StatCard
-                                    icon={Clock}
-                                    label="Pending"
-                                    value={
-                                        mockPayments.filter((p) => p.status === 'Pending').length
-                                    }
-                                    sub="months"
-                                    color="bg-yellow-500"
-                                />
-                                <StatCard
-                                    icon={AlertCircle}
-                                    label="Overdue"
-                                    value={
-                                        mockPayments.filter((p) => p.status === 'Overdue').length
-                                    }
-                                    sub="months"
-                                    color="bg-red-600"
-                                />
-                            </div>
-                            <div className="space-y-3">
-                                {mockPayments.map((payment) => (
-                                    <div
-                                        key={payment.id}
-                                        className="flex items-center justify-between rounded-xl border bg-background p-4 shadow-sm"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div
-                                                className={`rounded-lg p-2 ${payment.status === 'Paid' ? 'bg-green-50' : 'bg-yellow-50'}`}
-                                            >
-                                                <CreditCard
-                                                    className={`h-5 w-5 ${payment.status === 'Paid' ? 'text-green-600' : 'text-yellow-600'}`}
-                                                />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold">
-                                                    {payment.month}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {payment.paidAt
-                                                        ? `Paid on ${formatDate(payment.paidAt)}`
-                                                        : 'Not yet paid'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <p className="font-bold">
-                                                R {formatRent(payment.amount)}
-                                            </p>
-                                            <StatusBadge status={payment.status} />
-                                            {payment.status === 'Pending' && (
-                                                <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
-                                                    Mark as Paid
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <PaymentsTab studentId={userId ?? ''} />
                     )}
-
                    {/* ===================== MAINTENANCE ===================== */}
                     {activeTab === 'maintenance' && (
                         <div className="space-y-4">
@@ -1127,105 +1164,14 @@ export function StudentDashboard() {
                         </div>
                     )}
 
-                    {/* ===================== COMMUNITY ===================== */}
-                    {activeTab === 'community' && (
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">Property Community</h2>
-                            <Section title="Landlord Announcements" icon={Bell}>
-                                {announcements.length === 0 ? (
-                                    <div className="text-center py-6 text-sm text-muted-foreground">
-                                        <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                        <p>No announcements yet.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {announcements.map((a: AnnouncementDto) => (
-                                            <div
-                                                key={a.id}
-                                                className="rounded-lg border border-blue-100 bg-blue-50 p-4"
-                                            >
-                                                <p className="text-sm">{a.message}</p>
-                                                <div className="mt-2 flex items-center justify-between">
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {a.landlordName}
-                                                    </p>
-                                                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Calendar className="h-3 w-3" />{' '}
-                                                        {formatDate(a.postedAt)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </Section>
-                           <Section title="Housemates" icon={Users}>
-                                {housematesLoading ? (
-                                    <div className="space-y-3 animate-pulse">
-                                        {Array.from({ length: 2 }).map((_, i) => (
-                                            <div key={i} className="h-12 rounded-lg bg-muted" />
-                                        ))}
-                                    </div>
-                                ) : housematesError ? (
-                                    <div className="text-center py-6 text-sm text-red-700">
-                                        Failed to load housemates.
-                                    </div>
-                                ) : housemates.length === 0 ? (
-                                    <div className="text-center py-6 text-sm text-muted-foreground">
-                                        <Users className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                        <p>No housemates yet.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {housemates.map((mate, idx) => (
-                                            <div
-                                                key={`${mate.id}-${idx}`}
-                                                className="flex items-center gap-3 rounded-lg border p-3"
-                                            >
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
-                                                    {mate.fullName?.charAt(0) ?? '?'}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-medium truncate">
-                                                        {mate.fullName}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground truncate">
-                                                        {mate.email}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </Section>
-                            <Section title="Rate Your Landlord" icon={Star}>
-                                <div className="text-center space-y-3">
-                                    <p className="text-sm text-muted-foreground">
-                                        How has your experience been with{' '}
-                                        <strong>{mockTenancy.landlordName}</strong>?
-                                    </p>
-                                    <div className="flex justify-center gap-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                className="text-2xl text-yellow-400 hover:scale-110 transition-transform"
-                                            >
-                                                ★
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <textarea
-                                        rows={3}
-                                        placeholder="Leave a review for your landlord..."
-                                        className="w-full rounded-lg border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                    />
-                                    <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                                        Submit Review
-                                    </button>
-                                </div>
-                            </Section>
-                        </div>
-                    )}
+                 {/* ===================== COMMUNITY ===================== */}
+            {activeTab === 'community' && (
+                <CommunityTab
+                    studentId={userId ?? ''}
+                    activeTenancy={dashboardData?.activeTenancy ?? null}
+                    announcements={announcements}
+                />
+            )}
                 </div>
             </div>
 

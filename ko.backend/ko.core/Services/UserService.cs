@@ -127,6 +127,23 @@ namespace ko.core.Services
 
             }).ToList();
 
+            var p = properties.Select(s => new AdminPropertyDto()
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Address = s.Address,
+                City = s.City,
+                MonthlyRent = s.MonthlyRent,
+                AvailableBeds = s.AvailableBeds,
+                LandlordId = s.LandlordId,
+                Status = s.Status == PropertyStatus.Approved ? 1
+               : s.Status == PropertyStatus.PendingApproval ? 0
+               : s.Status == PropertyStatus.Rejected ? 2
+               : 0,
+                CreatedAt = s.CreatedAt
+
+            }).ToList();
+
             adminDashboardDto.TotalLandlords = landlords.Count;
             adminDashboardDto.PendingLandlords  = pendingLandlords.Count();
 
@@ -148,7 +165,7 @@ namespace ko.core.Services
             adminDashboardDto.TotalStudents = students.Count;
             adminDashboardDto.TotalTenancies = tenencies.Count;
             adminDashboardDto.PendingLandlordsList = pendingLandlords;
-            adminDashboardDto.PendingPropertiesList = pendingPropetyList;
+            adminDashboardDto.PendingPropertiesList = p;
             adminDashboardDto.OpenMaintenanceCount = mantainances;
             adminDashboardDto.TotalApplications = applications.Count;
 

@@ -413,6 +413,36 @@ export interface CityDistributionDto {
     propertyCount:   number;
     tenancyCount:    number;
 }
+export interface LandlordPaymentSummaryDto {
+    tenancyId:        number;
+    studentName:      string;
+    studentId:        string;
+    propertyTitle:    string;
+    propertyLocation: string;
+    monthlyRent:      number;
+    totalPayments:    number;
+    paidCount:        number;
+    pendingCount:     number;
+    overdueCount:     number;
+    totalPaid:        number;
+    totalOwed:        number;
+    payments:         RentPaymentDto[];
+}
+
+export interface LandlordPaymentsOverviewDto {
+    totalCollected:   number;
+    totalOutstanding: number;
+    totalOverdue:     number;
+    tenancySummaries: LandlordPaymentSummaryDto[];
+}
+
+export interface SendReminderDto {
+    tenancyId:    number;
+    studentId:    string;
+    studentEmail: string;
+    message:      string;
+}
+
 
 // =============================================
 // listingsApi.ts
@@ -504,6 +534,26 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: `payments-${studentId}` },
             ],
         }),
+        getLandlordPaymentsOverview: builder.query<LandlordPaymentsOverviewDto, string>({
+            query: (landlordId) => ({
+                url:    `RentPayment/landlord-overview?landlordId=${landlordId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<LandlordPaymentsOverviewDto>) => response.data,
+            providesTags: (_result, _error, landlordId) => [
+                { type: 'Listing' as const, id: `landlord-payments-${landlordId}` },
+            ],
+        }),
+
+        sendPaymentReminder: builder.mutation<ApiResponse<boolean>, SendReminderDto>({
+            query: (body) => ({
+                url:    'RentPayment/send-reminder',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body,
+            }),
+        }),
+
 
         markRentPaid: builder.mutation<ApiResponse<RentPaymentDto>, MarkRentPaidDto>({
             query: (body) => ({
@@ -777,7 +827,8 @@ useGetImagesByPropertyIdQuery,
     useAddReviewMutation,
      useUploadLeaseDocumentMutation,
      useGetStudentPaymentSummaryQuery,
-    
+    useGetLandlordPaymentsOverviewQuery,
+    useSendPaymentReminderMutation,
      useLazyDownloadReceiptQuery,
     useMarkRentPaidMutation,
     useGetReceiptUrlMutation

@@ -25,6 +25,7 @@ import {
     Search,
     FileText,
     Download,
+    CreditCard,
 } from 'lucide-react';
 import {
     useGetLandlordDashboardQuery,
@@ -90,7 +91,7 @@ function getAppStatusLabel(status: number) {
         case 0: return 'Pending';
         case 1: return 'Approved';
         case 2: return 'Rejected';
-        case 4: return 'Withdrawn';
+        case 4: return 'Accepted';
         default: return 'Unknown';
     }
 }
@@ -591,12 +592,13 @@ function MaintenanceResponseModal({
 
 type Tab = 'overview' | 'properties' | 'applications' | 'tenants' | 'maintenance';
 
-const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: 'overview',     label: 'Overview',     icon: BarChart3     },
-    { id: 'properties',   label: 'Properties',   icon: Home          },
-    { id: 'applications', label: 'Applications', icon: ClipboardList },
-    { id: 'tenants',      label: 'Tenants',      icon: Users         },
-    { id: 'maintenance',  label: 'Maintenance',  icon: Wrench        },
+const tabs = [
+    { id: 'overview',     label: 'Overview',           icon: BarChart3     },
+    { id: 'properties',   label: 'Properties',         icon: Home          },
+    { id: 'applications', label: 'Applications',       icon: ClipboardList },
+    { id: 'tenants',      label: 'Tenants',            icon: Users         },
+    { id: 'payments',     label: 'Payments',           icon: CreditCard    }, 
+    { id: 'maintenance',  label: 'Maintenance',        icon: Wrench        },
 ];
 
 // =============================================
@@ -1222,6 +1224,10 @@ export function LandlordDashboard() {
                                 </div>
                             )}
                         </div>
+                    )}
+
+                    {activeTab === 'payments' && (
+                        <LandlordPaymentsTab landlordId={landlord?.id ?? userId} />
                     )}
                 </div>
             </div>

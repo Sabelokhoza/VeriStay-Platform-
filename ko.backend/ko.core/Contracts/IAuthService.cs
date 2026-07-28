@@ -107,6 +107,8 @@ namespace ko.core.Contracts
         Task<bool> DeleteAsync(int? id);
         Task<List<RentPaymentDto>> GetOverdueAsync();
         Task<List<RentPaymentDto>> GetAllAsync();
+        Task<LandlordPaymentsOverviewDto> GetLandlordPaymentsOverviewAsync(string landlordId);
+        Task<bool> SendPaymentReminderAsync(SendReminderDto dto);
 
         // Mark paid
         Task<RentPaymentDto> MarkAsPaidAsync(MarkRentPaidDto dto);

@@ -450,6 +450,39 @@ namespace ko.core.Models
         public string ReceiptUrl { get; set; } = string.Empty;
     }
 
+    public class LandlordPaymentSummaryDto
+    {
+        public int TenancyId { get; set; }
+        public string StudentName { get; set; }
+        public string StudentId { get; set; }
+        public string PropertyTitle { get; set; }
+        public string PropertyLocation { get; set; }
+        public decimal MonthlyRent { get; set; }
+        public int TotalPayments { get; set; }
+        public int PaidCount { get; set; }
+        public int PendingCount { get; set; }
+        public int OverdueCount { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal TotalOwed { get; set; }
+        public List<RentPaymentDto> Payments { get; set; } = new();
+    }
+
+    public class LandlordPaymentsOverviewDto
+    {
+        public decimal TotalCollected { get; set; }
+        public decimal TotalOutstanding { get; set; }
+        public decimal TotalOverdue { get; set; }
+        public List<LandlordPaymentSummaryDto> TenancySummaries { get; set; } = new();
+    }
+
+    public class SendReminderDto
+    {
+        [Required] public int TenancyId { get; set; }
+        public string? StudentId { get; set; }
+        public string? StudentEmail { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
     public class StudentPaymentSummaryDto
     {
         public int TenancyId { get; set; }

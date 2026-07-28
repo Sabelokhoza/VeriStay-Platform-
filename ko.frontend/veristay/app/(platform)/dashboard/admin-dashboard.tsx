@@ -9,6 +9,7 @@ import {
     Clock, ChevronRight, MapPin, Tag, BedDouble,
     Loader2, X, AlertCircle, Eye, Flag, FileText,
     TrendingUp, Building2, UserCheck, UserX,
+    ImageIcon,
 } from 'lucide-react';
 import {
     useGetAdminDashboardQuery,
@@ -18,6 +19,7 @@ import {
     useAdminRejectPropertyMutation,
     AdminLandlordDto,
     AdminPropertyDto,
+    useGetListingByIdQuery,
 } from '@/app/errors/listingsApi';
 
 // =============================================
@@ -268,11 +270,15 @@ function LandlordReviewModal({
 }
 
 // =============================================
-// Property Review Modal
+// Updated PropertyReviewModal in admin-dashboard.tsx
 // =============================================
 
 function PropertyReviewModal({
-    property, onApprove, onReject, onClose, isLoading,
+    property,
+    onApprove,
+    onReject,
+    onClose,
+    isLoading,
 }: {
     property:  AdminPropertyDto;
     onApprove: () => void;
@@ -283,65 +289,185 @@ function PropertyReviewModal({
     const [action, setAction] = useState<'approve' | 'reject' | null>(null);
     const beds = safeBeds(property.availableBeds);
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="relative w-full max-w-md rounded-2xl bg-background shadow-xl overflow-hidden">
+    // Fetch full listing details to get images
+    const { data: listing, isLoading: imagesLoading } = useGetListingByIdQuery(
+        property.id,
+        { skip: !property.id }
+    );
 
+    const images  = listing?.images ?? [];
+    const primary = images.find(i => i.isPrimary) ?? images[0];
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
+            <div className="relative w-full max-w-lg rounded-2xl bg-background shadow-xl overflow-hidden my-auto">
+
+                {/* Header */}
                 <div className="bg-blue-700 px-6 py-5 text-white">
-                    <button onClick={onClose} disabled={isLoading}
-                        className="absolute right-4 top-4 rounded-full p-1.5 text-white/70 hover:text-white hover:bg-white/10">
+                    <button
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="absolute right-4 top-4 rounded-full p-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    >
                         <X className="h-4 w-4" />
                     </button>
                     <h2 className="text-lg font-bold">Review Property Listing</h2>
-                    <p className="text-sm text-blue-100 mt-0.5">
-                        {isPlaceholder(property.title) ? `Property #${property.id}` : property.title}
+                    <p className="text-sm text-blue-100 mt-0.5 truncate">
+                        {isPlaceholder(property.title)
+                            ? `Property #${property.id}`
+                            : property.title}
                     </p>
                 </div>
 
-                <div className="px-6 py-4 border-b bg-muted/30 space-y-3">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                {/* Property Images */}
+                {imagesLoading ? (
+                    <div className="h-48 w-full animate-pulse bg-muted" />
+                ) : images.length > 0 ? (
+                    <div>
+                       {/* Primary / hero image */}
+<div className="relative h-52 w-full bg-muted">
+    {primary?.imageUrl ? (
+        <img
+            src={primary.imageUrl}
+            alt={property.title ?? 'Property'}
+            className="h-full w-full object-cover"
+        />
+    ) : (
+        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+            <Home className="h-8 w-8 opacity-30" />
+        </div>
+    )}
+    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white">
+        <ImageIcon className="h-3.5 w-3.5" />
+        {images.length} photo{images.length > 1 ? 's' : ''}
+    </div>
+</div>
+
+{/* Thumbnail strip */}
+{images.length > 1 && (
+    <div className="flex gap-1.5 overflow-x-auto bg-muted/30 px-4 py-2">
+        {images.slice(0, 6).map(img => (
+            <div
+                key={img.id}
+                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                    img.isPrimary
+                        ? 'border-blue-500 shadow-sm'
+                        : 'border-transparent opacity-75 hover:opacity-100'
+                }`}
+            >
+                <img
+                    src={img.imageUrl}
+                    alt="Property"
+                    className="h-full w-full object-cover"
+                />
+            </div>
+        ))}
+        {images.length > 6 && (
+            <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground border">
+                +{images.length - 6} more
+            </div>
+        )}
+    </div>
+)}
+                    </div>
+                ) : (
+                    <div className="flex h-36 w-full flex-col items-center justify-center bg-muted/30 text-muted-foreground border-b">
+                        <Home className="h-8 w-8 mb-1.5 opacity-30" />
+                        <p className="text-xs">No images uploaded yet</p>
+                    </div>
+                )}
+
+                {/* Property details grid */}
+                <div className="px-6 py-4 border-b bg-muted/30">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                         <div>
                             <p className="text-xs text-muted-foreground">Landlord</p>
-                            <p className="font-medium">{isPlaceholder(property.landlordName) ? '—' : property.landlordName}</p>
+                            <p className="font-medium">
+                                {isPlaceholder(property.landlordName)
+                                    ? '—'
+                                    : property.landlordName}
+                            </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Location</p>
                             <p className="font-medium flex items-center gap-1">
-                                <MapPin className="h-3 w-3 text-blue-600" />
+                                <MapPin className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                                 {isPlaceholder(property.city) ? '—' : property.city}
                             </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Monthly Rent</p>
-                            <p className="font-bold text-blue-600">
-                                {property.monthlyRent > 0 ? `R ${formatRent(property.monthlyRent)}` : '—'}
+                            <p className="font-bold text-blue-600 text-base">
+                                {property.monthlyRent > 0
+                                    ? `R ${formatRent(property.monthlyRent)}`
+                                    : '—'}
                             </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Bedrooms</p>
-                            <p className="font-medium">{beds ? `${beds} bed${beds === 1 ? '' : 's'}` : '—'}</p>
+                            <p className="font-medium">
+                                {beds ? `${beds} ${beds === 1 ? 'bed' : 'beds'}` : '—'}
+                            </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Address</p>
-                            <p className="font-medium">{isPlaceholder(property.address) ? '—' : property.address}</p>
+                            <p className="font-medium">
+                                {isPlaceholder(property.address) ? '—' : property.address}
+                            </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Submitted</p>
                             <p className="font-medium">{formatDate(property.createdAt)}</p>
                         </div>
                     </div>
+
+                    {/* Amenities */}
+                    {listing?.amenities && listing.amenities.filter(a => !isPlaceholder(a)).length > 0 && (
+                        <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs text-muted-foreground mb-2">Amenities</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {listing.amenities
+                                    .filter(a => !isPlaceholder(a))
+                                    .map((a, i) => (
+                                        <span
+                                            key={i}
+                                            className="rounded-full bg-blue-50 border border-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"
+                                        >
+                                            {a}
+                                        </span>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Description */}
+                    {listing?.description && !isPlaceholder(listing.description) && (
+                        <div className="mt-3 pt-3 border-t">
+                            <p className="text-xs text-muted-foreground mb-1">Description</p>
+                            <p className="text-sm text-foreground leading-relaxed line-clamp-3">
+                                {listing.description}
+                            </p>
+                        </div>
+                    )}
                 </div>
 
+                {/* Compliance note */}
                 <div className="px-6 py-4 border-b">
                     <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-xs text-yellow-800">
-                        <p className="font-semibold mb-1">⚠️ Compliance Check</p>
+                        <p className="font-semibold mb-0.5 flex items-center gap-1.5">
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            Compliance Check
+                        </p>
                         <p>
-                            Verify that this property meets VeriStay's safety and quality standards
-                            before approving. Once approved, students will be able to browse and apply.
+                            Verify that this property meets VeriStay's safety and quality
+                            standards before approving. Once approved, students will be
+                            able to browse and apply.
                         </p>
                     </div>
                 </div>
 
+                {/* Actions */}
                 <div className="px-6 py-5 space-y-3">
                     <button
                         onClick={() => { setAction('approve'); onApprove(); }}
@@ -354,6 +480,7 @@ function PropertyReviewModal({
                         }
                         Approve Listing
                     </button>
+
                     <button
                         onClick={() => { setAction('reject'); onReject(); }}
                         disabled={isLoading}
@@ -365,8 +492,12 @@ function PropertyReviewModal({
                         }
                         Reject Listing
                     </button>
-                    <button onClick={onClose} disabled={isLoading}
-                        className="w-full text-center text-xs text-muted-foreground hover:text-foreground">
+
+                    <button
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
                         Cancel
                     </button>
                 </div>

@@ -49,8 +49,8 @@ namespace ko.core.Services
             _logger.LogInformation("Adding property to the database");
 
             var entity = _mapper.Map<Property>(dto);
-            entity.Status = PropertyStatus.Approved;
-            entity.IsAvailable = true;
+            entity.Status = PropertyStatus.PendingApproval;
+            entity.IsAvailable = false;
             entity.DateCreated = DateTime.UtcNow;
 
             await _appDbContext.Properties.AddAsync(entity);
@@ -70,7 +70,14 @@ namespace ko.core.Services
             var data = await _appDbContext.Properties
                 .ToListAsync();
 
-            return _mapper.Map<List<PropertyDto>>(data);
+            var d =  _mapper.Map<List<PropertyDto>>(data);
+
+            foreach (var item in d)
+            {
+                item.Images = await GetImagesByPropertyIdAsync(item.Id);
+            }
+
+            return d;
         }
 
 
@@ -213,6 +220,7 @@ namespace ko.core.Services
             if (entity == null) throw new NotFoundException(nameof(ApproveAsync), id);
 
             entity.Status = PropertyStatus.Approved;
+            entity.IsAvailable = true;
             await _appDbContext.SaveChangesAsync();
 
 
@@ -438,7 +446,7 @@ namespace ko.core.Services
               string? description = null)
         {
             var query = _appDbContext.Properties
-                .Where(p => p.IsAvailable) // add isAvaila
+                .Where(p => p.IsAvailable && p.Status == PropertyStatus.Approved) // add isAvaila
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(city))

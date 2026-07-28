@@ -111,6 +111,32 @@ namespace ko.api.Controllers
         }
 
         /// <summary>
+        /// Get payment overview for all tenants — Landlord only
+        /// </summary>
+        [HttpGet("landlord-overview")]
+        public async Task<ActionResult<ApiResponse<LandlordPaymentsOverviewDto>>> GetLandlordOverview(
+            [FromQuery] string landlordId)
+        {
+            _logger.LogInformation(
+                "GET api/RentPayment/landlord-overview for landlord {0}", landlordId);
+            var result = await _rentPaymentService.GetLandlordPaymentsOverviewAsync(landlordId);
+            return Ok(ApiResponse.Success(result, "Landlord payment overview retrieved successfully"));
+        }
+
+        /// <summary>
+        /// Send payment reminder to a student — Landlord only
+        /// </summary>
+        [HttpPost("send-reminder")]
+        public async Task<ActionResult<ApiResponse<bool>>> SendReminder(
+            [FromBody] SendReminderDto dto)
+        {
+            _logger.LogInformation(
+                "POST api/RentPayment/send-reminder for tenancy {0}", dto.TenancyId);
+            var result = await _rentPaymentService.SendPaymentReminderAsync(dto);
+            return Ok(ApiResponse.Success(result, "Payment reminder sent successfully"));
+        }
+
+        /// <summary>
         /// Create a new rent payment — Landlord and Admin
         /// </summary>
         [HttpPost]

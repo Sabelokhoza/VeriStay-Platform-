@@ -359,7 +359,7 @@ function ReputationSection({ landlordId }: { landlordId: string }) {
     const { data } = useGetLandlordDashboardQuery(landlordId, { skip: !landlordId });
 
     const landlord = data?.landlord;
-    const score    = landlord?.reputationScore ?? 0;
+    const score    =  0;
 
     // Star breakdown (mock — replace with real review data when endpoint available)
     const breakdown = [5, 4, 3, 2, 1].map(star => ({

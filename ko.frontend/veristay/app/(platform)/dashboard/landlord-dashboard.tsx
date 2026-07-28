@@ -39,6 +39,7 @@ import {
     useAcceptDeclineOfferMutation,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
+import { LandlordPaymentsTab } from './landlord-payments-tab';
 
 // =============================================
 // Helpers
@@ -590,16 +591,17 @@ function MaintenanceResponseModal({
 // Tabs
 // =============================================
 
-type Tab = 'overview' | 'properties' | 'applications' | 'tenants' | 'maintenance';
+type Tab = 'overview' | 'properties' | 'applications' | 'tenants' | 'payments' | 'maintenance';
 
-const tabs = [
-    { id: 'overview',     label: 'Overview',           icon: BarChart3     },
-    { id: 'properties',   label: 'Properties',         icon: Home          },
-    { id: 'applications', label: 'Applications',       icon: ClipboardList },
-    { id: 'tenants',      label: 'Tenants',            icon: Users         },
-    { id: 'payments',     label: 'Payments',           icon: CreditCard    }, 
-    { id: 'maintenance',  label: 'Maintenance',        icon: Wrench        },
+const tabs: { id: Tab; label: string; icon: typeof BarChart3 }[] = [
+    { id: 'overview',     label: 'Overview',     icon: BarChart3     },
+    { id: 'properties',   label: 'Properties',   icon: Home          },
+    { id: 'applications', label: 'Applications', icon: ClipboardList },
+    { id: 'tenants',      label: 'Tenants',      icon: Users         },
+    { id: 'payments',     label: 'Payments',     icon: CreditCard    },
+    { id: 'maintenance',  label: 'Maintenance',  icon: Wrench        },
 ];
+
 
 // =============================================
 // Main Dashboard
@@ -608,7 +610,7 @@ const tabs = [
 export function LandlordDashboard() {
     const router = useRouter();  // ✅ correct import from next/navigation
 
-    const [activeTab, setActiveTab]                       = useState<Tab>('overview');
+    const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [selectedApp, setSelectedApp]                   = useState<ApplicationDto | null>(null);
     const [selectedMaint, setSelectedMaint]               = useState<LandlordMaintenanceDto | null>(null);
     const [actionLoading, setActionLoading]               = useState(false);

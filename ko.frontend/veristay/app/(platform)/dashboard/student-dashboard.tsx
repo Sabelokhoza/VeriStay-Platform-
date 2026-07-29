@@ -331,7 +331,7 @@ function OfferResultModal({
                         </Link>
                     ) : (
                         <Link
-                            href="/listings"
+                            href="/listing"
                             onClick={onClose}
                             className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors text-center"
                         >
@@ -684,7 +684,7 @@ export function StudentDashboard() {
                             </p>
                         </div>
                         <Link
-                            href="/listings"
+                            href="/listing"
                             className="mt-2 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors sm:mt-0"
                         >
                             <Search className="h-4 w-4" />
@@ -933,7 +933,7 @@ export function StudentDashboard() {
                             <div className="text-center py-6 text-sm text-muted-foreground">
                                 <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-30" />
                                 <p>No applications yet.</p>
-                                <Link href="/listings" className="mt-1 inline-block text-blue-600 hover:underline text-xs">
+                                <Link href="/listing" className="mt-1 inline-block text-blue-600 hover:underline text-xs">
                                     Browse properties →
                                 </Link>
                             </div>
@@ -1034,7 +1034,7 @@ export function StudentDashboard() {
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold">My Applications</h2>
                                 <Link
-                                    href="/listings"
+                                    href="/listing"
                                     className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
                                 >
                                     <Search className="h-4 w-4" /> Find Properties
@@ -1062,7 +1062,7 @@ export function StudentDashboard() {
                                 <div className="rounded-xl border bg-background p-10 text-center text-muted-foreground">
                                     You haven't applied to any properties yet.{' '}
                                     <Link
-                                        href="/listings"
+                                        href="/listing"
                                         className="text-blue-600 hover:underline"
                                     >
                                         Browse listings

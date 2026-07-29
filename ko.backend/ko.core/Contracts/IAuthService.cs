@@ -159,7 +159,7 @@ namespace ko.core.Contracts
         Task<ReviewDto?> GetByIdAsync(int? id);
         Task<List<ReviewDto>> GetByLandlordIdAsync(string landlordId);
         Task<List<ReviewDto>> GetByPropertyIdAsync(int propertyId);
-        Task<double> GetAverageRatingAsync(string landlordId);
+        Task<double> GetAverageRatingAsync(int propertyId);
         Task<bool> DeleteAsync(int? id);
         // Events
         Task<bool> onInsert(AddReviewDto dto);

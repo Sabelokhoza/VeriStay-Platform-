@@ -183,9 +183,16 @@ namespace ko.core.Services
         public Task<bool> onDelete(ReviewDto dto) => Task.FromResult(true);
         public Task<bool> afterDelete(ReviewDto dto) => Task.FromResult(true);
 
-        public Task<double> GetAverageRatingAsync(string landlordId)
+        public async Task<double> GetAverageRatingAsync(int propertyId)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Calculating average rating for propery {0}", propertyId);
+
+            var ratings = await _appDbContext.Reviews
+                .Where(r => r.PropertyId == propertyId)
+                .Select(r => r.Rating)
+                .ToListAsync();
+
+            return ratings.Count == 0 ? 0 : Math.Round(ratings.Average(), 2);
         }
 
         #endregion

@@ -112,6 +112,7 @@ export interface ListingDto {
     address: string;
     city: string;
     monthlyRent: number;
+     averageListing: number;
     availableBeds: number;
     isAvailable: boolean;
     status: number;

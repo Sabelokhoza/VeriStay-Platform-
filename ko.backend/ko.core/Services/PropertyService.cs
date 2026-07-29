@@ -406,7 +406,7 @@ namespace ko.core.Services
                 .ToListAsync();
 
             var listings = new List<ListingDto>();
-
+            var _reviewService = _serviceProvider.GetRequiredService<IReviewService>();
 
             foreach (var item in properties)
             {
@@ -416,6 +416,8 @@ namespace ko.core.Services
                 {
                     listing.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listing.Image.ImageUrl);
                 }
+
+                listing.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
 
                 listings.Add(listing);
             }
@@ -465,6 +467,7 @@ namespace ko.core.Services
 
 
             var listings = new List<ListingDto>();
+            var _reviewService = _serviceProvider.GetRequiredService<IReviewService>();
 
             foreach (var item in data)
             {
@@ -474,6 +477,8 @@ namespace ko.core.Services
                 {
                     listing.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listing.Image.ImageUrl);
                 }
+
+                listing.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
 
                 listings.Add(listing);
             }

@@ -315,7 +315,7 @@ function ListingCard({
 
     return (
         <Link
-            href={`/listings/${listing.id}`}
+            href={`/listing/${listing.id}`}
             className="group flex flex-col overflow-hidden rounded-xl border bg-background shadow-sm transition-shadow hover:shadow-md sm:flex-row"
         >
             {/* Image */}

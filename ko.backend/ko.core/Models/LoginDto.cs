@@ -141,11 +141,13 @@ namespace ko.core.Models
         public string City { get; set; }
         public decimal MonthlyRent { get; set; }
         public int AvailableBeds { get; set; }
+        public double AverageListing { get; set; } = 0;
         public bool IsAvailable { get; set; }
         public PropertyStatus Status { get; set; }
         public List<string> Amenities { get; set; }
         public DateTime AvailableFrom { get; set; }
         public DateTime CreatedAt { get; set; }
+        
         public  PropertyImageDto Image { get; set; }
     }
     public class ListingDetailsDto

@@ -322,7 +322,7 @@ namespace ko.core.Services
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "Admin");
+                await _userManager.AddToRoleAsync(user, "Landlord");
 
 
                 try

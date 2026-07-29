@@ -92,6 +92,8 @@ export interface MaintenanceRequestDto {
 export interface AddApplicationDto {
     studentId: string;
     propertyId: number;
+     fromDate:   string | null;  
+    toDate:     string | null;  
     supportingDocumentUrl?: string;
 }
 

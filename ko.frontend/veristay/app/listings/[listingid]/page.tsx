@@ -674,9 +674,13 @@ function ApplyButton({ propertyId, propertyTitle }: { propertyId: number; proper
             return;
         }
         try {
-            const response = await applyForProperty({
-                studentId: userId, propertyId, supportingDocumentUrl: '',
-            });
+           const response = await applyForProperty({
+            studentId:  userId!,
+            propertyId,
+            fromDate:   null,   
+            toDate:     null,   
+        });
+
             if ('data' in response && response.data?.success) {
                 setModal({ type: 'success', propertyTitle });
             } else if ('error' in response) {

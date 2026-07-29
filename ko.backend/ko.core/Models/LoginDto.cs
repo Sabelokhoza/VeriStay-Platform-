@@ -280,7 +280,9 @@ namespace ko.core.Models
         public ApplicationStatus Status { get; set; }
         public string SupportingDocumentUrl { get; set; }
         public string LandlordNotes { get; set; } 
-        public string LandlordName { get; set; } 
+        public string LandlordName { get; set; }
+        public DateTime FromDate { get; set; } = DateTime.UtcNow;
+        public DateTime ToDate { get; set; } = DateTime.UtcNow;
         public DateTime AppliedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
     }
@@ -308,7 +310,8 @@ namespace ko.core.Models
         [Required]
         public int PropertyId { get; set; }
 
-        public string SupportingDocumentUrl { get; set; }
+        public DateTime FromDate { get; set; } = DateTime.UtcNow;
+        public DateTime ToDate { get; set; } = DateTime.UtcNow;
     }
 
     public class ReviewApplicationDto

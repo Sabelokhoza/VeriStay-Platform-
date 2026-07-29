@@ -124,6 +124,8 @@ namespace ko.entity_framework.entities
         public string SupportingDocumentUrl { get; set; } = string.Empty;
         public string LandlordNotes { get; set; } = string.Empty;
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
+        public DateTime FromDate { get; set; } = DateTime.UtcNow;
+        public DateTime ToDate { get; set; } = DateTime.UtcNow;
         public DateTime? ReviewedAt { get; set; }
     }
 

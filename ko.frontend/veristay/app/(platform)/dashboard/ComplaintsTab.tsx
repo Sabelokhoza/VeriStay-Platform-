@@ -2,6 +2,7 @@ import { ComplaintDto, useGetComplaintsQuery, useNotifyComplaintMutation, useUpd
 import { Bell,  X,CheckCircle, Clock, Eye, Flag, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import Loading from "../loading";
 
 function formatDate(date: string | null | undefined): string {
     if (!date) return '—';
@@ -15,9 +16,15 @@ export default function ComplaintsTab() {
     const [adminNotes,    setAdminNotes]   = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
-    const { data: complaints = [], refetch } = useGetComplaintsQuery();
+    const { data: complaints = [], refetch , isLoading} = useGetComplaintsQuery();
+
+    
     const [updateStatus] = useUpdateComplaintStatusMutation();
     const [notify]       = useNotifyComplaintMutation();
+
+     if(isLoading){
+            return <Loading/>
+        }
 
     const typeLabel = (t: number) =>
         ['Vacancy', 'Property Condition', 'Landlord Behaviour', 'Other'][t] ?? 'Unknown';

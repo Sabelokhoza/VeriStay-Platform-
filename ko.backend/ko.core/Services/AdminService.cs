@@ -42,7 +42,6 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Getting all disputes");
             var disputes = await _appDbContext.Disputes
-                .Include(d => d.Property)
                 .OrderByDescending(d => d.DateCreated)
                 .ToListAsync();
 
@@ -61,7 +60,7 @@ namespace ko.core.Services
                     LandlordName = landlord?.FullName ?? d.LandlordId,
                     LandlordEmail = landlord?.Email ?? string.Empty,
                     PropertyId = d.PropertyId,
-                    PropertyTitle = d.Property?.Title ?? string.Empty,
+                    PropertyTitle =  string.Empty,
                     Title = d.Title,
                     Description = d.Description,
                     Status = d.Status,
@@ -114,7 +113,6 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Resolving dispute {0}", dto.DisputeId);
             var dispute = await _appDbContext.Disputes
-                .Include(d => d.Property)
                 .FirstOrDefaultAsync(d => d.Id == dto.DisputeId);
 
             if (dispute == null)
@@ -147,7 +145,7 @@ namespace ko.core.Services
                 LandlordId = dispute.LandlordId,
                 LandlordName = landlord?.FullName ?? dispute.LandlordId,
                 PropertyId = dispute.PropertyId,
-                PropertyTitle = dispute.Property?.Title ?? string.Empty,
+                PropertyTitle =  string.Empty,
                 Title = dispute.Title,
                 Description = dispute.Description,
                 Status = dispute.Status,
@@ -300,16 +298,12 @@ namespace ko.core.Services
         public async Task<List<UserAccountDto>> GetAllUsersAsync()
         {
             _logger.LogInformation("Getting all user accounts");
-            var users = _userManager.Users.ToList();
+            var users = await _userManager.Users.ToListAsync();
             var result = new List<UserAccountDto>();
 
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var propCount = await _appDbContext.Properties
-                    .CountAsync(p => p.LandlordId == user.Id);
-                var appCount = await _appDbContext.Applications
-                    .CountAsync(a => a.StudentId == user.Id);
 
                 result.Add(new UserAccountDto
                 {
@@ -320,8 +314,6 @@ namespace ko.core.Services
                     Role = roles.FirstOrDefault() ?? "Unknown",
                     IsActive = user.IsActive,
                     CreatedAt = user.CreatedAt,
-                    PropertyCount = propCount,
-                    ApplicationCount = appCount,
                 });
             }
 

@@ -59,6 +59,13 @@ namespace ko.core.Services
 
             _logger.LogInformation("Adding application for student {0} to the database", studentId);
 
+            bool isActive = await IsActiveUserAsync(studentId);
+
+            if (!isActive)
+            {
+                throw new BadRequestException("Application Failed ,Your account is not active contact admin");
+            }
+
             var entity = _mapper.Map<Application>(dto);
             entity.StudentId = studentId;
             entity.Status = ApplicationStatus.Pending;
@@ -76,6 +83,17 @@ namespace ko.core.Services
 
             await afterInsert(result);
             return result;
+        }
+
+        private async Task<bool> IsActiveUserAsync(string studentId)
+        {
+            var user = await _userManager.FindByIdAsync(studentId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            return user.IsActive;
         }
 
         public async Task<List<ApplicationDto>> GetAllAsync()

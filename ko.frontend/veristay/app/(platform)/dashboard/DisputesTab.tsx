@@ -4,6 +4,7 @@ import { DisputeDto, useGetDisputesQuery, useResolveDisputeMutation } from "@/ap
 import { AlertTriangle,ChevronRight, CheckCircle,Home, Clock,Users, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import Loading from "../loading";
 
 
 function formatDate(date: string | null | undefined): string {
@@ -19,8 +20,12 @@ export default function DisputesTab() {
     const [adminNotes,  setAdminNotes]  = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
-    const { data: disputes = [], refetch } = useGetDisputesQuery();
+    const { data: disputes = [], refetch ,isLoading} = useGetDisputesQuery();
     const [resolveDispute] = useResolveDisputeMutation();
+
+     if(isLoading){
+        return <Loading/>
+    }
 
     const statusLabel = (s: number) => ['Open', 'Under Review', 'Resolved', 'Closed'][s] ?? 'Unknown';
     const statusStyle = (s: number) => [

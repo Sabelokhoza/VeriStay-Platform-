@@ -2,7 +2,7 @@ import { useGetAllUsersQuery, UserAccountDto, useSuspendLandlordMutation, useTog
 import { Loader2, ShieldX, Users , X} from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
-
+import Loading from '../loading';
 
 function formatDate(date: string | null | undefined): string {
     if (!date) return '—';
@@ -19,9 +19,13 @@ export default function UsersTab() {
     const [suspendReason, setSuspendReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
-    const { data: users = [], refetch } = useGetAllUsersQuery();
+    const { data: users = [], refetch ,isLoading} = useGetAllUsersQuery();
     const [toggleActive]  = useToggleUserActiveMutation();
     const [suspendLandlord] = useSuspendLandlordMutation();
+
+    if(isLoading){
+        return <Loading/>
+    }
 
     const filtered = users.filter(u => {
         const matchSearch = !searchTerm ||

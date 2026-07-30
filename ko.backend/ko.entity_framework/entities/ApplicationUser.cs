@@ -29,11 +29,8 @@ namespace ko.entity_framework.entities
     public class Dispute : BaseEntity
     {
         public string StudentId { get; set; }
-        public ApplicationUser Student { get; set; }
         public string LandlordId { get; set; }
-        public ApplicationUser Landlord { get; set; }
         public int? PropertyId { get; set; }
-        public Property Property { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public DisputeStatus Status { get; set; } = DisputeStatus.Open;

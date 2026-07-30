@@ -7,7 +7,6 @@ namespace ko.api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
@@ -29,7 +28,6 @@ namespace ko.api.Controllers
         }
 
         [HttpPost("disputes")]
-        [Authorize] // students and landlords can file disputes
         public async Task<ActionResult<ApiResponse<DisputeDto>>> AddDispute(
             [FromBody] AddDisputeDto dto)
         {

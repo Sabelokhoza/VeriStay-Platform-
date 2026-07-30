@@ -6,7 +6,6 @@ using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using static ko.core.Exceptions.ApiException;
 
 namespace ko.core.Services
@@ -70,7 +69,7 @@ namespace ko.core.Services
             var data = await _appDbContext.Properties
                 .ToListAsync();
 
-            var d =  _mapper.Map<List<PropertyDto>>(data);
+            var d = _mapper.Map<List<PropertyDto>>(data);
 
             foreach (var item in d)
             {
@@ -136,7 +135,7 @@ namespace ko.core.Services
 
             try
             {
-                
+
 
                 property.Title = dto.Title;
                 property.Description = dto.Description;
@@ -147,7 +146,7 @@ namespace ko.core.Services
                 property.AvailableFrom = dto.AvailableFrom;
                 property.IsAvailable = dto.IsAvailable;
                 property.Amenities = dto.Amenities;
-               
+
 
                 await _appDbContext.SaveChangesAsync();
 
@@ -336,10 +335,10 @@ namespace ko.core.Services
 
             foreach (var item in images)
             {
-                item.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads" ,item.ImageUrl);
+                item.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", item.ImageUrl);
             }
 
-            
+
 
             return _mapper.Map<List<PropertyImageDto>>(images);
         }
@@ -392,7 +391,29 @@ namespace ko.core.Services
 
         #region Events
 
-        public Task<bool> onInsert(AddPropertyDto dto) => Task.FromResult(true);
+        public async Task<bool> onInsert(AddPropertyDto dto)
+        {
+
+            if (!await IsActiveUserAsync(dto.LandlordId))
+            {
+                throw new BadRequestException("Propery not added , Your account is not active contact admin");
+            }
+
+            return true;
+
+        }
+
+        private async Task<bool> IsActiveUserAsync(string studentId)
+        {
+            var user = await _userManager.FindByIdAsync(studentId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            return user.IsActive;
+        }
+
         public Task<bool> onUpdate(PropertyDto dto) => Task.FromResult(true);
         public Task<bool> onDelete(PropertyDto dto) => Task.FromResult(true);
         public Task<bool> afterInsert(PropertyDto dto) => Task.FromResult(true);
@@ -507,8 +528,8 @@ namespace ko.core.Services
             listing.LandLordEmail = landlord.Email;
             listing.LandlordName = landlord.FullName;
             listing.Images = await GetImagesByPropertyIdAsync(item.Id);
-           
-            var _reviewService =  _serviceProvider.GetRequiredService<IReviewService>();
+
+            var _reviewService = _serviceProvider.GetRequiredService<IReviewService>();
             listing.Reviews = await _reviewService.GetByPropertyIdAsync(id);
 
             return listing;

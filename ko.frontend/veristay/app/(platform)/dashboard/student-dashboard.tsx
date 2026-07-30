@@ -17,9 +17,12 @@ import {
     Search,
     ChevronRight,
     AlertCircle,
+    Flag ,
     Calendar,
     MapPin,
     Star,
+    AlertTriangle ,
+    BarChart3,
     X,
     ThumbsUp,
     ThumbsDown,
@@ -41,6 +44,8 @@ import { TenancyTab } from './tenancy-tab';
 import { NewMaintenanceRequestModal } from './new-maintenance-request-modal';
 import { CommunityTab } from './community-tab';
 import { PaymentsTab } from './payments-tab';
+import { StudentDisputesTab } from './student-dashboard-disbutes-tab';
+import { StudentComplaintsTab } from './student-complaints-tab';
 
 // =============================================
 // Helpers
@@ -445,15 +450,19 @@ function OverviewSkeleton() {
 
 
 
-type Tab = 'overview' | 'applications' | 'tenancy' | 'payments' | 'maintenance' | 'community';
+type Tab = 'overview' | 'applications' | 'tenancy' |
+           'payments' | 'maintenance' | 'community' |
+           'disputes' | 'complaints';
 
 const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: 'overview', label: 'Overview', icon: Home },
+    { id: 'overview',     label: 'Overview',     icon: BarChart3     },
     { id: 'applications', label: 'Applications', icon: ClipboardList },
-    { id: 'tenancy', label: 'My Tenancy', icon: FileText },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-    { id: 'community', label: 'Community', icon: Users },
+    { id: 'tenancy',      label: 'My Tenancy',   icon: Home          },
+    { id: 'payments',     label: 'Payments',     icon: CreditCard    },
+    { id: 'maintenance',  label: 'Maintenance',  icon: Wrench        },
+    { id: 'community',    label: 'Community',    icon: Users         },
+    { id: 'disputes',     label: 'Disputes',     icon: AlertTriangle }, 
+    { id: 'complaints', label: 'Complaints', icon: Flag },
 ];
 
 const mockTenancy = {
@@ -1172,6 +1181,32 @@ export function StudentDashboard() {
                     announcements={announcements}
                 />
             )}
+
+            {activeTab === 'disputes' && (
+    <StudentDisputesTab
+        activeTenancy={dashboardData?.activeTenancy
+            ? {
+                landlordId:    dashboardData.activeTenancy.landlordName, // replace with landlordId when available
+                propertyId:    dashboardData.activeTenancy.propertyId,
+                propertyTitle: dashboardData.activeTenancy.propertyTitle,
+            }
+            : null
+        }
+    />
+)}
+
+        {activeTab === 'complaints' && (
+            <StudentComplaintsTab
+                activeTenancy={dashboardData?.activeTenancy
+                    ? {
+                        landlordId:    dashboardData.activeTenancy.landlordName,
+                        propertyId:    dashboardData.activeTenancy.propertyId,
+                        propertyTitle: dashboardData.activeTenancy.propertyTitle,
+                    }
+                    : null
+                }
+            />
+        )}
                 </div>
             </div>
 

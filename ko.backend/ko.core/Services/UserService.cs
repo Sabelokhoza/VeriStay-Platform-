@@ -4,6 +4,7 @@ using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
+using ko.entity_framework.Migrations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -194,7 +195,8 @@ namespace ko.core.Services
             studentDashboardDataDto.openMantainances = await _maintenanceRequestService.GetMantainanceByPropertiesAsync(studentDashboardDataDto.propertiesDto);
             studentDashboardDataDto.RequestsCount = (await _maintenanceRequestService.GetOpenMantainanceByPropertiesAsync(studentDashboardDataDto.propertiesDto)).Count;
             studentDashboardDataDto.tenants = (await _tenancyService.GetTenanciesByProperties(studentDashboardDataDto.propertiesDto));
-
+            var _reviewService = _serviceProvider.GetRequiredService<IReviewService>();
+            studentDashboardDataDto.Score = await _reviewService.GetAverageRatingByLandlordIdAsync(userId);
 
             return studentDashboardDataDto;
         }

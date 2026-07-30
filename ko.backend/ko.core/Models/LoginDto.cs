@@ -42,6 +42,7 @@ namespace ko.core.Models
         public int propertiesCount { get; set; } = 0;
         public List<ProfileDto> tenants { get; set; } = new List<ProfileDto>();
         public int RequestsCount { get; set; } = 0;
+        public double Score { get; set; } = 0;
         public List<ApplicationDto> recentApplications { get; set; } = new List<ApplicationDto>();
         public List<ApplicationDto> WaitingList { get; set; } = new List<ApplicationDto>();
         public List<PropertyDto> propertiesDto { get; set; } = new List<PropertyDto>();
@@ -483,6 +484,7 @@ namespace ko.core.Models
         public decimal TotalCollected { get; set; }
         public decimal TotalOutstanding { get; set; }
         public decimal TotalOverdue { get; set; }
+        
         public List<LandlordPaymentSummaryDto> TenancySummaries { get; set; } = new();
     }
 

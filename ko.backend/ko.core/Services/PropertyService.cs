@@ -173,6 +173,7 @@ namespace ko.core.Services
             if (dto.AvailableBeds == 0)
             {
                 dto.IsAvailable = false;
+                dto.AvailableBeds = 0;
             }
 
             var entity = await _appDbContext.Properties.FindAsync(id);

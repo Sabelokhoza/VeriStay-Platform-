@@ -7,6 +7,7 @@ using ko.entity_framework.entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using static ko.core.Exceptions.ApiException;
 
 namespace ko.core.Services
@@ -21,6 +22,7 @@ namespace ko.core.Services
         private readonly IEmailServiceMailJet _emailService;
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IServiceProvider _serviceProvider;
 
         public RentPaymentService(
             AppDbContext appDbContext,
@@ -30,7 +32,8 @@ namespace ko.core.Services
             IFileUploadService fileUploadService,
             IEmailServiceMailJet emailService,
             IConfiguration configuration,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IServiceProvider serviceProvider)
         {
             _appDbContext = appDbContext;
             _logger = logger;
@@ -40,6 +43,7 @@ namespace ko.core.Services
             _emailService = emailService;
             _configuration = configuration;
             _userManager = userManager;
+            _serviceProvider = serviceProvider;
         }
 
         // =============================================
@@ -407,19 +411,21 @@ namespace ko.core.Services
 
             // Re-fetch fresh
             tenancies = await _appDbContext.Tenancies
+               .Where(t => props.Select(s => s.Id).Contains(t.PropertyId))
+               .ToListAsync();
 
-                .Where(t => props.Select(s => s.Id).Contains(t.PropertyId))
-                .ToListAsync();
+            var summaries = new List<LandlordPaymentSummaryDto>();
 
-            var summaries = tenancies.Select(tenancy =>
+            foreach (var tenancy in tenancies)
             {
                 var payments = tenancy.RentPayments.OrderBy(p => p.DueDate).ToList();
                 var paymentDtos = payments.Select(p => MapToDto(p, tenancy)).ToList();
+                var student = await _userManager.FindByIdAsync(tenancy.StudentId);
 
-                return new LandlordPaymentSummaryDto
+                summaries.Add(new LandlordPaymentSummaryDto
                 {
                     TenancyId = tenancy.Id,
-                    StudentName = tenancy.Student?.FullName ?? string.Empty,
+                    StudentName = student.FullName,
                     StudentId = tenancy.StudentId,
                     PropertyTitle = tenancy.Property?.Title ?? $"Property #{tenancy.PropertyId}",
                     PropertyLocation = $"{tenancy.Property?.Address} - {tenancy.Property?.City}",
@@ -431,11 +437,14 @@ namespace ko.core.Services
                     TotalPaid = payments.Where(p => p.Status == PaymentStatus.Paid).Sum(p => p.Amount),
                     TotalOwed = payments.Where(p => p.Status != PaymentStatus.Paid).Sum(p => p.Amount),
                     Payments = paymentDtos,
-                };
-            }).ToList();
+                });
+            }
+
+            
 
             return new LandlordPaymentsOverviewDto
             {
+               
                 TotalCollected = summaries.Sum(s => s.TotalPaid),
                 TotalOutstanding = summaries.Sum(s => s.TotalOwed),
                 TotalOverdue = summaries.Where(s => s.OverdueCount > 0).Sum(s =>

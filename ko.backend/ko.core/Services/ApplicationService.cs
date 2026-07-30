@@ -292,8 +292,8 @@ namespace ko.core.Services
                 await _tenancyService.AddAsync(new AddTenancyDto
                 {
                     StudentId = entity.StudentId,
-                    LeaseEndDate = DateTime.UtcNow.AddDays(30),
-                    LeaseStartDate = DateTime.UtcNow,
+                    LeaseEndDate = mapped.ToDate,
+                    LeaseStartDate = mapped.FromDate,
                     PropertyId =  entity.PropertyId,
                     MonthlyRent = propery.MonthlyRent
                 });

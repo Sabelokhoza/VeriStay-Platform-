@@ -20,6 +20,7 @@ import {
     RentPaymentDto,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
+import { data } from '../(partner)/team/mock';
 
 // =============================================
 // Helpers
@@ -358,8 +359,7 @@ function StarRating({ rating }: { rating: number }) {
 function ReputationSection({ landlordId }: { landlordId: string }) {
     const { data } = useGetLandlordDashboardQuery(landlordId, { skip: !landlordId });
 
-    const landlord = data?.landlord;
-    const score    =  0;
+    const score = data?.score ?? 0;
 
     // Star breakdown (mock — replace with real review data when endpoint available)
     const breakdown = [5, 4, 3, 2, 1].map(star => ({
@@ -481,6 +481,8 @@ export function LandlordPaymentsTab({ landlordId }: { landlordId: string }) {
 
     if (isLoading) return <PaymentsSkeleton />;
 
+
+    
     if (isError || !overview) {
         return (
             <div className="space-y-4">
@@ -501,7 +503,6 @@ export function LandlordPaymentsTab({ landlordId }: { landlordId: string }) {
 
     const summaries    = overview.tenancySummaries ?? [];
     const hasOverdue   = summaries.some(s => s.overdueCount > 0);
-
     return (
         <>
             <div className="space-y-5">

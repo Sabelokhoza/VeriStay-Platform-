@@ -349,6 +349,7 @@ export interface LandlordDashboardDataDto {
     propertiesCount:     number;
     tenants:             StudentDto[];
     requestsCount:       number;
+    score  : number;
     recentApplications:  ApplicationDto[];
     waitingList:         ApplicationDto[];
     propertiesDto:       LandlordPropertyDto[];

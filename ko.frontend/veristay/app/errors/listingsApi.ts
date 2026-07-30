@@ -5,6 +5,102 @@ import { baseQueryWithErrorHandling } from '../api/baseApi';
 // Types
 // ---------------------------------------------------------------------------
 
+export interface DisputeDto {
+    id:            number;
+    studentId:     string;
+    studentName:   string;
+    studentEmail:  string;
+    landlordId:    string;
+    landlordName:  string;
+    landlordEmail: string;
+    propertyId:    number | null;
+    propertyTitle: string;
+    title:         string;
+    description:   string;
+    status:        number; // 0=Open,1=UnderReview,2=Resolved,3=Closed
+    adminNotes:    string;
+    resolution:    string;
+    resolvedAt:    string | null;
+    createdAt:     string;
+}
+
+export interface AddDisputeDto {
+    studentId:   string;
+    landlordId:  string;
+    propertyId?: number;
+    title:       string;
+    description: string;
+}
+
+export interface ResolveDisputeDto {
+    disputeId:  number;
+    resolution: string;
+    adminNotes: string;
+    status:     number;
+}
+
+export interface ComplaintDto {
+    id:              number;
+    submittedById:   string;
+    submittedByName: string;
+    landlordId:      string;
+    landlordName:    string;
+    propertyId:      number | null;
+    propertyTitle:   string;
+    type:            number; // 0=Vacancy,1=PropertyCondition,2=LandlordBehaviour,3=Other
+    status:          number; // 0=Open,1=UnderReview,2=Resolved,3=Dismissed
+    title:           string;
+    description:     string;
+    adminNotes:      string;
+    isNotified:      boolean;
+    createdAt:       string;
+}
+
+export interface AddComplaintDto {
+    submittedById: string;
+    landlordId?:   string;
+    propertyId?:   number;
+    type:          number;
+    title:         string;
+    description:   string;
+}
+
+export interface UserAccountDto {
+    id:               string;
+    fullName:         string;
+    email:            string;
+    phoneNumber:      string;
+    role:             string;
+    isActive:         boolean;
+    createdAt:        string;
+    propertyCount:    number;
+    applicationCount: number;
+}
+
+export interface AccommodationReportDto {
+    totalProperties:    number;
+    approvedProperties: number;
+    pendingProperties:  number;
+    totalBeds:          number;
+    occupiedBeds:       number;
+    availableBeds:      number;
+    occupancyRate:      number;
+    totalStudents:      number;
+    housedStudents:     number;
+    openDisputes:       number;
+    openComplaints:     number;
+    suspendedLandlords: number;
+    cityBreakdown:      CityReportDto[];
+}
+
+export interface CityReportDto {
+    city:          string;
+    propertyCount: number;
+    totalBeds:     number;
+    occupiedBeds:  number;
+    occupancyRate: number;
+}
+
 export interface ListingImageDto {
     id: number;
     propertyId: number;
@@ -680,6 +776,53 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: 'LIST' },
             ],
         }),
+
+        getDisputes: builder.query<DisputeDto[], void>({
+    query: () => ({ url: 'Admin/disputes', method: 'GET' }),
+    transformResponse: (r: ApiResponse<DisputeDto[]>) => r.data,
+    providesTags: [{ type: 'Listing' as const, id: 'disputes' }],
+}),
+addDispute: builder.mutation<ApiResponse<DisputeDto>, AddDisputeDto>({
+    query: (body) => ({ url: 'Admin/disputes', method: 'POST', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'disputes' }],
+}),
+resolveDispute: builder.mutation<ApiResponse<DisputeDto>, ResolveDisputeDto>({
+    query: (body) => ({ url: 'Admin/disputes/resolve', method: 'PATCH', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'disputes' }],
+}),
+getComplaints: builder.query<ComplaintDto[], void>({
+    query: () => ({ url: 'Admin/complaints', method: 'GET' }),
+    transformResponse: (r: ApiResponse<ComplaintDto[]>) => r.data,
+    providesTags: [{ type: 'Listing' as const, id: 'complaints' }],
+}),
+addComplaint: builder.mutation<ApiResponse<ComplaintDto>, AddComplaintDto>({
+    query: (body) => ({ url: 'Admin/complaints', method: 'POST', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'complaints' }],
+}),
+updateComplaintStatus: builder.mutation<ApiResponse<ComplaintDto>, { id: number; status: number; adminNotes: string }>({
+    query: ({ id, ...body }) => ({ url: `Admin/complaints/${id}/status`, method: 'PATCH', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'complaints' }],
+}),
+notifyComplaint: builder.mutation<ApiResponse<boolean>, number>({
+    query: (id) => ({ url: `Admin/complaints/${id}/notify`, method: 'POST' }),
+}),
+getAllUsers: builder.query<UserAccountDto[], void>({
+    query: () => ({ url: 'Admin/users', method: 'GET' }),
+    transformResponse: (r: ApiResponse<UserAccountDto[]>) => r.data,
+    providesTags: [{ type: 'Listing' as const, id: 'users' }],
+}),
+toggleUserActive: builder.mutation<ApiResponse<boolean>, string>({
+    query: (userId) => ({ url: `Admin/users/${userId}/toggle-active`, method: 'PATCH' }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'users' }],
+}),
+suspendLandlord: builder.mutation<ApiResponse<boolean>, { landlordId: string; reason: string; isSuspended: boolean }>({
+    query: (body) => ({ url: 'Admin/landlords/suspend', method: 'POST', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'users' }],
+}),
+getAccommodationReport: builder.query<AccommodationReportDto, void>({
+    query: () => ({ url: 'Admin/accommodation-report', method: 'GET' }),
+    transformResponse: (r: ApiResponse<AccommodationReportDto>) => r.data,
+}),
         getListingById: builder.query<ListingDetailsDto, number>({
             query: (propertyId) => ({
                 url: `Property/get-listing-by-details-id?propertyId=${propertyId}`,
@@ -850,5 +993,16 @@ useGetImagesByPropertyIdQuery,
     useSendPaymentReminderMutation,
      useLazyDownloadReceiptQuery,
     useMarkRentPaidMutation,
-    useGetReceiptUrlMutation
+    useGetReceiptUrlMutation,
+    useGetDisputesQuery,
+    useAddDisputeMutation,
+    useResolveDisputeMutation,
+    useGetComplaintsQuery,
+    useAddComplaintMutation,
+    useUpdateComplaintStatusMutation,
+    useNotifyComplaintMutation,
+    useGetAllUsersQuery,
+    useToggleUserActiveMutation,
+    useSuspendLandlordMutation,
+    useGetAccommodationReportQuery,
 } = listingsApi;

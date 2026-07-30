@@ -27,6 +27,7 @@ namespace ko.core.Extensions
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IReceiptGeneratorService, ReceiptGeneratorService>();
             services.AddScoped<IRentPaymentService, RentPaymentService>();
+            services.AddScoped<IAdminService, AdminService>();
 
             services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
 

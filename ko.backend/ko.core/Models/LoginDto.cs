@@ -479,6 +479,124 @@ namespace ko.core.Models
         public List<RentPaymentDto> Payments { get; set; } = new();
     }
 
+    public class DisputeDto
+    {
+        public int Id { get; set; }
+        public string StudentId { get; set; }
+        public string StudentName { get; set; }
+        public string StudentEmail { get; set; }
+        public string LandlordId { get; set; }
+        public string LandlordName { get; set; }
+        public string LandlordEmail { get; set; }
+        public int? PropertyId { get; set; }
+        public string PropertyTitle { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public DisputeStatus Status { get; set; }
+        public string AdminNotes { get; set; }
+        public string Resolution { get; set; }
+        public DateTime? ResolvedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AddDisputeDto
+    {
+        [Required] public string StudentId { get; set; }
+        [Required] public string LandlordId { get; set; }
+        public int? PropertyId { get; set; }
+        [Required] public string Title { get; set; }
+        [Required] public string Description { get; set; }
+    }
+
+    public class ResolveDisputeDto
+    {
+        [Required] public int DisputeId { get; set; }
+        [Required] public string Resolution { get; set; }
+        public string AdminNotes { get; set; } = string.Empty;
+        public DisputeStatus Status { get; set; } = DisputeStatus.Resolved;
+    }
+
+    public class UpdateComplaintStatusDto
+    {
+        [Required]
+        public ComplaintStatus Status { get; set; }
+
+        public string AdminNotes { get; set; } = string.Empty;
+    }
+    public class ComplaintDto
+    {
+        public int Id { get; set; }
+        public string SubmittedById { get; set; }
+        public string SubmittedByName { get; set; }
+        public string LandlordId { get; set; }
+        public string LandlordName { get; set; }
+        public int? PropertyId { get; set; }
+        public string PropertyTitle { get; set; }
+        public ComplaintType Type { get; set; }
+        public ComplaintStatus Status { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string AdminNotes { get; set; }
+        public bool IsNotified { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AddComplaintDto
+    {
+        [Required] public string SubmittedById { get; set; }
+        public string? LandlordId { get; set; }
+        public int? PropertyId { get; set; }
+        [Required] public ComplaintType Type { get; set; }
+        [Required] public string Title { get; set; }
+        [Required] public string Description { get; set; }
+    }
+
+    public class SuspendLandlordDto
+    {
+        [Required] public string LandlordId { get; set; }
+        [Required] public string Reason { get; set; }
+        public bool IsSuspended { get; set; } = true;
+    }
+
+    public class UserAccountDto
+    {
+        public string Id { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Role { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int PropertyCount { get; set; }
+        public int ApplicationCount { get; set; }
+    }
+
+    public class AccommodationReportDto
+    {
+        public int TotalProperties { get; set; }
+        public int ApprovedProperties { get; set; }
+        public int PendingProperties { get; set; }
+        public int TotalBeds { get; set; }
+        public int OccupiedBeds { get; set; }
+        public int AvailableBeds { get; set; }
+        public decimal OccupancyRate { get; set; }
+        public int TotalStudents { get; set; }
+        public int HousedStudents { get; set; }
+        public int OpenDisputes { get; set; }
+        public int OpenComplaints { get; set; }
+        public int SuspendedLandlords { get; set; }
+        public List<CityReportDto> CityBreakdown { get; set; } = new();
+    }
+
+    public class CityReportDto
+    {
+        public string City { get; set; }
+        public int PropertyCount { get; set; }
+        public int TotalBeds { get; set; }
+        public int OccupiedBeds { get; set; }
+        public decimal OccupancyRate { get; set; }
+    }
+
     public class LandlordPaymentsOverviewDto
     {
         public decimal TotalCollected { get; set; }
@@ -696,41 +814,7 @@ namespace ko.core.Models
     // DISPUTE DTOs
     // =============================================
 
-    public class DisputeDto
-    {
-        public int Id { get; set; }
-        public string StudentId { get; set; }
-        public string StudentName { get; set; }
-        public string LandlordId { get; set; }
-        public string LandlordName { get; set; }
-        public string Description { get; set; }
-        public DisputeStatus Status { get; set; }
-        public string AdminResolutionNotes { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? ResolvedAt { get; set; }
-    }
-
-    public class AddDisputeDto
-    {
-        [Required]
-        public string LandlordId { get; set; }
-
-        [Required]
-        [StringLength(2000)]
-        public string Description { get; set; }
-    }
-
-    public class ResolveDisputeDto
-    {
-        [Required]
-        public int DisputeId { get; set; }
-
-        [Required]
-        public DisputeStatus Status { get; set; }
-
-        [Required]
-        public string AdminResolutionNotes { get; set; }
-    }
+    
 
 
     // =============================================

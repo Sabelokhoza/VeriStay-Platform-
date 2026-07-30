@@ -24,6 +24,7 @@ namespace ko.entity_framework
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Dispute> Disputes { get; set; }
+        public DbSet<Complaint> Complaints { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

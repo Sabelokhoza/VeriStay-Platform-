@@ -21,6 +21,10 @@ import {
     AdminPropertyDto,
     useGetListingByIdQuery,
 } from '@/app/errors/listingsApi';
+import DisputesTab from './DisputesTab';
+import ComplaintsTab from './ComplaintsTab';
+import UsersTab from './UsersTab';
+import ReportTab from './ReportTab';
 
 // =============================================
 // Helpers
@@ -544,12 +548,17 @@ function CityDistributionChart({ data }: { data: { city: string; propertyCount: 
 // Tabs
 // =============================================
 
-type Tab = 'overview' | 'landlords' | 'properties' | 'analytics';
+type Tab = 'overview' | 'landlords' | 'properties' | 'disputes' |
+           'complaints' | 'users' | 'report' | 'analytics';
 
-const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
+const tabs = [
     { id: 'overview',    label: 'Overview',    icon: BarChart3    },
     { id: 'landlords',   label: 'Landlords',   icon: Users        },
     { id: 'properties',  label: 'Properties',  icon: Home         },
+    { id: 'disputes',    label: 'Disputes',    icon: AlertTriangle },
+    { id: 'complaints',  label: 'Complaints',  icon: Flag         },
+    { id: 'users',       label: 'Users',       icon: UserCheck    },
+    { id: 'report',      label: 'Report',      icon: FileText     },
     { id: 'analytics',   label: 'Analytics',   icon: TrendingUp   },
 ];
 
@@ -1005,6 +1014,12 @@ export function AdminDashboard() {
                             )}
                         </div>
                     )}
+                    {activeTab === 'disputes'   && <DisputesTab   />}
+                    {activeTab === 'complaints' && <ComplaintsTab  />}
+                    {activeTab === 'users'      && <UsersTab       />}
+                    {activeTab === 'report'     && <ReportTab      />}
+
+                    
 
                     {/* ======== ANALYTICS ======== */}
                     {activeTab === 'analytics' && (
@@ -1107,6 +1122,9 @@ export function AdminDashboard() {
                             </Section>
                         </div>
                     )}
+                    
+
+
                 </div>
             </div>
 

@@ -26,6 +26,41 @@ namespace ko.entity_framework.entities
 
     }
 
+    public class Dispute : BaseEntity
+    {
+        public string StudentId { get; set; }
+        public ApplicationUser Student { get; set; }
+        public string LandlordId { get; set; }
+        public ApplicationUser Landlord { get; set; }
+        public int? PropertyId { get; set; }
+        public Property Property { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public DisputeStatus Status { get; set; } = DisputeStatus.Open;
+        public string AdminNotes { get; set; } = string.Empty;
+        public string Resolution { get; set; } = string.Empty;
+        public DateTime? ResolvedAt { get; set; }
+    }
+
+    public class Complaint : BaseEntity
+    {
+        public string SubmittedById { get; set; }
+        public ApplicationUser SubmittedBy { get; set; }
+        public string? LandlordId { get; set; }
+        public int? PropertyId { get; set; }
+        public Property Property { get; set; }
+        public ComplaintType Type { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public ComplaintStatus Status { get; set; } = ComplaintStatus.Open;
+        public string AdminNotes { get; set; } = string.Empty;
+        public bool IsNotified { get; set; } = false;
+    }
+
+    public enum DisputeStatus { Open = 0, UnderReview = 1, Resolved = 2, Closed = 3 }
+    public enum ComplaintType { Vacancy = 0, PropertyCondition = 1, LandlordBehaviour = 2, Other = 3 }
+    public enum ComplaintStatus { Open = 0, UnderReview = 1, Resolved = 2, Dismissed = 3 }
+
     public static class AppRoles
     {
         public const string Admin = "Admin";
@@ -232,19 +267,7 @@ namespace ko.entity_framework.entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 
-    public class Dispute : BaseEntity
-    {
-        public string StudentId { get; set; }
-        public Student Student { get; set; }
-        public string LandlordId { get; set; }
-        public Landlord Landlord { get; set; }
-        public string Description { get; set; }
-        public DisputeStatus Status { get; set; } = DisputeStatus.Open;
-        public string AdminResolutionNotes { get; set; }
-        public DateTime? ResolvedAt { get; set; }
-    }
-
-    public enum DisputeStatus { Open, UnderReview, Resolved, Closed }
+    
 
     public abstract class BaseEntity
     {

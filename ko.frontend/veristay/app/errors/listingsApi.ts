@@ -458,6 +458,19 @@ export interface GetListingsParams {
     address?: string;
 }
 
+export interface GetListingsParams {
+    city?: string;
+    title?: string;
+    address?: string;
+    description?: string;
+    userId?: string;
+}
+
+export interface FinalListingsDto {
+    recommendations: ListingDto[];
+    listings: ListingDto[];
+}
+
 export const listingsApi = createApi({
     reducerPath: 'listingsApi',
     baseQuery: async (args, api, extraOptions) => {
@@ -465,27 +478,29 @@ export const listingsApi = createApi({
         return customBaseQuery(args, api, extraOptions);
     },
     tagTypes: ['Listing'],
-    endpoints: (builder) => ({
-        getListings: builder.query<ListingDto[], GetListingsParams | void>({
+            endpoints: (builder) => ({
+                getListings: builder.query<FinalListingsDto, GetListingsParams | void>({
             query: (params) => {
                 const queryParams = new URLSearchParams();
                 if (params?.city) queryParams.append('city', params.city);
                 if (params?.title) queryParams.append('title', params.title);
                 if (params?.description) queryParams.append('description', params.description);
                 if (params?.address) queryParams.append('address', params.address);
+                if (params?.userId) queryParams.append('userId', params.userId);
 
                 return {
                     url: `Property/get-listings?${queryParams.toString()}`,
                     method: 'GET',
                 };
             },
-            transformResponse: (response: ApiResponse<ListingDto[]>) => response.data,
+            transformResponse: (response: ApiResponse<FinalListingsDto>) => response.data,
             providesTags: (result) =>
                 result
                     ? [
-                          ...result.map(({ id }) => ({ type: 'Listing' as const, id })),
-                          { type: 'Listing' as const, id: 'LIST' },
-                      ]
+                        ...result.recommendations.map(({ id }) => ({ type: 'Listing' as const, id })),
+                        ...result.listings.map(({ id }) => ({ type: 'Listing' as const, id })),
+                        { type: 'Listing' as const, id: 'LIST' },
+                    ]
                     : [{ type: 'Listing' as const, id: 'LIST' }],
         }),
         applyForProperty: builder.mutation<ApiResponse<ApplicationResponseDto>, AddApplicationDto>({

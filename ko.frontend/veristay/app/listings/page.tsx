@@ -15,9 +15,12 @@ import {
     SlidersHorizontal,
     MapPin,
     ShieldCheck,
+    Sparkles,
 } from 'lucide-react';
 import { ListingDto, useGetListingsQuery } from '@/app/errors/listingsApi';
 import { useSearchParams } from 'next/navigation';
+import { useAppSelector } from '@/app/store/store';
+// TODO: replace with your actual auth hook/selector
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'newest';
 
@@ -54,28 +57,41 @@ function bedroomLabel(count: number) {
     return `${count} Bedroom${count === 1 ? '' : 's'}`;
 }
 
+function sortListings(list: ListingDto[], sortBy: SortOption) {
+    const copy = [...list];
+    switch (sortBy) {
+        case 'price-asc':
+            return copy.sort((a, b) => a.monthlyRent - b.monthlyRent);
+        case 'price-desc':
+            return copy.sort((a, b) => b.monthlyRent - a.monthlyRent);
+        case 'newest':
+            return copy.sort(
+                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+        default:
+            return copy;
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-// =============================================
-// ListingsPage.tsx — updated search section
-// =============================================
-
 export default function ListingsPage() {
-
-     const searchParams = useSearchParams();
+    const searchParams = useSearchParams();
     const [sortBy, setSortBy] = useState<SortOption>('default');
     const city = searchParams.get('city') ?? '';
     const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
     const [search, setSearch] = useState(city);
-    const [searchField, setSearchField] = useState<'city' | 'title' | 'address' | 'description'>(
-        'city'
-    );
+    const [searchField, setSearchField] = useState<
+        'city' | 'title' | 'address' | 'description'
+    >('city');
     const [debouncedSearch, setDebouncedSearch] = useState(city);
     const [debouncedField, setDebouncedField] = useState<
         'city' | 'title' | 'address' | 'description'
     >('city');
+
+    
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -91,37 +107,35 @@ export default function ListingsPage() {
             title: debouncedField === 'title' ? debouncedSearch : undefined,
             address: debouncedField === 'address' ? debouncedSearch : undefined,
             description: debouncedField === 'description' ? debouncedSearch : undefined,
+            userId:  undefined,
         }),
-        [debouncedSearch, debouncedField]
+        [debouncedSearch, debouncedField, undefined]
     );
-
     const {
-        data: listings,
+        data,
         isLoading,
         isFetching,
         isError,
         error,
     } = useGetListingsQuery(queryParams);
 
-    const sortedListings = useMemo(() => {
-        const list = [...(listings ?? [])];
-        switch (sortBy) {
-            case 'price-asc':
-                return list.sort((a, b) => a.monthlyRent - b.monthlyRent);
-            case 'price-desc':
-                return list.sort((a, b) => b.monthlyRent - a.monthlyRent);
-            case 'newest':
-                return list.sort(
-                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                );
-            default:
-                return list;
-        }
-    }, [listings, sortBy]);
+    const recommendations = data?.recommendations ?? [];
+    const listings = data?.listings ?? [];
+
+    const sortedRecommendations = useMemo(
+        () => sortListings(recommendations, sortBy),
+        [recommendations, sortBy]
+    );
+
+    const sortedListings = useMemo(
+        () => sortListings(listings, sortBy),
+        [listings, sortBy]
+    );
 
     function toggleSaved(id: number) {}
 
     const loading = isLoading || isFetching;
+    const totalResults = sortedRecommendations.length + sortedListings.length;
 
     const placeholderMap = {
         city: 'Search by city...',
@@ -135,9 +149,7 @@ export default function ListingsPage() {
             {/* Search / filter bar */}
             <div className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur">
                 <div className="container mx-auto flex items-center gap-3 overflow-x-auto px-4 py-3">
-                    {/* Search field selector + input */}
                     <div className="flex flex-1 max-w-2xl items-center rounded-full border bg-white shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-600 overflow-hidden">
-                        {/* Field selector */}
                         <div className="relative border-r">
                             <select
                                 value={searchField}
@@ -155,7 +167,6 @@ export default function ListingsPage() {
                             <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                         </div>
 
-                        {/* Search input */}
                         <div className="flex flex-1 items-center px-4 py-2">
                             <Search className="mr-3 h-5 w-5 shrink-0 text-gray-500" />
                             <input
@@ -176,13 +187,10 @@ export default function ListingsPage() {
                             )}
                         </div>
                     </div>
-                   
                 </div>
             </div>
 
             <div className="container mx-auto px-4 py-6 sm:py-8">
-                
-
                 {/* Heading */}
                 <h1
                     className={`${montserrat.className} text-2xl font-bold sm:text-3xl lg:text-4xl`}
@@ -200,11 +208,11 @@ export default function ListingsPage() {
                         ) : (
                             <>
                                 <span className="font-semibold text-foreground">
-                                    1-{sortedListings.length}
+                                    1-{totalResults}
                                 </span>{' '}
                                 of{' '}
                                 <span className="font-semibold text-foreground">
-                                    {sortedListings.length}
+                                    {totalResults}
                                 </span>{' '}
                                 results
                             </>
@@ -245,24 +253,56 @@ export default function ListingsPage() {
                     </div>
                 )}
 
-                {!loading && !isError && sortedListings.length === 0 && (
+                {!loading && !isError && totalResults === 0 && (
                     <div className="mt-8 rounded-xl border bg-background p-10 text-center text-muted-foreground">
                         No listings found{search ? ` for "${search}"` : ` in ${city}`}. Try widening
                         your search.
                     </div>
                 )}
 
-                {/* Listings */}
+                {/* Recommended section */}
+                {!loading && !isError &&  sortedRecommendations.length > 0 && (
+                    <div className="mt-6">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-blue-600" />
+                            <h2 className={`${montserrat.className} text-lg font-bold sm:text-xl`}>
+                                Recommended for you
+                            </h2>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Based on your budget
+                        </p>
+                        <div className="mt-4 space-y-4">
+                            {sortedRecommendations.map((listing) => (
+                                <ListingCard
+                                    key={listing.id}
+                                    listing={listing}
+                                    saved={savedIds.has(listing.id)}
+                                    onToggleSaved={() => toggleSaved(listing.id)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* All listings */}
                 {!loading && !isError && sortedListings.length > 0 && (
-                    <div className="mt-6 space-y-4">
-                        {sortedListings.map((listing) => (
-                            <ListingCard
-                                key={listing.id}
-                                listing={listing}
-                                saved={savedIds.has(listing.id)}
-                                onToggleSaved={() => toggleSaved(listing.id)}
-                            />
-                        ))}
+                    <div className="mt-8">
+                        { sortedRecommendations.length > 0 && (
+                            <h2 className={`${montserrat.className} text-lg font-bold sm:text-xl`}>
+                                All listings
+                            </h2>
+                        )}
+                        <div className="mt-4 space-y-4">
+                            {sortedListings.map((listing) => (
+                                <ListingCard
+                                    key={listing.id}
+                                    listing={listing}
+                                    saved={savedIds.has(listing.id)}
+                                    onToggleSaved={() => toggleSaved(listing.id)}
+                                />
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -271,7 +311,7 @@ export default function ListingsPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Listing Card — updated with star rating
+// Listing Card
 // ---------------------------------------------------------------------------
 
 function StarRating({ rating }: { rating: number }) {
@@ -318,7 +358,6 @@ function ListingCard({
             href={`/listings/${listing.id}`}
             className="group flex flex-col overflow-hidden rounded-xl border bg-background shadow-sm transition-shadow hover:shadow-md sm:flex-row"
         >
-            {/* Image */}
             <div className="relative h-56 w-full shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-72">
                 {imageUrl ? (
                     <Image
@@ -344,7 +383,6 @@ function ListingCard({
                     {availabilityLabel(listing.availableFrom)}
                 </span>
 
-                {/* Rating badge on image */}
                 {hasRating && (
                     <span className="absolute right-3 top-3 flex items-center gap-1 rounded-md bg-white/90 px-2 py-1 text-xs font-bold text-yellow-600 shadow-sm backdrop-blur-sm">
                         ★ {listing.averageListing.toFixed(1)}
@@ -352,7 +390,6 @@ function ListingCard({
                 )}
             </div>
 
-            {/* Details */}
             <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
                 <div>
                     <div className="flex items-start justify-between gap-3">
@@ -363,7 +400,6 @@ function ListingCard({
                                     {' '}per month
                                 </span>
                             </p>
-                            {/* Star rating inline under price */}
                             {hasRating ? (
                                 <div className="mt-0.5 flex items-center gap-1.5">
                                     <StarRating rating={listing.averageListing} />
@@ -403,7 +439,6 @@ function ListingCard({
                             <BedDouble className="h-4 w-4" /> {listing.availableBeds}
                         </span>
 
-                        {/* Amenity chips */}
                         {listing.amenities?.slice(0, 2).map((a, i) => (
                             <span
                                 key={i}
@@ -421,7 +456,6 @@ function ListingCard({
                     )}
                 </div>
 
-                {/* Footer row — landlord + rating summary */}
                 <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                         <ShieldCheck className="h-4 w-4 text-blue-600 shrink-0" />
@@ -430,7 +464,6 @@ function ListingCard({
                         </span>
                     </div>
 
-                    {/* Rating summary on the right */}
                     {hasRating && (
                         <div className="flex items-center gap-1 shrink-0">
                             <StarRating rating={listing.averageListing} />

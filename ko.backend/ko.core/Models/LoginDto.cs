@@ -130,6 +130,12 @@ namespace ko.core.Models
         public List<PropertyImageDto> Images { get; set; }
     }
 
+
+    public class FinalListingsDto
+    {
+        public List<ListingDto> recommendations { get; set; } = new List<ListingDto>();
+        public List<ListingDto> listings { get; set; } = new List<ListingDto>();
+    }
     public class ListingDto
     {
         public int Id { get; set; }

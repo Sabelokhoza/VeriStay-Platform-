@@ -79,14 +79,15 @@ namespace ko.api.Controllers
         }
 
         [HttpGet("get-listings")]
-        public async Task<ActionResult<ApiResponse<List<ListingDto>>>> GetListings(
+        public async Task<ActionResult<ApiResponse<FinalListingsDto>>> GetListings(
              [FromQuery] string? city = null,
              [FromQuery] string? title = null,
              [FromQuery] string? address = null,
-             [FromQuery] string? description = null)
+             [FromQuery] string? description = null,
+             [FromQuery] string? userId = null)
         {
             _logger.LogInformation("GET api/property/get-listings - Retrieving listings");
-            var result = await _propertyService.GetListings(city, title, address, description);
+            var result = await _propertyService.GetListings(city, title, address, description ,userId);
             return Ok(ApiResponse.Success(result, "Listings retrieved successfully"));
         }
 

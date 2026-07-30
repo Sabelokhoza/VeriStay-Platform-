@@ -441,49 +441,59 @@ namespace ko.core.Services
             return listing;
         }
 
-        public async Task<List<ListingDto>> GetListings(
-              string? city = null,
-              string? title = null,
-              string? address = null,
-              string? description = null)
+        public async Task<FinalListingsDto> GetListings(
+                string? city = null,
+                string? title = null,
+                string? address = null,
+                string? description = null,
+                string? userId = null)
         {
+            var user = !string.IsNullOrEmpty(userId) ? await _userManager.FindByIdAsync(userId) : null;
+
             var query = _appDbContext.Properties
-                .Where(p => p.IsAvailable && p.Status == PropertyStatus.Approved) // add isAvaila
+                .Where(p => p.IsAvailable && p.Status == PropertyStatus.Approved)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(city))
                 query = query.Where(p => p.City.ToLower().Contains(city.ToLower()));
-
             if (!string.IsNullOrWhiteSpace(title))
                 query = query.Where(p => p.Title.ToLower().Contains(title.ToLower()));
-
             if (!string.IsNullOrWhiteSpace(address))
                 query = query.Where(p => p.Address.ToLower().Contains(address.ToLower()));
-
             if (!string.IsNullOrWhiteSpace(description))
                 query = query.Where(p => p.Description.ToLower().Contains(description.ToLower()));
 
             var data = await query.ToListAsync();
 
-
-            var listings = new List<ListingDto>();
+            var result = new FinalListingsDto();
             var _reviewService = _serviceProvider.GetRequiredService<IReviewService>();
+
+            decimal? maxAllowedPrice = (user != null && user.Budget > 0)
+                ? user.Budget * 1.2m
+                : null;
 
             foreach (var item in data)
             {
-                var listing = _mapper.Map<ListingDto>(item);
-                listing.Image = await GetPrimaryImageByPropertyIdAsync(item.Id);
-                if (listing.Image != null)
+                var listingDto = _mapper.Map<ListingDto>(item);
+                listingDto.Image = await GetPrimaryImageByPropertyIdAsync(item.Id);
+                if (listingDto.Image != null)
                 {
-                    listing.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listing.Image.ImageUrl);
+                    listingDto.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listingDto.Image.ImageUrl);
                 }
+                listingDto.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
 
-                listing.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
-
-                listings.Add(listing);
+                // Split: within budget + 20% buffer -> recommendations, everything else -> listings
+                if (maxAllowedPrice.HasValue && item.MonthlyRent <= maxAllowedPrice.Value)
+                {
+                    result.recommendations.Add(listingDto);
+                }
+                else
+                {
+                    result.listings.Add(listingDto);
+                }
             }
 
-            return listings;
+            return result;
         }
 
         public async Task<ListingDetailsDto> GetListingDetailsbyPropertyId(int id)

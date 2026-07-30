@@ -1,4 +1,5 @@
 ﻿using ko.core.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ko.core.Contracts
 {
@@ -49,10 +50,11 @@ namespace ko.core.Contracts
         Task<List<ListingDto>> GetListings();
         Task<ListingDetailsDto> GetListingDetailsbyPropertyId(int id);
         Task<ListingDto> GetProperyInfoAsync(int propertyId);
-        Task<List<ListingDto>> GetListings(
+        Task<FinalListingsDto> GetListings(
               string? city = null,
               string? title = null,
               string? address = null,
-              string? description = null);
+              string? description = null,
+               string? userId = null);
     }
 }

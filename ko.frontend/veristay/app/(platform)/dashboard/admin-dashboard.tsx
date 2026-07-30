@@ -550,16 +550,16 @@ function CityDistributionChart({ data }: { data: { city: string; propertyCount: 
 
 type Tab = 'overview' | 'landlords' | 'properties' | 'disputes' |
            'complaints' | 'users' | 'report' | 'analytics';
-
-const tabs = [
-    { id: 'overview',    label: 'Overview',    icon: BarChart3    },
-    { id: 'landlords',   label: 'Landlords',   icon: Users        },
-    { id: 'properties',  label: 'Properties',  icon: Home         },
+           
+const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
+    { id: 'overview',    label: 'Overview',    icon: BarChart3     },
+    { id: 'landlords',   label: 'Landlords',   icon: Users         },
+    { id: 'properties',  label: 'Properties',  icon: Home          },
     { id: 'disputes',    label: 'Disputes',    icon: AlertTriangle },
-    { id: 'complaints',  label: 'Complaints',  icon: Flag         },
-    { id: 'users',       label: 'Users',       icon: UserCheck    },
-    { id: 'report',      label: 'Report',      icon: FileText     },
-    { id: 'analytics',   label: 'Analytics',   icon: TrendingUp   },
+    { id: 'complaints',  label: 'Complaints',  icon: Flag          },
+    { id: 'users',       label: 'Users',       icon: UserCheck     },
+    { id: 'report',      label: 'Report',      icon: FileText      },
+    { id: 'analytics',   label: 'Analytics',   icon: TrendingUp    },
 ];
 
 // =============================================

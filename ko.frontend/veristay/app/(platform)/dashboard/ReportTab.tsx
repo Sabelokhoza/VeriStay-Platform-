@@ -1,6 +1,12 @@
 import { useGetAccommodationReportQuery } from "@/app/errors/listingsApi";
 import { BarChart3, MapPin } from "lucide-react";
 
+function formatDate(date: string | null | undefined): string {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-ZA', {
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+}
 export default function ReportTab() {
     const { data: report, isLoading, refetch } = useGetAccommodationReportQuery();
 

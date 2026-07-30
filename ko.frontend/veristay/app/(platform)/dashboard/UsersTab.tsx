@@ -1,8 +1,16 @@
 import { useGetAllUsersQuery, UserAccountDto, useSuspendLandlordMutation, useToggleUserActiveMutation } from "@/app/errors/listingsApi";
-import { formatDate } from "date-fns";
-import { Loader2, ShieldX, Users } from "lucide-react";
+import { Loader2, ShieldX, Users , X} from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
+
+
+function formatDate(date: string | null | undefined): string {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-ZA', {
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+}
+
 
 export default function UsersTab() {
     const [searchTerm,    setSearchTerm]    = useState('');

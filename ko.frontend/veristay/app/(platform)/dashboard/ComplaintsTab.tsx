@@ -1,8 +1,14 @@
 import { ComplaintDto, useGetComplaintsQuery, useNotifyComplaintMutation, useUpdateComplaintStatusMutation } from "@/app/errors/listingsApi";
-import { formatDate } from "date-fns";
-import { Bell, CheckCircle, Clock, Eye, Flag, Loader2 } from "lucide-react";
+import { Bell,  X,CheckCircle, Clock, Eye, Flag, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
+
+function formatDate(date: string | null | undefined): string {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-ZA', {
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+}
 
 export default function ComplaintsTab() {
     const [selected,      setSelected]     = useState<ComplaintDto | null>(null);

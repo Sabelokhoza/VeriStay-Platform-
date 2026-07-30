@@ -1,9 +1,17 @@
 // ── Disputes Tab ──────────────────────────────────────────────────────
 
 import { DisputeDto, useGetDisputesQuery, useResolveDisputeMutation } from "@/app/errors/listingsApi";
-import { AlertTriangle, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { AlertTriangle,ChevronRight, CheckCircle,Home, Clock,Users, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
+
+
+function formatDate(date: string | null | undefined): string {
+    if (!date) return '—';
+    return new Date(date).toLocaleDateString('en-ZA', {
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+}
 
 export default function DisputesTab() {
     const [selected,    setSelected]    = useState<DisputeDto | null>(null);

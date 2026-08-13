@@ -149,4 +149,11 @@ namespace ko.core.Services
 
         #endregion
     }
+
+
+public interface INotificationService
+    {
+        Task SendToUserAsync(string userId, string title, string message, string type);
+        Task SendToTopicAsync(string topic, string title, string message, string type);
+    }
 }

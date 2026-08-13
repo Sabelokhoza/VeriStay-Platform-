@@ -18,6 +18,11 @@ namespace ko.core.Models
         public string Body { get; set; }
     }
 
+    public class UpdateFcmTokenDto
+    {
+        public string UserId { get; set; }
+        public string FcmToken { get; set; }
+    }
 
     public class StudentDashboardDataDto
     {

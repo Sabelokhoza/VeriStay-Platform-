@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="FirebaseAdmin" Version="3.6.0" />
 	<PackageReference Include="Mailjet.Api" Version="4.0.1" />
 	<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
 	<PackageReference Include="QuestPDF" Version="2026.7.1" />

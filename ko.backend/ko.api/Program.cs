@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using ko.core.Contracts;
 using ko.core.Extensions;
 using ko.core.MappingProfiles;
@@ -96,7 +98,12 @@ builder.Services.AddScoped<Client>(_ =>
         }));
 
 
-
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromFile("firebase-adminsdk.json")
+    // Download this from Firebase Console ?
+    // Project Settings ? Service Accounts ? Generate new private key
+});
 
 
 

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="FirebaseAdmin" Version="3.6.0" />
     <PackageReference Include="HtmlRenderer.PdfSharp" Version="1.6.0" />
     <PackageReference Include="Mailjet.Api" Version="4.0.1" />
     <PackageReference Include="MailKit" Version="4.17.0" />

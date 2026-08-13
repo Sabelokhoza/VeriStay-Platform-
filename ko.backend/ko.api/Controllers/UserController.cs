@@ -1,5 +1,7 @@
 ﻿using ko.core.Contracts;
 using ko.core.Models;
+using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ko.api.Controllers
@@ -7,10 +9,12 @@ namespace ko.api.Controllers
     public class UserController : BaseController
     {
         private readonly IUserService _userService;
+        private readonly  UserManager<ApplicationUser> _userManager;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, UserManager<ApplicationUser> userManager)
         {
             _userService = userService;
+            _userManager = userManager;
         }
 
         [HttpGet("get-user-by-id")]
@@ -41,10 +45,21 @@ namespace ko.api.Controllers
         }
 
         [HttpPost("update-landlord-status")]
-        public async Task<ActionResult<ApiResponse<ProfileDto>>> UpdateLandLordStatus([FromQuery]  string user_id , [FromQuery] bool isAppproved)
+        public async Task<ActionResult<ApiResponse<ProfileDto>>> UpdateLandLordStatus([FromQuery] string user_id, [FromQuery] bool isAppproved)
         {
-            var user = await _userService.UpdateLandLordStatus(user_id , isAppproved);
+            var user = await _userService.UpdateLandLordStatus(user_id, isAppproved);
             return Ok(ApiResponse.Success(user, "Landlord status updated successfully"));
+        }
+        [HttpPost("update-fcm-token")]
+        public async Task<ActionResult<ApiResponse<bool>>> UpdateFcmToken(
+    [FromBody] UpdateFcmTokenDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user == null) return NotFound();
+
+            user.FcmToken = dto.FcmToken;
+            await _userManager.UpdateAsync(user);
+            return Ok(ApiResponse.Success(true, "FCM token updated"));
         }
     }
 }

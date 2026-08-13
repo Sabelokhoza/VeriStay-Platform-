@@ -5,6 +5,7 @@ namespace ko.entity_framework.entities
 
     public class ApplicationUser : IdentityUser
     {
+        public string FcmToken { get; set; } = string.Empty;
         public string FullName { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

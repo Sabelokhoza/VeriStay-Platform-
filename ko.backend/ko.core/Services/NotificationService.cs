@@ -18,57 +18,99 @@ namespace ko.core.Services
             _logger = logger;
         }
 
-        // Send to a specific user by their FCM token
-        public async Task SendToUserAsync(string userId, string title,
-                                           string message, string type)
+        public async Task SendToUserAsync(
+     string userId,
+     string title,
+     string message,
+     string type)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null || string.IsNullOrEmpty(user.FcmToken)) return;
+
+            if (user == null)
+            {
+                _logger.LogWarning(
+                    "Cannot send notification. User {UserId} was not found.",
+                    userId);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.FcmToken))
+            {
+                _logger.LogWarning(
+                    "Cannot send notification. User {UserId} has no FCM token.",
+                    userId);
+
+                return;
+            }
+
+            _logger.LogInformation(
+                "Sending FCM notification to user {UserId}. Token: {Token}",
+                userId,
+                user.FcmToken);
 
             var fcmMessage = new Message
             {
                 Token = user.FcmToken,
+
                 Notification = new Notification
                 {
                     Title = title,
-                    Body = message,
+                    Body = message
                 },
+
                 Data = new Dictionary<string, string>
-            {
-                { "type",    type    },
-                { "title",   title   },
-                { "message", message },
-            },
+        {
+            { "type", type },
+            { "title", title },
+            { "message", message }
+        },
+
                 Android = new AndroidConfig
                 {
                     Priority = Priority.High,
+
                     Notification = new AndroidNotification
                     {
                         Sound = "default",
-                        ClickAction = "FLUTTER_NOTIFICATION_CLICK",
+                        ClickAction = "FLUTTER_NOTIFICATION_CLICK"
                     }
                 }
             };
 
             try
             {
-                string response = await FirebaseMessaging.DefaultInstance
-                    .SendAsync(fcmMessage);
-                _logger.LogInformation("Notification sent: {0}", response);
+                string response =
+                    await FirebaseMessaging.DefaultInstance.SendAsync(fcmMessage);
+
+                _logger.LogInformation(
+                    "Firebase notification sent successfully to user {UserId}. Message ID: {MessageId}",
+                    userId,
+                    response);
+            }
+            catch (FirebaseMessagingException ex)
+            {
+                _logger.LogError(
+                    ex.Message,
+                    "Firebase notification failed for user {UserId}. ErrorCode: {ErrorCode}",
+                    userId,
+                    ex.ErrorCode);
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("Notification failed: {0}", ex.Message);
+                _logger.LogError(
+                    ex.Message,
+                    "Unexpected notification error for user {UserId}",
+                    userId);
             }
         }
 
-        // Send to all students/landlords via topic
         public async Task SendToTopicAsync(string topic, string title,
                                             string message, string type)
         {
             var fcmMessage = new Message
             {
-                Topic = topic, // "student" or "landlord"
+                Topic = topic,
                 Notification = new Notification
                 {
                     Title = title,

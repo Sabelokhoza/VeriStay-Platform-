@@ -100,7 +100,7 @@ builder.Services.AddScoped<Client>(_ =>
 
 FirebaseApp.Create(new AppOptions
 {
-    Credential = GoogleCredential.FromFile("veristay-e83d8-firebase-adminsdk-fbsvc-fd56bb1b18.json")
+    Credential = GoogleCredential.FromFile("veristay-e83d8-firebase-adminsdk-fbsvc-a267d08b94.json")
     // Download this from Firebase Console ?
     // Project Settings ? Service Accounts ? Generate new private key
 });

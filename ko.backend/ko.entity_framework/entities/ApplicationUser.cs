@@ -18,12 +18,7 @@ namespace ko.entity_framework.entities
         public decimal Budget { get; set; } = 0;
 
         public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Pending;
-        public double ReputationScore { get; set; } = 0.0;
-
-        public List<VerificationDocument> Documents { get; set; } = new();
-        public List<Property> Properties { get; set; } = new();
-        public List<Review> Reviews { get; set; } = new();
-        public List<Announcement> Announcements { get; set; } = new();
+       
 
     }
 

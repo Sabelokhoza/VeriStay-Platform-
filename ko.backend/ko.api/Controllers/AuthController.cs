@@ -1,5 +1,6 @@
 ﻿using ko.core.Contracts;
 using ko.core.Models;
+using ko.core.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,13 +9,20 @@ namespace ko.api.Controllers
     public class AuthController : BaseController
     {
         private readonly IAuthService _authService;
+        private readonly INotificationService _notificationService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, INotificationService notificationService)
         {
             _authService = authService;
+            _notificationService = notificationService;
         }
 
-
+        [HttpPost("test-notification")]
+        public async Task<ActionResult<ApiResponse<AuthResponse>>> SendToUserAsync(string userId)
+        {
+            await _notificationService.SendToUserAsync(userId, "Testing", "lets go", "payment");
+            return Ok(ApiResponse.Success(null, "Notification sent successfully"));
+        }
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<AuthResponse>>> Login(LoginDto loginDto)
         {

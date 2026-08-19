@@ -12,7 +12,23 @@ namespace ko.core.Contracts
         Task<RegistrationResponse> RegisterLandLordAsync(IFormFile identificationDocument,  RegisterLandlordDto registerDto);
 
     }
- 
+
+    public interface INotificationService
+    {
+        Task SendToUserAsync(string userId, string title,
+                             string message, string type);
+
+        Task SendToTopicAsync(string topic, string title,
+                              string message, string type);
+
+        Task<List<AppNotificationDto>> GetUserNotificationsAsync(string userId);
+        Task<int> GetUnreadCountAsync(string userId);
+        Task<bool> MarkAsReadAsync(int notificationId);
+        Task<bool> MarkAllReadAsync(string userId);
+        Task<bool> DeleteAsync(int notificationId);
+        Task<bool> DeleteAllAsync(string userId);
+    }
+
     public interface IPropertyImageService
     {
         Task<PropertyImageDto?> AddAsync(AddPropertyImageDto dto);

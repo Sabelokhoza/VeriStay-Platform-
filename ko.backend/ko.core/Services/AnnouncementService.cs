@@ -14,40 +14,91 @@ namespace ko.core.Services
         private readonly IGenericService<Announcement> _genericService;
         private readonly IAppLogger<AnnouncementService> _logger;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
         public AnnouncementService(
             AppDbContext appDbContext,
             IGenericService<Announcement> genericService,
             IAppLogger<AnnouncementService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            INotificationService notificationService)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         #region CRUD
 
-        public async Task<AnnouncementDto?> AddAsync(string landlordId, AddAnnouncementDto dto)
+        public async Task<AnnouncementDto> AddAsync(string landlordId, AddAnnouncementDto dto)
         {
-            var canAdd = await onInsert(dto);
-            if (!canAdd) return null;
+            _logger.LogInformation(
+                "Adding announcement for landlord {0} on property {1}",
+                landlordId, dto.PropertyId);
 
-            _logger.LogInformation("Adding announcement for landlord {0} to the database", landlordId);
-
-            var entity = _mapper.Map<Announcement>(dto);
-            entity.LandlordId = landlordId;
-            entity.DateCreated = DateTime.UtcNow;
+            var entity = new Announcement
+            {
+                LandlordId = landlordId,
+                PropertyId = dto.PropertyId,
+                Message = dto.Message,
+                DateCreated = DateTime.UtcNow,
+            };
 
             await _appDbContext.Announcements.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
 
-            var result = _mapper.Map<AnnouncementDto>(entity);
-            _logger.LogInformation("Announcement with id {0} has been added successfully", result.Id);
+            var property = await _appDbContext.Properties
+                .FirstOrDefaultAsync(p => p.Id == dto.PropertyId);
 
-            await afterInsert(result);
-            return result;
+            var propertyTitle = property?.Title ?? $"Property #{dto.PropertyId}";
+
+            var tenantIds = await (
+                from t in _appDbContext.Tenancies
+                where t.PropertyId == dto.PropertyId
+                   && t.Status == TenancyStatus.Active
+                select t.StudentId
+            ).ToListAsync();
+
+            _logger.LogInformation(
+                "Sending announcement push to {0} tenant(s) for property {1}",
+                tenantIds.Count, dto.PropertyId);
+
+            foreach (var tenantId in tenantIds)
+            {
+                await _notificationService.SendToUserAsync(
+                    userId: tenantId,
+                    title: $"📢 Announcement — {propertyTitle}",
+                    message: dto.Message.Length > 100
+                        ? dto.Message.Substring(0, 100) + "…"
+                        : dto.Message,
+                    type: "announcement");
+            }
+
+            await _notificationService.SendToTopicAsync(
+                topic: $"property_{dto.PropertyId}",
+                title: $"📢 {propertyTitle}",
+                message: dto.Message.Length > 100
+                    ? dto.Message.Substring(0, 100) + "…"
+                    : dto.Message,
+                type: "announcement");
+
+            var landlord = await _appDbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == landlordId);
+
+            return new AnnouncementDto
+            {
+                Id = entity.Id,
+                LandlordId = landlordId,
+                LandlordName = landlord?.FullName ?? string.Empty,
+                PropertyId = dto.PropertyId,
+                PropertyTitle = propertyTitle,
+                Message = dto.Message,
+                PostedAt = entity.DateCreated.HasValue
+                    ? DateTime.SpecifyKind(entity.DateCreated.Value, DateTimeKind.Utc)
+                    : DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
+            };
         }
 
         public async Task<List<AnnouncementDto>> GetByLandlordIdAsync(string landlordId)

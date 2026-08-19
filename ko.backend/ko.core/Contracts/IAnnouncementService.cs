@@ -22,5 +22,7 @@ namespace ko.core.Contracts
         Task<bool> afterUpdate(AnnouncementDto dto);
         Task<bool> onDelete(AnnouncementDto dto);
         Task<bool> afterDelete(AnnouncementDto dto);
+
+        Task<List<AnnouncementDto>> GetByStudentIdAsync(string studentId);
     }
 }

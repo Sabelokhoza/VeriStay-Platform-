@@ -41,6 +41,14 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Announcements retrieved successfully"));
         }
 
+        [HttpGet("student/{studentId}")]
+        public async Task<ActionResult<ApiResponse<List<AnnouncementDto>>>> GetByStudentId(
+    string studentId)
+        {
+            var result = await _announcementService.GetByStudentIdAsync(studentId);
+            return Ok(ApiResponse.Success(result, "Announcements retrieved"));
+        }
+
         /// <summary>
         /// Get announcement by id — All authenticated users
         /// </summary>

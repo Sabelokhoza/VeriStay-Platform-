@@ -144,6 +144,44 @@ namespace ko.core.Services
             return _mapper.Map<List<AnnouncementDto>>(data);
         }
 
+        public async Task<List<AnnouncementDto>> GetByStudentIdAsync(string studentId)
+        {
+            _logger.LogInformation(
+                "Retrieving announcements for student {0}", studentId);
+
+            // Get student's active tenancy property
+            var tenancy = await _appDbContext.Tenancies
+                .FirstOrDefaultAsync(t =>
+                    t.StudentId == studentId &&
+                    t.Status == TenancyStatus.Active);
+
+            if (tenancy == null)
+                return new List<AnnouncementDto>();
+
+            var data = await (
+                from a in _appDbContext.Announcements
+                join landlord in _appDbContext.Users
+                    on a.LandlordId equals landlord.Id
+                join property in _appDbContext.Properties
+                    on a.PropertyId equals property.Id
+                where a.PropertyId == tenancy.PropertyId
+                orderby a.DateCreated descending
+                select new AnnouncementDto
+                {
+                    Id = a.Id,
+                    LandlordId = a.LandlordId,
+                    LandlordName = landlord.FullName,
+                    PropertyId = a.PropertyId,
+                    PropertyTitle = property.Title,
+                    Message = a.Message,
+                    PostedAt = a.DateCreated.HasValue
+                        ? DateTime.SpecifyKind(a.DateCreated.Value, DateTimeKind.Utc)
+                        : DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
+                }
+            ).ToListAsync();
+
+            return data;
+        }
         public async Task<AnnouncementDto?> GetByIdAsync(int? id)
         {
             _logger.LogInformation("Attempting to retrieve announcement with id {0}", id);

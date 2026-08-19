@@ -50,6 +50,37 @@ namespace ko.core.Services
             return result;
         }
 
+        public async Task<List<AnnouncementDto>> GetByLandlordIdAsync(string landlordId)
+        {
+            _logger.LogInformation(
+                "Retrieving announcements for landlord {0}", landlordId);
+
+            var data = await (
+                from a in _appDbContext.Announcements
+                join landlord in _appDbContext.Users
+                    on a.LandlordId equals landlord.Id
+                join property in _appDbContext.Properties
+                    on a.PropertyId equals property.Id
+                where a.LandlordId == landlordId
+                orderby a.DateCreated descending
+                select new AnnouncementDto
+                {
+                    Id = a.Id,
+                    LandlordId = a.LandlordId,
+                    LandlordName = landlord.FullName,
+                    PropertyId = a.PropertyId,
+                    PropertyTitle = property.Title,
+                    Message = a.Message,
+
+                    PostedAt = a.DateCreated.HasValue
+                        ? DateTime.SpecifyKind(a.DateCreated.Value, DateTimeKind.Utc)
+                        : DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc),
+                }
+                ).ToListAsync();
+
+            return data;
+        }
+
         public async Task<List<AnnouncementDto>> GetAllAsync()
         {
             _logger.LogInformation("Retrieving all announcements from the database");

@@ -26,6 +26,7 @@ import {
     FileText,
     Download,
     CreditCard,
+    Megaphone,
 } from 'lucide-react';
 import {
     useGetLandlordDashboardQuery,
@@ -34,12 +35,16 @@ import {
     useMarkMaintenanceResolvedMutation,
     MaintenanceStatus,
     ApplicationDto,
+    useAddAnnouncementMutation,
+    useGetLandlordAnnouncementsQuery,
+    AnnouncementDto,
     LandlordPropertyDto,
     LandlordMaintenanceDto,
     useAcceptDeclineOfferMutation,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
 import { LandlordPaymentsTab } from './landlord-payments-tab';
+import AnnouncementsTab from './announcement-tab';
 
 // =============================================
 // Helpers
@@ -591,15 +596,16 @@ function MaintenanceResponseModal({
 // Tabs
 // =============================================
 
-type Tab = 'overview' | 'properties' | 'applications' | 'tenants' | 'payments' | 'maintenance';
+type Tab = 'overview' | 'properties' | 'applications' | 'tenants' | 'payments' | 'maintenance' | 'announcements';
 
 const tabs: { id: Tab; label: string; icon: typeof BarChart3 }[] = [
-    { id: 'overview',     label: 'Overview',     icon: BarChart3     },
-    { id: 'properties',   label: 'Properties',   icon: Home          },
-    { id: 'applications', label: 'Applications', icon: ClipboardList },
-    { id: 'tenants',      label: 'Tenants',      icon: Users         },
-    { id: 'payments',     label: 'Payments',     icon: CreditCard    },
-    { id: 'maintenance',  label: 'Maintenance',  icon: Wrench        },
+    { id: 'overview',       label: 'Overview',       icon: BarChart3   },
+    { id: 'properties',     label: 'Properties',     icon: Home        },
+    { id: 'applications',   label: 'Applications',   icon: ClipboardList },
+    { id: 'tenants',        label: 'Tenants',        icon: Users       },
+    { id: 'payments',       label: 'Payments',       icon: CreditCard  },
+    { id: 'maintenance',    label: 'Maintenance',    icon: Wrench      },
+    { id: 'announcements',  label: 'Announcements',  icon: Megaphone   }, 
 ];
 
 
@@ -1231,6 +1237,13 @@ export function LandlordDashboard() {
                     {activeTab === 'payments' && (
                         <LandlordPaymentsTab landlordId={landlord?.id ?? userId} />
                     )}
+                    {activeTab === 'announcements' && (
+                    <AnnouncementsTab
+                        landlordId={landlord?.id ?? userId}
+                        properties={properties}
+                    />
+                )}
+
                 </div>
             </div>
 

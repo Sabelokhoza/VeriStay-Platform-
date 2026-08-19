@@ -74,6 +74,14 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Announcement updated successfully"));
         }
 
+        [HttpGet("landlord/{landlordId}")]
+        public async Task<ActionResult<ApiResponse<List<AnnouncementDto>>>> GetByLandlordId(
+            string landlordId)
+        {
+            var result = await _announcementService.GetByLandlordIdAsync(landlordId);
+            return Ok(ApiResponse.Success(result, "Announcements retrieved successfully"));
+        }
+
         /// <summary>
         /// Delete an announcement — Admin and Landlord
         /// </summary>

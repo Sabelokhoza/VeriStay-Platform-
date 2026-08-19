@@ -14,6 +14,7 @@ namespace ko.core.Contracts
         Task<List<AnnouncementDto>> GetByPropertyIdAsync(int propertyId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> UpdateAsync(int id, AnnouncementDto dto);
+        Task<List<AnnouncementDto>> GetByLandlordIdAsync(string landlordId);
         // Events
         Task<bool> onInsert(AddAnnouncementDto dto);
         Task<bool> afterInsert(AnnouncementDto dto);

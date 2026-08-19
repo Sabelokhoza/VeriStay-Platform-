@@ -916,6 +916,26 @@ adminRejectProperty: builder.mutation<ApiResponse<boolean>, number>({
         { type: 'Listing' as const, id: propertyId },
     ],
 }),
+getLandlordAnnouncements: builder.query<AnnouncementDto[], string>({
+    query: (landlordId) => `Announcement/landlord/${landlordId}`,
+    transformResponse: (res: ApiResponse<AnnouncementDto[]>) => res.data ?? [],
+}),
+
+addAnnouncement: builder.mutation<AnnouncementDto, {
+    landlordId: string;
+    propertyId: number;
+    message:    string;
+}>({
+    query: ({ landlordId, propertyId, message }) => ({
+        url:    `Announcement/${landlordId}`,  
+        method: 'POST',
+        body:   {
+            propertyId,  
+            message,
+        },
+    }),
+    transformResponse: (res: ApiResponse<AnnouncementDto>) => res.data,
+}),
 getReceiptUrl: builder.mutation<string, number>({
     query: (paymentId) => ({
         url:    `RentPayment/get-receipt?id=${paymentId}`,  
@@ -998,6 +1018,8 @@ useGetImagesByPropertyIdQuery,
     useAddDisputeMutation,
     useResolveDisputeMutation,
     useGetComplaintsQuery,
+    useGetLandlordAnnouncementsQuery,
+    useAddAnnouncementMutation,
     useAddComplaintMutation,
     useUpdateComplaintStatusMutation,
     useNotifyComplaintMutation,

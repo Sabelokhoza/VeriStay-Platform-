@@ -1079,7 +1079,6 @@ export function AdminDashboard() {
 
                                             <div className="mt-3 flex items-center gap-2 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-xs text-yellow-800">
                                                 <Clock className="h-4 w-4 shrink-0" />
-                                               {/* Status-based message banner for landlords */}
                                         {l.verificationStatus !== 1 && (
                                             <div className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
                                                 l.verificationStatus === 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
@@ -1203,12 +1202,10 @@ export function AdminDashboard() {
 
                                                 <div className="mt-3 flex items-center gap-2 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-xs text-yellow-800">
                                                     <ShieldX className="h-4 w-4 shrink-0" />
-                                                   {/* Status-based message banner */}
-                                            {p.status !== 1 && (
+                                            {(p.status === 0 || p.status === 2 || p.status === 3) && (
                                                 <div className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
                                                     p.status === 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
                                                     p.status === 2 ? 'bg-red-50    border-red-200    text-red-800'    :
-                                                    p.status === 3 ? 'bg-gray-50   border-gray-200   text-gray-700'   :
                                                                     'bg-gray-50   border-gray-200   text-gray-700'
                                                 }`}>
                                                     {p.status === 0 && (

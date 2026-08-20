@@ -511,34 +511,123 @@ function PropertyReviewModal({
 }
 
 // =============================================
-// City Distribution Chart
+// City Distribution Chart — Beds & Availability
 // =============================================
 
-function CityDistributionChart({ data }: { data: { city: string; propertyCount: number; tenancyCount: number }[] }) {
-    const max = Math.max(...data.map(d => d.propertyCount), 1);
+function CityDistributionChart({
+    data,
+}: {
+    data: {
+        city:           string;
+        propertyCount:  number;
+        tenancyCount:   number;
+        availableBeds?: number;
+        occupiedBeds?:  number;
+    }[];
+}) {
+    if (data.length === 0) {
+        return (
+            <div className="py-8 text-center">
+                <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm text-muted-foreground">No city distribution data yet.</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                    Data appears once properties are approved.
+                </p>
+            </div>
+        );
+    }
+
+    // Derive beds from available data
+    // If backend sends availableBeds use it, otherwise fall back to propertyCount
+    const enriched = data.map(d => {
+        const totalBeds    = d.availableBeds ?? d.propertyCount;
+        const occupied     = d.occupiedBeds  ?? d.tenancyCount;
+        const availableNow = Math.max(totalBeds - occupied, 0);
+        const occupancyPct = totalBeds > 0
+            ? Math.min(Math.round((occupied / totalBeds) * 100), 100)
+            : 0;
+        return { ...d, totalBeds, occupied, availableNow, occupancyPct };
+    });
+
+    const maxBeds = Math.max(...enriched.map(d => d.totalBeds), 1);
 
     return (
-        <div className="space-y-3">
-            {data.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">No distribution data yet.</p>
-            ) : (
-                data.slice(0, 8).map((item) => (
-                    <div key={item.city}>
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium truncate">{item.city}</span>
-                            <div className="flex items-center gap-3 shrink-0 ml-3">
-                                <span className="text-xs text-blue-600 font-semibold">{item.propertyCount} properties</span>
-                                <span className="text-xs text-green-600 font-semibold">{item.tenancyCount} tenants</span>
-                            </div>
+        <div className="space-y-5">
+            {/* ── Legend ─────────────────────────────────── */}
+            <div className="flex flex-wrap items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-blue-600" />
+                    <span className="text-muted-foreground">Total Beds</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-orange-500" />
+                    <span className="text-muted-foreground">Occupied</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-green-500" />
+                    <span className="text-muted-foreground">Available</span>
+                </div>
+            </div>
+
+            {/* ── City rows ──────────────────────────────── */}
+            {enriched.slice(0, 8).map(item => (
+                <div key={item.city} className="space-y-1.5">
+
+                    {/* City name + summary */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-sm font-semibold truncate">
+                                {item.city}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                                · {item.propertyCount} {item.propertyCount === 1 ? 'property' : 'properties'}
+                            </span>
                         </div>
-                        <div className="h-2 rounded-full bg-muted overflow-hidden">
-                            <div
-                                className="h-full rounded-full bg-blue-600 transition-all"
-                                style={{ width: `${(item.propertyCount / max) * 100}%` }}
-                            />
-                        </div>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            item.occupancyPct >= 90 ? 'bg-red-100 text-red-700'    :
+                            item.occupancyPct >= 60 ? 'bg-orange-100 text-orange-700' :
+                                                      'bg-green-100 text-green-700'
+                        }`}>
+                            {item.occupancyPct}% occupied
+                        </span>
                     </div>
-                ))
+
+                    {/* ── Stacked bar: occupied + available ── */}
+                    <div className="h-4 rounded-full bg-muted overflow-hidden flex">
+                        {/* Occupied portion */}
+                        <div
+                            className="h-full bg-orange-500 transition-all duration-500"
+                            style={{ width: `${(item.occupied / maxBeds) * 100}%` }}
+                        />
+                        {/* Available portion */}
+                        <div
+                            className="h-full bg-green-500 transition-all duration-500"
+                            style={{ width: `${(item.availableNow / maxBeds) * 100}%` }}
+                        />
+                    </div>
+
+                    {/* Bed stats row */}
+                    <div className="flex items-center gap-4 text-xs">
+                        <span className="flex items-center gap-1 text-blue-600 font-semibold">
+                            <BedDouble className="h-3 w-3" />
+                            {item.totalBeds} total beds
+                        </span>
+                        <span className="text-orange-600 font-semibold">
+                            {item.occupied} occupied
+                        </span>
+                        <span className="text-green-600 font-semibold">
+                            {item.availableNow} available
+                        </span>
+                    </div>
+
+                </div>
+            ))}
+
+            {data.length > 8 && (
+                <p className="text-xs text-muted-foreground text-center">
+                    Showing top 8 of {data.length} cities
+                </p>
             )}
         </div>
     );
@@ -581,7 +670,19 @@ export function AdminDashboard() {
 
     const pendingLandlords  = data?.pendingLandlordsList  ?? [];
     const pendingProperties = data?.pendingPropertiesList ?? [];
-    const cityDistribution  = data?.cityDistribution      ?? [];
+    const cityDistribution  = data?.cityBreakdown      ?? [];
+
+    const totalBeds      = data?.totalAvailableBeds ?? data?.totalProperties;
+    const occupancyRate  = totalBeds > 0
+        ? Math.min(Math.round((data?.totalTenancies / totalBeds) * 100), 100)
+        : 0;
+
+    const housingCoverage = data?.totalStudents > 0
+        ? Math.min(
+            Math.round((data?.totalTenancies / data?.totalStudents) * 100),
+            100
+        )
+        : 0;
 
     // ── Landlord actions ─────────────────────────────────────────────────
     async function handleApproveLandlord() {
@@ -1022,113 +1123,221 @@ export function AdminDashboard() {
                     
 
                     {/* ======== ANALYTICS ======== */}
-                    {activeTab === 'analytics' && (
-                        <div className="space-y-6">
-                            <h2 className="text-lg font-semibold">Accommodation Distribution Analytics</h2>
+{activeTab === 'analytics' && (
+    <div className="space-y-6">
+        <h2 className="text-lg font-semibold">Accommodation Distribution Analytics</h2>
 
-                            {/* Summary cards */}
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                                <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
-                                    <p className="text-xs text-muted-foreground">Platform Coverage</p>
-                                    <p className="text-2xl font-bold text-blue-600">{cityDistribution.length}</p>
-                                    <p className="text-xs text-muted-foreground">cities</p>
-                                </div>
-                                <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
-                                    <p className="text-xs text-muted-foreground">Avg Properties/City</p>
-                                    <p className="text-2xl font-bold text-purple-600">
-                                        {cityDistribution.length > 0
-                                            ? Math.round(data.totalProperties / cityDistribution.length)
-                                            : 0}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">properties</p>
-                                </div>
-                                <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
-                                    <p className="text-xs text-muted-foreground">Occupancy Rate</p>
-                                    <p className="text-2xl font-bold text-green-600">
-                                        {data.totalProperties > 0
-                                            ? Math.round((data.totalTenancies / data.totalProperties) * 100)
-                                            : 0}%
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">tenancies/properties</p>
-                                </div>
-                                <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
-                                    <p className="text-xs text-muted-foreground">Application Rate</p>
-                                    <p className="text-2xl font-bold text-orange-600">
-                                        {data.totalProperties > 0
-                                            ? Math.round(data.totalApplications / data.totalProperties)
-                                            : 0}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">apps per property</p>
-                                </div>
-                            </div>
+       {/* ── Summary cards ─────────────────────────────── */}
+<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 
-                            {/* Distribution chart */}
-                            <Section title="Properties & Tenancies by City" icon={BarChart3}>
-                                <div className="mb-4 flex items-center gap-4 text-xs">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="h-3 w-3 rounded-full bg-blue-600" />
-                                        <span className="text-muted-foreground">Properties</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="h-3 w-3 rounded-full bg-green-600" />
-                                        <span className="text-muted-foreground">Active Tenancies</span>
-                                    </div>
-                                </div>
-                                <CityDistributionChart data={cityDistribution} />
-                            </Section>
+    {/* ✅ Platform Coverage = total available beds across all properties */}
+    <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
+        <p className="text-xs text-muted-foreground">Platform Coverage</p>
+        <p className="text-2xl font-bold text-blue-600">
+            {data.totalAvailableBeds ?? 0}
+        </p>
+        <p className="text-xs text-muted-foreground">available beds</p>
+    </div>
 
-                            {/* Platform health */}
-                            <Section title="Platform Health" icon={ShieldCheck}>
-                                <div className="space-y-3">
-                                    {[
-                                        {
-                                            label: 'Landlord Verification Rate',
-                                            value: data.totalLandlords > 0
-                                                ? Math.round(((data.totalLandlords - data.pendingLandlords) / data.totalLandlords) * 100)
-                                                : 0,
-                                            color: 'bg-blue-600',
-                                            sub: `${data.totalLandlords - data.pendingLandlords} of ${data.totalLandlords} verified`,
-                                        },
-                                        {
-                                            label: 'Property Approval Rate',
-                                            value: data.totalProperties > 0
-                                                ? Math.round(((data.totalProperties - data.pendingProperties) / data.totalProperties) * 100)
-                                                : 0,
-                                            color: 'bg-green-600',
-                                            sub: `${data.totalProperties - data.pendingProperties} of ${data.totalProperties} approved`,
-                                        },
-                                        {
-                                            label: 'Student Housing Coverage',
-                                            value: data.totalStudents > 0
-                                                ? Math.round((data.totalTenancies / data.totalStudents) * 100)
-                                                : 0,
-                                            color: 'bg-purple-600',
-                                            sub: `${data.totalTenancies} of ${data.totalStudents} students housed`,
-                                        },
-                                    ].map(metric => (
-                                        <div key={metric.label}>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-sm font-medium">{metric.label}</span>
-                                                <span className="text-sm font-bold">{metric.value}%</span>
-                                            </div>
-                                            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                                                <div className={`h-full rounded-full ${metric.color} transition-all`}
-                                                    style={{ width: `${metric.value}%` }} />
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">{metric.sub}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Section>
-                        </div>
-                    )}
-                    
+    {/* Avg Properties per City */}
+    <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
+        <p className="text-xs text-muted-foreground">Avg Properties/City</p>
+        <p className="text-2xl font-bold text-purple-600">
+            {cityDistribution.length > 0
+                ? (data.totalProperties / cityDistribution.length).toFixed(1)
+                : 0}
+        </p>
+        <p className="text-xs text-muted-foreground">per city</p>
+    </div>
 
+    {/* ✅ Occupancy Rate = active tenancies / total available beds */}
+    <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
+        <p className="text-xs text-muted-foreground">Occupancy Rate</p>
+        <p className={`text-2xl font-bold ${
+            data.totalTenancies === 0    ? 'text-gray-400'  :
+            occupancyRate >= 80          ? 'text-green-600' :
+            occupancyRate >= 50          ? 'text-orange-500':
+                                           'text-red-500'
+        }`}>
+            {occupancyRate}%
+        </p>
+        <p className="text-xs text-muted-foreground">
+            {data.totalTenancies} tenants · {data.totalAvailableBeds ?? data.totalProperties} beds
+        </p>
+    </div>
 
+    {/* Application Rate */}
+    <div className="rounded-xl border bg-background p-4 shadow-sm text-center">
+        <p className="text-xs text-muted-foreground">Application Rate</p>
+        <p className="text-2xl font-bold text-orange-600">
+            {data.totalProperties > 0
+                ? (data.totalApplications / data.totalProperties).toFixed(1)
+                : 0}
+        </p>
+        <p className="text-xs text-muted-foreground">apps per property</p>
+    </div>
+</div>
+
+        {/* ── Distribution chart ─────────────────────────── */}
+        <Section title="Properties & Tenancies by City" icon={BarChart3}>
+            <div className="mb-4 flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-blue-600" />
+                    <span className="text-muted-foreground">Properties</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full bg-green-600" />
+                    <span className="text-muted-foreground">Active Tenancies</span>
                 </div>
             </div>
 
-            {/* ── Modals ──────────────────────────────────────────── */}
+            {cityDistribution.length === 0 ? (
+                <div className="py-8 text-center">
+                    <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm text-muted-foreground">
+                        No city distribution data yet.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Data appears once properties are approved and tenancies created.
+                    </p>
+                </div>
+            ) : (
+                <CityDistributionChart data={cityDistribution} />
+            )}
+        </Section>
+
+        {/* ── Platform health ────────────────────────────── */}
+        <Section title="Platform Health" icon={ShieldCheck}>
+            <div className="space-y-4">
+              {[
+        {
+            label:    'Landlord Verification Rate',
+            verified: data.totalLandlords - data.pendingLandlords,
+            total:    data.totalLandlords,
+            value:    data.totalLandlords > 0
+                ? Math.round(
+                    ((data.totalLandlords - data.pendingLandlords)
+                    / data.totalLandlords) * 100)
+                : 0,
+            color: 'bg-blue-600',
+            sub:   `${data.totalLandlords - data.pendingLandlords} of ${data.totalLandlords} verified`,
+        },
+        {
+            label:    'Property Approval Rate',
+            verified: data.totalProperties - data.pendingProperties,
+            total:    data.totalProperties,
+            value:    data.totalProperties > 0
+                ? Math.round(
+                    ((data.totalProperties - data.pendingProperties)
+                    / data.totalProperties) * 100)
+                : 0,
+            color: 'bg-green-600',
+            sub:   `${data.totalProperties - data.pendingProperties} of ${data.totalProperties} approved`,
+        },
+        {
+            label:    'Student Housing Coverage',
+            verified: Math.min(data.totalTenancies, data.totalStudents),
+            total:    data.totalStudents,
+            // ✅ capped at 100% — a student can only occupy one bed
+            value:    housingCoverage,
+            color:    'bg-purple-600',
+            sub:      `${Math.min(data.totalTenancies, data.totalStudents)} of ${data.totalStudents} students housed`,
+        },
+        {
+            label:    'Bed Occupancy Rate',
+            verified: data.totalTenancies,
+            total:    totalBeds,
+            // ✅ beds occupied / total beds
+            value:    occupancyRate,
+            color:    'bg-orange-500',
+            sub:      `${data.totalTenancies} of ${totalBeds} beds occupied`,
+        },
+    ].map(metric => (
+        <div key={metric.label}>
+            <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium">{metric.label}</span>
+                <span className={`text-sm font-bold ${
+                    metric.value >= 80 ? 'text-green-600' :
+                    metric.value >= 50 ? 'text-orange-500' :
+                                        'text-red-500'
+                }`}>
+                    {metric.value}%
+                </span>
+            </div>
+            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                <div
+                    className={`h-full rounded-full ${metric.color} transition-all duration-500`}
+                    style={{ width: `${Math.min(metric.value, 100)}%` }}
+                />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{metric.sub}</p>
+        </div>
+    ))}
+                </div>
+            </Section>
+
+            {/* ── Quick insights ─────────────────────────────── */}
+            <Section title="Quick Insights" icon={BarChart3}>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {[
+                        {
+                            label: 'Total Applications',
+                            value: data.totalApplications,
+                            color: 'text-blue-600',
+                            bg:    'bg-blue-50',
+                        },
+                        {
+                            label: 'Active Tenancies',
+                            value: data.totalTenancies,
+                            color: 'text-green-600',
+                            bg:    'bg-green-50',
+                        },
+                        {
+                            label: 'Pending Landlords',
+                            value: data.pendingLandlords,
+                            color: 'text-orange-600',
+                            bg:    'bg-orange-50',
+                        },
+                        {
+                            label: 'Pending Properties',
+                            value: data.pendingProperties,
+                            color: 'text-red-600',
+                            bg:    'bg-red-50',
+                        },
+                        {
+                            label: 'Total Students',
+                            value: data.totalStudents,
+                            color: 'text-purple-600',
+                            bg:    'bg-purple-50',
+                        },
+                        {
+                            label: 'Total Landlords',
+                            value: data.totalLandlords,
+                            color: 'text-gray-700',
+                            bg:    'bg-gray-50',
+                        },
+                    ].map(item => (
+                        <div key={item.label}
+                            className={`rounded-xl ${item.bg} p-3 text-center`}>
+                            <p className={`text-xl font-bold ${item.color}`}>
+                                {item.value}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                {item.label}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </Section>
+
+        </div>
+    )}
+
+
+                    </div>
+                </div>
+
+                {/* ── Modals ──────────────────────────────────────────── */}
             {selectedLandlord && (
                 <LandlordReviewModal
                     landlord={selectedLandlord}

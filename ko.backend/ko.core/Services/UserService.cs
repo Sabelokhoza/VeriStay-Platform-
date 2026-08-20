@@ -86,7 +86,8 @@ namespace ko.core.Services
 
             var adminDashboardDto = new AdminDashboardDto();
 
-            var landlords = (await _userManager.GetUsersInRoleAsync("Landlord")).ToList();
+            var landlords = (await _userManager.GetUsersInRoleAsync("Landlord")).ToList().OrderByDescending(o => o.CreatedAt).ToList();
+            
             var students = (await _userManager.GetUsersInRoleAsync("Student")).ToList();
             var _propertiesService = _serviceProvider.GetRequiredService<IPropertyService>();
             var _applicationService = _serviceProvider.GetRequiredService<IApplicationService>();
@@ -98,7 +99,7 @@ namespace ko.core.Services
             var tenencies = (await _tenenciesService.GetAllAsync());
             var mantainances =  await _appDbContext.MaintenanceRequests.CountAsync(w => w.Status == MaintenanceStatus.Open);
 
-            var pendingLandlords = landlords.Where(w => w.VerificationStatus != VerificationStatus.Approved).Select(s => new AdminLandlordDto()
+            var pendingLandlords =   landlords.Where(w => w.VerificationStatus != VerificationStatus.Approved).Select( s => new AdminLandlordDto()
             {
                 Id = s.Id,
                 FullName = s.FullName,
@@ -107,7 +108,7 @@ namespace ko.core.Services
                 VerificationStatus = s.VerificationStatus,
                 CreatedAt = s.CreatedAt,
                 PropertiesCount = _appDbContext.Properties.Count(w => w.LandlordId == s.Id),
-                DocumentsUrl = _fileUploadService.GetPublicUrl("uploads",s.IdentificationDocument)
+                DocumentsUrl = s.IdentificationDocument
 
             }).ToList();
 
@@ -132,6 +133,7 @@ namespace ko.core.Services
             {
                 Id = s.Id,
                 Title = s.Title,
+                LandlordName = landlords.FirstOrDefault(w => w.Id == s.LandlordId)?.FullName ?? "Unknown",
                 Address = s.Address,
                 City = s.City,
                 MonthlyRent = s.MonthlyRent,
@@ -148,7 +150,7 @@ namespace ko.core.Services
             adminDashboardDto.TotalLandlords = landlords.Count;
             adminDashboardDto.PendingLandlords  = pendingLandlords.Count();
 
-            pendingLandlords = landlords.Select(s => new AdminLandlordDto()
+            pendingLandlords = landlords.Select( s => new AdminLandlordDto()
             {
                 Id = s.Id,
                 FullName = s.FullName,
@@ -157,9 +159,55 @@ namespace ko.core.Services
                 VerificationStatus = s.VerificationStatus,
                 CreatedAt = s.CreatedAt,
                 PropertiesCount = _appDbContext.Properties.Count(w => w.LandlordId == s.Id),
-                DocumentsUrl = _fileUploadService.GetPublicUrl("uploads", s.IdentificationDocument)
+                DocumentsUrl = s.IdentificationDocument
 
             }).ToList();
+
+            // Step 1 — get properties grouped by city (client side)
+            var propertiesByCity = await _appDbContext.Properties
+                .Where(p => p.Status == PropertyStatus.Approved)
+                .Select(p => new { p.Id, p.City, p.AvailableBeds })
+                .ToListAsync(); // ✅ bring to memory first
+
+            // Step 2 — get all active tenancies
+            var activeTenancies = await _appDbContext.Tenancies
+                .Where(t => t.Status == TenancyStatus.Active)
+                .Select(t => new { t.PropertyId })
+                .ToListAsync();
+
+            // Step 3 — group and calculate in memory (no EF translation issues)
+            var cityBreakdown = propertiesByCity
+                .GroupBy(p => p.City)
+                .Select(cityGroup =>
+                {
+                    var propertyIds = cityGroup.Select(p => p.Id).ToHashSet();
+                    var totalBeds = cityGroup.Sum(p => p.AvailableBeds);
+                    var occupiedBeds = activeTenancies
+                        .Count(t => propertyIds.Contains(t.PropertyId));
+
+                    return new CityBreakdownDto
+                    {
+                        City = cityGroup.Key,
+                        PropertyCount = cityGroup.Count(),
+                        TenancyCount = occupiedBeds,
+                        AvailableBeds = totalBeds,
+                        OccupiedBeds = occupiedBeds,
+                    };
+                })
+                .OrderByDescending(c => c.PropertyCount)
+                .ToList();
+
+            adminDashboardDto.cityBreakdown = cityBreakdown;
+
+
+            foreach (var item in pendingLandlords)
+            {
+                if ( !string.IsNullOrEmpty( item.DocumentsUrl))
+                {
+                    item.DocumentsUrl = await _fileUploadService.GetSignedUrlAsync("uploads", item.DocumentsUrl);
+                }
+               
+            }
 
             adminDashboardDto.TotalProperties = properties.Count;
             adminDashboardDto.PendingProperties = properties.Count(w => w.IsAvailable = false);
@@ -169,6 +217,9 @@ namespace ko.core.Services
             adminDashboardDto.PendingPropertiesList = p;
             adminDashboardDto.OpenMaintenanceCount = mantainances;
             adminDashboardDto.TotalApplications = applications.Count;
+            adminDashboardDto.TotalAvailableBeds = await _appDbContext.Properties
+             .Where(p => p.Status == PropertyStatus.Approved)
+             .SumAsync(p => p.AvailableBeds);
 
             return adminDashboardDto;
             

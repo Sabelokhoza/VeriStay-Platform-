@@ -380,36 +380,7 @@ export function CommunityTab({
         <div className="space-y-5">
             <h2 className="text-lg font-semibold">Property Community</h2>
 
-            {/* ── Landlord Announcements ──────────────────────── */}
-            <div className="rounded-xl border bg-background shadow-sm">
-                <div className="flex items-center gap-2 border-b px-5 py-4 font-semibold">
-                    <Bell className="h-4 w-4 text-blue-600" />
-                    Landlord Announcements
-                </div>
-                <div className="p-5">
-                    {announcements.length === 0 ? (
-                        <div className="text-center py-6 text-sm text-muted-foreground">
-                            <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                            <p>No announcements yet.</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {announcements.map(a => (
-                                <div key={a.id} className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-                                    <p className="text-sm">{a.message}</p>
-                                    <div className="mt-2 flex items-center justify-between">
-                                        <p className="text-xs font-medium text-muted-foreground">{a.landlordName}</p>
-                                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <Calendar className="h-3 w-3" />
-                                            {formatDate(a.postedAt)}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
+          
 
             {/* ── Property Reviews ────────────────────────────── */}
             <div className="rounded-xl border bg-background shadow-sm">

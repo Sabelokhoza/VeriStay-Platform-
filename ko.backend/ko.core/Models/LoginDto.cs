@@ -596,6 +596,8 @@ namespace ko.core.Models
         public int AvailableBeds { get; set; }
         public decimal OccupancyRate { get; set; }
         public int TotalStudents { get; set; }
+        public int TotalAvailableBeds { get; set; }
+
         public int HousedStudents { get; set; }
         public int OpenDisputes { get; set; }
         public int OpenComplaints { get; set; }
@@ -696,6 +698,14 @@ namespace ko.core.Models
         public string LandlordResponse { get; set; }
     }
 
+    public class CityBreakdownDto
+    {
+        public string City { get; set; }
+        public int PropertyCount { get; set; }
+        public int TenancyCount { get; set; }
+        public int AvailableBeds { get; set; }  
+        public int OccupiedBeds { get; set; }  
+    }
     public class AdminDashboardDto
     {
         public int TotalLandlords { get; set; }
@@ -706,6 +716,8 @@ namespace ko.core.Models
         public int TotalApplications { get; set; }
         public int TotalTenancies { get; set; }
         public int OpenMaintenanceCount { get; set; }
+        public int TotalAvailableBeds { get; set; }
+        public List<CityBreakdownDto> cityBreakdown { get; set; } = new List<CityBreakdownDto>();
         public List<AdminLandlordDto> PendingLandlordsList { get; set; } = new();
         public List<AdminPropertyDto> PendingPropertiesList { get; set; } = new();
         public List<AdminDisputeDto> RecentDisputes { get; set; } = new();

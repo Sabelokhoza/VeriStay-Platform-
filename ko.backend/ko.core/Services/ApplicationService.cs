@@ -96,7 +96,7 @@ namespace ko.core.Services
         public async Task<List<ApplicationDto>> GetAllAsync()
         {
             _logger.LogInformation("Retrieving all applications from the database");
-            var data = await _appDbContext.Applications.ToListAsync();
+            var data = await _appDbContext.Applications.OrderByDescending(o => o.Id).ToListAsync();
             return _mapper.Map<List<ApplicationDto>>(data);
         }
 

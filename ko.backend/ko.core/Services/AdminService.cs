@@ -424,6 +424,11 @@ namespace ko.core.Services
                 .OrderByDescending(c => c.PropertyCount)
                 .ToList();
 
+            var TotalAvailableBeds = await _appDbContext.Properties
+                    .SumAsync(p => p.AvailableBeds);
+
+
+
             return new AccommodationReportDto
             {
                 TotalProperties = properties.Count,
@@ -439,6 +444,9 @@ namespace ko.core.Services
                 OpenComplaints = complaints,
                 SuspendedLandlords = suspended,
                 CityBreakdown = cityBreakdown,
+                TotalAvailableBeds = await _appDbContext.Properties
+                    .SumAsync(p => p.AvailableBeds),
+
             };
         }
     }

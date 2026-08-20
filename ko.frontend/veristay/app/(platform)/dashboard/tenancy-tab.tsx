@@ -324,6 +324,11 @@ function TenancyCard({ tenancy }: { tenancy: TenancyDto }) {
                 )}
             </div>
 
+            
+
+            {/* Lease Document */}
+            <LeaseDocumentCard tenancy={tenancy} />
+
             {/* Tenancy summary */}
             <div className="rounded-xl border bg-background shadow-sm overflow-hidden">
                 <div className="flex items-center gap-2 border-b px-5 py-4 font-semibold">
@@ -354,9 +359,6 @@ function TenancyCard({ tenancy }: { tenancy: TenancyDto }) {
                     </div>
                 </div>
             </div>
-
-            {/* Lease Document */}
-            <LeaseDocumentCard tenancy={tenancy} />
         </div>
     );
 }

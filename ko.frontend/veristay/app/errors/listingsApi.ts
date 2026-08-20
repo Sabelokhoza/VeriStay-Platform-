@@ -468,10 +468,19 @@ export interface AdminDashboardDto {
     totalApplications:     number;
     totalTenancies:        number;
     openMaintenanceCount:  number;
+    totalAvailableBeds : number;
     pendingLandlordsList:  AdminLandlordDto[];
     pendingPropertiesList: AdminPropertyDto[];
     recentDisputes:        AdminDisputeDto[];
-    cityDistribution:      CityDistributionDto[];
+    cityBreakdown:      CityBreakdown[];
+    
+}
+export interface CityBreakdown {
+    city:           string;
+    propertyCount:  number;
+    tenancyCount:   number;
+    availableBeds?: number;  
+    occupiedBeds?:  number;  
 }
 
 export interface AdminLandlordDto {

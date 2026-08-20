@@ -102,6 +102,7 @@ namespace ko.core.Services
 
             var data = await _appDbContext.Properties
                 .Where(p => p.LandlordId == landlordId)
+                .OrderByDescending(o => o.Id)
                 .ToListAsync();
 
             return _mapper.Map<List<PropertyDto>>(data);

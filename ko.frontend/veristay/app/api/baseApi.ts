@@ -3,8 +3,8 @@ import { toast } from 'react-toastify';
 
 const customBaseQuery = fetchBaseQuery({
    // baseUrl: 'http://veristay2.runasp.net/api',
-    baseUrl: 'https://localhost:7078/api',
-  // baseUrl: 'https://veristay-platform-api.onrender.com/api',  
+   // baseUrl: 'https://localhost:7078/api',
+   baseUrl: 'https://veristay-platform-api.onrender.com/api',  
     prepareHeaders: (headers) => {
         const token = localStorage.getItem('token');
         if (token) {

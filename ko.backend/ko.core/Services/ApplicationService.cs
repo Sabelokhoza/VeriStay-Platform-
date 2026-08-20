@@ -178,6 +178,7 @@ namespace ko.core.Services
 
             var data = await _appDbContext.Applications
                 .Where(a => properties.Select(s => s.Id).Contains(a.PropertyId))
+                .OrderByDescending(O => O.Id)
                 .ToListAsync();
 
             var applicationDtos = _mapper.Map<List<ApplicationDto>>(data);

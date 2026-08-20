@@ -356,7 +356,7 @@ function StarRating({ rating }: { rating: number }) {
 // Reputation Section
 // =============================================
 
-function ReputationSection({ landlordId }: { landlordId: string }) {
+ export default function ReputationSection({ landlordId }: { landlordId: string }) {
     const { data } = useGetLandlordDashboardQuery(landlordId, { skip: !landlordId });
 
     const score = data?.score ?? 0;
@@ -496,7 +496,7 @@ export function LandlordPaymentsTab({ landlordId }: { landlordId: string }) {
                         Payment records will appear here once you have active tenants.
                     </p>
                 </div>
-                <ReputationSection landlordId={landlordId} />
+              
             </div>
         );
     }
@@ -507,7 +507,7 @@ export function LandlordPaymentsTab({ landlordId }: { landlordId: string }) {
         <>
             <div className="space-y-5">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Payments & Reputation</h2>
+                    <h2 className="text-lg font-semibold">Payments </h2>
                     {hasOverdue && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-100 border border-red-200 px-3 py-1 text-xs font-semibold text-red-800">
                             <AlertCircle className="h-3.5 w-3.5" />
@@ -586,8 +586,7 @@ export function LandlordPaymentsTab({ landlordId }: { landlordId: string }) {
                     </div>
                 )}
 
-                {/* Reputation */}
-                <ReputationSection landlordId={landlordId} />
+               
             </div>
 
             {/* Reminder modal */}

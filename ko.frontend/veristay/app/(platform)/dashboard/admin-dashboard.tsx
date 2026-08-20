@@ -6,10 +6,12 @@ import { useState } from 'react';
 import {
     Users, Home, ClipboardList, ShieldCheck, ShieldX,
     AlertTriangle, BarChart3, CheckCircle, XCircle,
-    Clock, ChevronRight, MapPin, Tag, BedDouble,
+    Clock, MapPin, Tag, BedDouble,
     Loader2, X, AlertCircle, Eye, Flag, FileText,
     TrendingUp, Building2, UserCheck, UserX,
     ImageIcon,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import {
     useGetAdminDashboardQuery,
@@ -41,11 +43,7 @@ function formatDate(date: string | null) {
     });
 }
 
-function isPlaceholder(value: string | null | undefined) {
-    if (!value) return true;
-    const v = value.trim().toLowerCase();
-    return v === 'string' || v === 'string - string' || v === '';
-}
+
 
 function safeBeds(count: number) {
     if (!Number.isFinite(count) || count > 100 || count <= 0) return null;
@@ -292,6 +290,7 @@ function PropertyReviewModal({
 }) {
     const [action, setAction] = useState<'approve' | 'reject' | null>(null);
     const beds = safeBeds(property.availableBeds);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     // Fetch full listing details to get images
     const { data: listing, isLoading: imagesLoading } = useGetListingByIdQuery(
@@ -299,9 +298,18 @@ function PropertyReviewModal({
         { skip: !property.id }
     );
 
-    const images  = listing?.images ?? [];
-    const primary = images.find(i => i.isPrimary) ?? images[0];
+  const images  = listing?.images ?? [];
+const current = images[currentImageIndex] ?? images[0];
 
+function prevImage(e: React.MouseEvent) {
+    e.stopPropagation();
+    setCurrentImageIndex(i => (i === 0 ? images.length - 1 : i - 1));
+}
+
+function nextImage(e: React.MouseEvent) {
+    e.stopPropagation();
+    setCurrentImageIndex(i => (i === images.length - 1 ? 0 : i + 1));
+}
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
             <div className="relative w-full max-w-lg rounded-2xl bg-background shadow-xl overflow-hidden my-auto">
@@ -317,70 +325,125 @@ function PropertyReviewModal({
                     </button>
                     <h2 className="text-lg font-bold">Review Property Listing</h2>
                     <p className="text-sm text-blue-100 mt-0.5 truncate">
-                        {isPlaceholder(property.title)
-                            ? `Property #${property.id}`
-                            : property.title}
+                        { property.title}
                     </p>
                 </div>
 
-                {/* Property Images */}
-                {imagesLoading ? (
-                    <div className="h-48 w-full animate-pulse bg-muted" />
-                ) : images.length > 0 ? (
-                    <div>
-                       {/* Primary / hero image */}
-<div className="relative h-52 w-full bg-muted">
-    {primary?.imageUrl ? (
-        <img
-            src={primary.imageUrl}
-            alt={property.title ?? 'Property'}
-            className="h-full w-full object-cover"
-        />
-    ) : (
-        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <Home className="h-8 w-8 opacity-30" />
-        </div>
-    )}
-    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white">
-        <ImageIcon className="h-3.5 w-3.5" />
-        {images.length} photo{images.length > 1 ? 's' : ''}
-    </div>
-</div>
-
-{/* Thumbnail strip */}
-{images.length > 1 && (
-    <div className="flex gap-1.5 overflow-x-auto bg-muted/30 px-4 py-2">
-        {images.slice(0, 6).map(img => (
-            <div
-                key={img.id}
-                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                    img.isPrimary
-                        ? 'border-blue-500 shadow-sm'
-                        : 'border-transparent opacity-75 hover:opacity-100'
-                }`}
-            >
+                {/* =============================================
+    Image Carousel — replaces old image section
+    ============================================= */}
+{images.length > 0 ? (
+    <div>
+        {/* ── Main image ───────────────────────── */}
+        <div className="relative h-52 w-full bg-muted overflow-hidden">
+            {current?.imageUrl ? (
                 <img
-                    src={img.imageUrl}
-                    alt="Property"
-                    className="h-full w-full object-cover"
+                    src={current.imageUrl}
+                    alt={`${property.title ?? 'Property'} — photo ${currentImageIndex + 1}`}
+                    className="h-full w-full object-cover transition-all duration-300"
                 />
+            ) : (
+                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                    <Home className="h-8 w-8 opacity-30" />
+                </div>
+            )}
+
+            {/* Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+            {/* ── Prev / Next arrows ───────────────── */}
+            {images.length > 1 && (
+                <>
+                    <button
+                        onClick={prevImage}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                        onClick={nextImage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+                </>
+            )}
+
+            {/* ── Dot indicators ───────────────────── */}
+            {images.length > 1 && (
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                    {images.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={e => { e.stopPropagation(); setCurrentImageIndex(i); }}
+                            className={`rounded-full transition-all ${
+                                i === currentImageIndex
+                                    ? 'h-2 w-4 bg-white'
+                                    : 'h-2 w-2 bg-white/50 hover:bg-white/80'
+                            }`}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* ── Counter ──────────────────────────── */}
+            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white">
+                <ImageIcon className="h-3.5 w-3.5" />
+                {images.length > 1
+                    ? `${currentImageIndex + 1} / ${images.length}`
+                    : `${images.length} photo`}
             </div>
-        ))}
-        {images.length > 6 && (
-            <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground border">
-                +{images.length - 6} more
+
+            {/* ── Primary badge ────────────────────── */}
+            {current?.isPrimary && (
+                <div className="absolute bottom-3 right-3 rounded-full bg-blue-600/80 px-2.5 py-1 text-xs font-semibold text-white">
+                    ⭐ Main
+                </div>
+            )}
+        </div>
+
+        {/* ── Thumbnail strip ──────────────────────── */}
+        {images.length > 1 && (
+            <div className="flex gap-1.5 overflow-x-auto bg-muted/30 px-4 py-2 scrollbar-hide">
+                {images.slice(0, 6).map((img, i) => (
+                    <button
+                        key={img.id}
+                        onClick={e => { e.stopPropagation(); setCurrentImageIndex(i); }}
+                        className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                            i === currentImageIndex
+                                ? 'border-blue-500 opacity-100 shadow-sm'
+                                : 'border-transparent opacity-60 hover:opacity-100'
+                        }`}
+                    >
+                        <img
+                            src={img.imageUrl}
+                            alt={`Photo ${i + 1}`}
+                            className="h-full w-full object-cover"
+                        />
+                        {img.isPrimary && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-blue-600/70 text-center text-[9px] font-bold text-white py-0.5">
+                                MAIN
+                            </div>
+                        )}
+                    </button>
+                ))}
+                {images.length > 6 && (
+                    <button
+                        onClick={e => { e.stopPropagation(); setCurrentImageIndex(6); }}
+                        className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground border hover:bg-muted/80 transition-colors"
+                    >
+                        +{images.length - 6} more
+                    </button>
+                )}
             </div>
         )}
     </div>
+) : (
+    <div className="flex h-36 w-full flex-col items-center justify-center bg-muted/30 text-muted-foreground border-b">
+        <Home className="h-8 w-8 mb-1.5 opacity-30" />
+        <p className="text-xs">No images uploaded yet</p>
+    </div>
 )}
-                    </div>
-                ) : (
-                    <div className="flex h-36 w-full flex-col items-center justify-center bg-muted/30 text-muted-foreground border-b">
-                        <Home className="h-8 w-8 mb-1.5 opacity-30" />
-                        <p className="text-xs">No images uploaded yet</p>
-                    </div>
-                )}
 
                 {/* Property details grid */}
                 <div className="px-6 py-4 border-b bg-muted/30">
@@ -388,16 +451,14 @@ function PropertyReviewModal({
                         <div>
                             <p className="text-xs text-muted-foreground">Landlord</p>
                             <p className="font-medium">
-                                {isPlaceholder(property.landlordName)
-                                    ? '—'
-                                    : property.landlordName}
+                                {property.landlordName}
                             </p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Location</p>
                             <p className="font-medium flex items-center gap-1">
                                 <MapPin className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                                {isPlaceholder(property.city) ? '—' : property.city}
+                                {property.city}
                             </p>
                         </div>
                         <div>
@@ -417,7 +478,7 @@ function PropertyReviewModal({
                         <div>
                             <p className="text-xs text-muted-foreground">Address</p>
                             <p className="font-medium">
-                                {isPlaceholder(property.address) ? '—' : property.address}
+                                {property.address}
                             </p>
                         </div>
                         <div>
@@ -427,12 +488,12 @@ function PropertyReviewModal({
                     </div>
 
                     {/* Amenities */}
-                    {listing?.amenities && listing.amenities.filter(a => !isPlaceholder(a)).length > 0 && (
+                    {listing?.amenities && listing.amenities.filter(a => a).length > 0 && (
                         <div className="mt-3 pt-3 border-t">
                             <p className="text-xs text-muted-foreground mb-2">Amenities</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {listing.amenities
-                                    .filter(a => !isPlaceholder(a))
+                                    .filter(a => a)
                                     .map((a, i) => (
                                         <span
                                             key={i}
@@ -446,7 +507,7 @@ function PropertyReviewModal({
                     )}
 
                     {/* Description */}
-                    {listing?.description && !isPlaceholder(listing.description) && (
+                    {listing?.description && (
                         <div className="mt-3 pt-3 border-t">
                             <p className="text-xs text-muted-foreground mb-1">Description</p>
                             <p className="text-sm text-foreground leading-relaxed line-clamp-3">
@@ -672,14 +733,14 @@ export function AdminDashboard() {
     const pendingProperties = data?.pendingPropertiesList ?? [];
     const cityDistribution  = data?.cityBreakdown      ?? [];
 
-    const totalBeds      = data?.totalAvailableBeds ?? data?.totalProperties;
-    const occupancyRate  = totalBeds > 0
-        ? Math.min(Math.round((data?.totalTenancies / totalBeds) * 100), 100)
+    const totalBeds     = data?.totalAvailableBeds ?? data?.totalProperties ?? 0;
+    const occupancyRate = totalBeds > 0
+        ? Math.min(Math.round(((data?.totalTenancies ?? 0) / totalBeds) * 100), 100)
         : 0;
 
-    const housingCoverage = data?.totalStudents > 0
+    const housingCoverage = (data?.totalStudents ?? 0) > 0
         ? Math.min(
-            Math.round((data?.totalTenancies / data?.totalStudents) * 100),
+            Math.round(((data?.totalTenancies ?? 0) / (data?.totalStudents ?? 0)) * 100),
             100
         )
         : 0;
@@ -915,9 +976,9 @@ export function AdminDashboard() {
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <p className="text-sm font-semibold truncate">
-                                                                {isPlaceholder(p.title) ? `Property #${p.id}` : p.title}
+                                                                {p.title}
                                                             </p>
-                                                            {!isPlaceholder(p.city) && (
+                                                            {p.city && (
                                                                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
                                                                     <MapPin className="h-3 w-3" /> {p.city}
                                                                 </p>
@@ -1063,14 +1124,14 @@ export function AdminDashboard() {
                                                         </div>
                                                         <div className="min-w-0">
                                                             <p className="font-semibold">
-                                                                {isPlaceholder(p.title) ? `Property #${p.id}` : p.title}
+                                                                { p.title}
                                                             </p>
-                                                            {!isPlaceholder(p.landlordName) && (
+                                                            {p.landlordName && (
                                                                 <p className="text-sm text-muted-foreground">
                                                                     Listed by {p.landlordName}
                                                                 </p>
                                                             )}
-                                                            {!isPlaceholder(p.address) && !isPlaceholder(p.city) && (
+                                                            {(p.address) && p.city && (
                                                                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
                                                                     <MapPin className="h-3.5 w-3.5 shrink-0" />
                                                                     {p.address}, {p.city}

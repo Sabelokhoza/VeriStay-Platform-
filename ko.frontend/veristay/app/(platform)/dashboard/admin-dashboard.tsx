@@ -1079,42 +1079,61 @@ export function AdminDashboard() {
 
                                             <div className="mt-3 flex items-center gap-2 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-xs text-yellow-800">
                                                 <Clock className="h-4 w-4 shrink-0" />
-                                        {l.verificationStatus !== 1 && (
-                                            <div className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
-                                                l.verificationStatus === 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
-                                                l.verificationStatus === 2 ? 'bg-red-50    border-red-200    text-red-800'    :
-                                                l.verificationStatus === 3 ? 'bg-gray-50   border-gray-200   text-gray-700'   :
-                                                                            'bg-gray-50   border-gray-200   text-gray-700'
-                                            }`}>
-                                                {l.verificationStatus === 0 && (
-                                                    <>
-                                                        <Clock className="h-4 w-4 shrink-0" />
-                                                        <span>
-                                                            <strong>Awaiting verification.</strong> This landlord's
-                                                            identity documents are pending review. Tap to approve or reject.
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {l.verificationStatus === 2 && (
-                                                    <>
-                                                        <XCircle className="h-4 w-4 shrink-0" />
-                                                        <span>
-                                                            <strong>Verification rejected.</strong> This landlord was
-                                                            not approved and cannot list properties on VeriStay.
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {l.verificationStatus === 3 && (
-                                                    <>
-                                                        <ShieldX className="h-4 w-4 shrink-0" />
-                                                        <span>
-                                                            <strong>Account suspended.</strong> This landlord has been
-                                                            suspended and their listings are hidden from students.
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
+                                       {(l.verificationStatus === 0 || l.verificationStatus === 1 ||
+  l.verificationStatus === 2 || l.verificationStatus === 3) && (
+    <div className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
+        l.verificationStatus === 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
+        l.verificationStatus === 1 ? 'bg-green-50  border-green-200  text-green-800'  :
+        l.verificationStatus === 2 ? 'bg-red-50    border-red-200    text-red-800'    :
+                                     'bg-gray-50   border-gray-200   text-gray-700'
+    }`}>
+
+        {/* 0 — Pending */}
+        {l.verificationStatus === 0 && (
+            <>
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Awaiting verification.</strong> This landlord's
+                    identity documents are pending review. Tap to approve or reject.
+                </span>
+            </>
+        )}
+
+        {/* 1 — Approved */}
+        {l.verificationStatus === 1 && (
+            <>
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Verified landlord. ✅</strong> This landlord has
+                    been approved and can list properties on VeriStay.
+                </span>
+            </>
+        )}
+
+        {/* 2 — Rejected */}
+        {l.verificationStatus === 2 && (
+            <>
+                <XCircle className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Verification rejected.</strong> This landlord was
+                    not approved and cannot list properties on VeriStay.
+                </span>
+            </>
+        )}
+
+        {/* 3 — Suspended */}
+        {l.verificationStatus === 3 && (
+            <>
+                <ShieldX className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Account suspended.</strong> This landlord has been
+                    suspended and their listings are hidden from students.
+                </span>
+            </>
+        )}
+
+    </div>
+)}
                                             </div>
                                         </div>
                                     ))}
@@ -1202,41 +1221,91 @@ export function AdminDashboard() {
 
                                                 <div className="mt-3 flex items-center gap-2 rounded-lg bg-yellow-50 border border-yellow-200 px-3 py-2 text-xs text-yellow-800">
                                                     <ShieldX className="h-4 w-4 shrink-0" />
-                                            {(p.status === 0 || p.status === 2 || p.status === 3) && (
-                                                <div className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
-                                                    p.status === 0 ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
-                                                    p.status === 2 ? 'bg-red-50    border-red-200    text-red-800'    :
-                                                                    'bg-gray-50   border-gray-200   text-gray-700'
-                                                }`}>
-                                                    {p.status === 0 && (
-                                                        <>
-                                                            <Clock className="h-4 w-4 shrink-0" />
-                                                            <span>
-                                                                <strong>Pending approval.</strong> This listing is hidden
-                                                                from students until an admin approves it.
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                    {p.status === 2 && (
-                                                        <>
-                                                            <XCircle className="h-4 w-4 shrink-0" />
-                                                            <span>
-                                                                <strong>Listing rejected.</strong> This property was not
-                                                                approved. Contact support for more information.
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                    {p.status === 3 && (
-                                                        <>
-                                                            <ShieldX className="h-4 w-4 shrink-0" />
-                                                            <span>
-                                                                <strong>Listing delisted.</strong> This property has been
-                                                                removed from the platform and is no longer visible to students.
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
+                                           {/* Status-based message banner for properties */}
+{(p.status === 0 || p.status === 1 || p.status === 2 ||
+  p.status === 3 || p.status === 4 || p.status === 5) && (
+    <div className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs border ${
+        p.status === 0 ? 'bg-yellow-50  border-yellow-200  text-yellow-800'  :
+        p.status === 1 ? 'bg-green-50   border-green-200   text-green-800'   :
+        p.status === 2 ? 'bg-red-50     border-red-200     text-red-800'     :
+        p.status === 3 ? 'bg-blue-50    border-blue-200    text-blue-800'    :
+        p.status === 4 ? 'bg-purple-50  border-purple-200  text-purple-800'  :
+                         'bg-gray-50    border-gray-200    text-gray-700'
+    }`}>
+
+        {/* 0 — Pending */}
+        {p.status === 0 && (
+            <>
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Pending review.</strong> Your application has been
+                    submitted and is awaiting the landlord's decision.
+                </span>
+            </>
+        )}
+
+        {/* 1 — Approved */}
+        {p.status === 1 && (
+            <>
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Application approved! 🎉</strong> The landlord has
+                    approved your application. Please accept or decline the
+                    offer from your dashboard.
+                </span>
+            </>
+        )}
+
+        {/* 2 — Rejected */}
+        {p.status === 2 && (
+            <>
+                <XCircle className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Application rejected.</strong> Unfortunately this
+                    application was not approved. Keep searching for other
+                    available properties.
+                </span>
+            </>
+        )}
+
+        {/* 3 — WaitingList */}
+        {p.status === 3 && (
+            <>
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>On waiting list.</strong> You have been placed on
+                    the waiting list for this property. You will be notified
+                    if a spot becomes available.
+                </span>
+            </>
+        )}
+
+        {/* 4 — Accepted */}
+        {p.status === 4 && (
+            <>
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Offer accepted! 🏠</strong> You have accepted this
+                    accommodation offer. Your tenancy has been created — check
+                    your tenancy details on the home screen.
+                </span>
+            </>
+        )}
+
+        {/* 5 — Declined */}
+        {p.status === 5 && (
+            <>
+                <XCircle className="h-4 w-4 shrink-0" />
+                <span>
+                    <strong>Offer declined.</strong> You declined this
+                    accommodation offer. You can continue browsing other
+                    available properties.
+                </span>
+            </>
+        )}
+
+    </div>
+)}
                                                 </div>
                                             </div>
                                         );

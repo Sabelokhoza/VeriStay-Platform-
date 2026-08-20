@@ -67,6 +67,7 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving all properties from the database");
 
             var data = await _appDbContext.Properties
+                .OrderByDescending(o => o.Id)
                 .ToListAsync();
 
             var d = _mapper.Map<List<PropertyDto>>(data);

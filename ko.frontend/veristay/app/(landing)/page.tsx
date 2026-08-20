@@ -1,29 +1,7 @@
 'use client';
-import { useEffect } from 'react';
 import { Hero, Reasons, Process, Footer } from '@/components/landing-page';
-import { useLearningPathsData, useTrainingCentresData } from '../(platform)/data';
 
 export default function LandingPage() {
-    const learningPathsData = useLearningPathsData();
-    const trainingCentresData = useTrainingCentresData();
-
-    useEffect(() => {
-        console.log('Landing page mounted, data initialized');
-
-        return () => {
-            console.log('Landing page unmounting');
-        };
-    }, []);
-
-    useEffect(() => {
-        const isLoading = learningPathsData?.isLoadings || trainingCentresData?.isLoading;
-
-        if (isLoading) {
-            console.log('Loading data...');
-        } else {
-            console.log('All data loaded');
-        }
-    }, [learningPathsData, trainingCentresData]);
 
     return (
         <div className="pt-20">

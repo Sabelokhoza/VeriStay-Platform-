@@ -422,7 +422,6 @@ function ListingCard({
                             aria-label={saved ? 'Remove from saved' : 'Save listing'}
                             className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-blue-50 hover:text-blue-600"
                         >
-                            <Heart className={`h-5 w-5 ${saved ? 'fill-blue-600 text-blue-600' : ''}`} />
                         </button>
                     </div>
 

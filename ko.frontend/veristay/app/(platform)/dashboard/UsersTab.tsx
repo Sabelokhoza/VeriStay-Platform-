@@ -120,14 +120,6 @@ export default function UsersTab() {
                                             )}
                                         </div>
                                         <p className="text-sm text-muted-foreground">{user.email}</p>
-                                        <div className="flex gap-3 text-xs text-muted-foreground mt-0.5">
-                                            {user.role === 'Landlord' && (
-                                                <span>{user.propertyCount} properties</span>
-                                            )}
-                                            {user.role === 'Student' && (
-                                                <span>{user.applicationCount} applications</span>
-                                            )}
-                                        </div>
                                     </div>
                                     <div className="flex flex-col gap-2 shrink-0">
                                         <button
@@ -143,7 +135,7 @@ export default function UsersTab() {
                                             <button
                                                 onClick={() => setSuspendTarget(user)}
                                                 className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted">
-                                                {user.isActive ? 'Suspend' : 'Reinstate'}
+                                                {user.isActive ? ' Suspend' : 'Reinstate'}
                                             </button>
                                         )}
                                     </div>

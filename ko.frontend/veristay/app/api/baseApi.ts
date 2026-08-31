@@ -2,7 +2,7 @@ import { BaseQueryApi, FetchArgs, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { toast } from 'react-toastify';
 
 const customBaseQuery = fetchBaseQuery({
-    baseUrl: 'https://veristay-platform-api-div6.onrender.com',
+    baseUrl: 'https://veristay-platform-api-div6.onrender.com/api',
    // baseUrl: 'https://localhost:7078/api',
   // baseUrl: 'https://veristay-platform-api.onrender.com/api',  
     prepareHeaders: (headers) => {

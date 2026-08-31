@@ -366,7 +366,7 @@ namespace ko.core.Services
             var user = _mapper.Map<ApplicationUser>(registerDto);
             user.UserName = registerDto.Email;
             user.EmailConfirmed = true;
-            user.IsActive = false;
+            user.IsActive = true;
             user.ProofOfIncomeUrl = await _fileUploadService.UploadFileAsync(proofOfIncome, "uploads", "ProofOfIncome");
             user.ProofOfRegistrationUrl = await _fileUploadService.UploadFileAsync(proofOfIncome, "uploads", "ProofOfRegistration");
 

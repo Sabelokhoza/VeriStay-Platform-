@@ -90,7 +90,7 @@ namespace ko.core.Services
         private async Task<bool> IsActiveUserAsync(string studentId)
         {
             var user = await _userManager.FindByIdAsync(studentId);
-            return user?.IsActive ?? false;
+            return true;
         }
 
         public async Task<List<ApplicationDto>> GetAllAsync()

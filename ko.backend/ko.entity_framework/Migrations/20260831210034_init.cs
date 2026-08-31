@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ko.entity_framework.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,15 +34,20 @@ namespace ko.entity_framework.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
+                    FcmToken = table.Column<string>(type: "text", nullable: false),
                     FullName = table.Column<string>(type: "text", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StudentNumber = table.Column<string>(type: "text", nullable: false),
+                    University = table.Column<string>(type: "text", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: false),
+                    ProofOfRegistrationUrl = table.Column<string>(type: "text", nullable: false),
+                    ProofOfIncomeUrl = table.Column<string>(type: "text", nullable: false),
+                    IdentificationDocument = table.Column<string>(type: "text", nullable: false),
+                    Budget = table.Column<decimal>(type: "numeric", nullable: false),
+                    VerificationStatus = table.Column<int>(type: "integer", nullable: false),
                     Discriminator = table.Column<string>(type: "character varying(21)", maxLength: 21, nullable: false),
-                    VerificationStatus = table.Column<int>(type: "integer", nullable: true),
                     ReputationScore = table.Column<double>(type: "double precision", nullable: true),
-                    StudentNumber = table.Column<string>(type: "text", nullable: true),
-                    University = table.Column<string>(type: "text", nullable: true),
-                    Budget = table.Column<decimal>(type: "numeric", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -51,7 +56,6 @@ namespace ko.entity_framework.Migrations
                     PasswordHash = table.Column<string>(type: "text", nullable: true),
                     SecurityStamp = table.Column<string>(type: "text", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -61,6 +65,29 @@ namespace ko.entity_framework.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Disputes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    StudentId = table.Column<string>(type: "text", nullable: false),
+                    LandlordId = table.Column<string>(type: "text", nullable: false),
+                    PropertyId = table.Column<int>(type: "integer", nullable: true),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    AdminNotes = table.Column<string>(type: "text", nullable: false),
+                    Resolution = table.Column<string>(type: "text", nullable: false),
+                    ResolvedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Disputes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -80,6 +107,30 @@ namespace ko.entity_framework.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AppNotifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Message = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppNotifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AppNotifications_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -164,38 +215,6 @@ namespace ko.entity_framework.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Disputes",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StudentId = table.Column<string>(type: "text", nullable: false),
-                    LandlordId = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    AdminResolutionNotes = table.Column<string>(type: "text", nullable: false),
-                    ResolvedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DateModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Disputes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Disputes_AspNetUsers_LandlordId",
-                        column: x => x.LandlordId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Disputes_AspNetUsers_StudentId",
-                        column: x => x.StudentId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -299,6 +318,8 @@ namespace ko.entity_framework.Migrations
                     SupportingDocumentUrl = table.Column<string>(type: "text", nullable: false),
                     LandlordNotes = table.Column<string>(type: "text", nullable: false),
                     AppliedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    FromDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ToDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ReviewedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DateModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -318,6 +339,40 @@ namespace ko.entity_framework.Migrations
                         principalTable: "Properties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Complaints",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SubmittedById = table.Column<string>(type: "text", nullable: false),
+                    LandlordId = table.Column<string>(type: "text", nullable: true),
+                    PropertyId = table.Column<int>(type: "integer", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    AdminNotes = table.Column<string>(type: "text", nullable: false),
+                    IsNotified = table.Column<bool>(type: "boolean", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Complaints", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Complaints_AspNetUsers_SubmittedById",
+                        column: x => x.SubmittedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Complaints_Properties_PropertyId",
+                        column: x => x.PropertyId,
+                        principalTable: "Properties",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -429,6 +484,7 @@ namespace ko.entity_framework.Migrations
                     LeaseEndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     MonthlyRent = table.Column<decimal>(type: "numeric", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
+                    LeaseDocument = table.Column<string>(type: "text", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DateModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -565,6 +621,11 @@ namespace ko.entity_framework.Migrations
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AppNotifications_UserId",
+                table: "AppNotifications",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
@@ -602,14 +663,14 @@ namespace ko.entity_framework.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Disputes_LandlordId",
-                table: "Disputes",
-                column: "LandlordId");
+                name: "IX_Complaints_PropertyId",
+                table: "Complaints",
+                column: "PropertyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Disputes_StudentId",
-                table: "Disputes",
-                column: "StudentId");
+                name: "IX_Complaints_SubmittedById",
+                table: "Complaints",
+                column: "SubmittedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LeaseDocuments_PropertyId",
@@ -697,6 +758,9 @@ namespace ko.entity_framework.Migrations
                 name: "Applications");
 
             migrationBuilder.DropTable(
+                name: "AppNotifications");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -710,6 +774,9 @@ namespace ko.entity_framework.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Complaints");
 
             migrationBuilder.DropTable(
                 name: "Disputes");

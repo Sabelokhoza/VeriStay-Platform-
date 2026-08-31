@@ -4,12 +4,10 @@ using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
-using ko.entity_framework.Migrations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading.Tasks;
 using static ko.core.Exceptions.ApiException;
 
 namespace ko.core.Services
@@ -30,7 +28,7 @@ namespace ko.core.Services
         private readonly IFileUploadService _fileUploadService;
 
 
-        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest , IFileUploadService fileUploadService)
+        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest, IFileUploadService fileUploadService)
         {
             _userManager = userManager;
             _logger = logger;
@@ -41,7 +39,7 @@ namespace ko.core.Services
             _configuration = configuration;
             _applicationService = applicationService;
             _emailServiceMailJet = emailServiceMailJet;
-            _maintenanceRequestService  = maintenanceRequest;
+            _maintenanceRequestService = maintenanceRequest;
             _fileUploadService = fileUploadService;
         }
 
@@ -87,7 +85,7 @@ namespace ko.core.Services
             var adminDashboardDto = new AdminDashboardDto();
 
             var landlords = (await _userManager.GetUsersInRoleAsync("Landlord")).ToList().OrderByDescending(o => o.CreatedAt).ToList();
-            
+
             var students = (await _userManager.GetUsersInRoleAsync("Student")).ToList();
             var _propertiesService = _serviceProvider.GetRequiredService<IPropertyService>();
             var _applicationService = _serviceProvider.GetRequiredService<IApplicationService>();
@@ -97,9 +95,9 @@ namespace ko.core.Services
             var properties = (await _propertiesService.GetAllAsync());
             var applications = (await _applicationService.GetAllAsync());
             var tenencies = (await _tenenciesService.GetAllAsync());
-            var mantainances =  await _appDbContext.MaintenanceRequests.CountAsync(w => w.Status == MaintenanceStatus.Open);
+            var mantainances = await _appDbContext.MaintenanceRequests.CountAsync(w => w.Status == MaintenanceStatus.Open);
 
-            var pendingLandlords =   landlords.Where(w => w.VerificationStatus != VerificationStatus.Approved).Select( s => new AdminLandlordDto()
+            var pendingLandlords = landlords.Where(w => w.VerificationStatus != VerificationStatus.Approved).Select(s => new AdminLandlordDto()
             {
                 Id = s.Id,
                 FullName = s.FullName,
@@ -148,9 +146,9 @@ namespace ko.core.Services
             }).ToList();
 
             adminDashboardDto.TotalLandlords = landlords.Count;
-            adminDashboardDto.PendingLandlords  = pendingLandlords.Count();
+            adminDashboardDto.PendingLandlords = pendingLandlords.Count();
 
-            pendingLandlords = landlords.Select( s => new AdminLandlordDto()
+            pendingLandlords = landlords.Select(s => new AdminLandlordDto()
             {
                 Id = s.Id,
                 FullName = s.FullName,
@@ -202,11 +200,11 @@ namespace ko.core.Services
 
             foreach (var item in pendingLandlords)
             {
-                if ( !string.IsNullOrEmpty( item.DocumentsUrl))
+                if (!string.IsNullOrEmpty(item.DocumentsUrl))
                 {
                     item.DocumentsUrl = await _fileUploadService.GetSignedUrlAsync("uploads", item.DocumentsUrl);
                 }
-               
+
             }
 
             adminDashboardDto.TotalProperties = properties.Count;
@@ -222,7 +220,7 @@ namespace ko.core.Services
              .SumAsync(p => p.AvailableBeds);
 
             return adminDashboardDto;
-            
+
         }
 
         public async Task<LandlordDashboardDataDto> GetLandlordDashboardData(string userId)

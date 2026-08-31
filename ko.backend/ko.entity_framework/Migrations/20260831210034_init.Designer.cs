@@ -13,8 +13,8 @@ using ko.entity_framework;
 namespace ko.entity_framework.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260813120833_AddingFirebase")]
-    partial class AddingFirebase
+    [Migration("20260831210034_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -206,18 +206,50 @@ namespace ko.entity_framework.Migrations
                     b.Property<int>("PropertyId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("StudentId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("LandlordId");
 
                     b.HasIndex("PropertyId");
 
-                    b.HasIndex("StudentId");
-
                     b.ToTable("Announcements");
+                });
+
+            modelBuilder.Entity("ko.entity_framework.entities.AppNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AppNotifications");
                 });
 
             modelBuilder.Entity("ko.entity_framework.entities.Application", b =>
@@ -349,9 +381,6 @@ namespace ko.entity_framework.Migrations
                     b.Property<string>("ProofOfRegistrationUrl")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<double>("ReputationScore")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -636,9 +665,6 @@ namespace ko.entity_framework.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("StudentId")
-                        .HasColumnType("text");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -646,8 +672,6 @@ namespace ko.entity_framework.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LandlordId");
-
-                    b.HasIndex("StudentId");
 
                     b.ToTable("Properties");
                 });
@@ -848,14 +872,9 @@ namespace ko.entity_framework.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("StudentId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("LandlordId");
-
-                    b.HasIndex("StudentId");
 
                     b.ToTable("VerificationDocuments");
                 });
@@ -899,6 +918,9 @@ namespace ko.entity_framework.Migrations
             modelBuilder.Entity("ko.entity_framework.entities.Landlord", b =>
                 {
                     b.HasBaseType("ko.entity_framework.entities.ApplicationUser");
+
+                    b.Property<double>("ReputationScore")
+                        .HasColumnType("double precision");
 
                     b.HasDiscriminator().HasValue("Landlord");
                 });
@@ -975,13 +997,20 @@ namespace ko.entity_framework.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ko.entity_framework.entities.Student", null)
-                        .WithMany("Announcements")
-                        .HasForeignKey("StudentId");
-
                     b.Navigation("Landlord");
 
                     b.Navigation("Property");
+                });
+
+            modelBuilder.Entity("ko.entity_framework.entities.AppNotification", b =>
+                {
+                    b.HasOne("ko.entity_framework.entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ko.entity_framework.entities.Application", b =>
@@ -1066,10 +1095,6 @@ namespace ko.entity_framework.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ko.entity_framework.entities.Student", null)
-                        .WithMany("Properties")
-                        .HasForeignKey("StudentId");
-
                     b.Navigation("Landlord");
                 });
 
@@ -1149,10 +1174,6 @@ namespace ko.entity_framework.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ko.entity_framework.entities.Student", null)
-                        .WithMany("Documents")
-                        .HasForeignKey("StudentId");
-
                     b.Navigation("Landlord");
                 });
 
@@ -1210,15 +1231,9 @@ namespace ko.entity_framework.Migrations
 
             modelBuilder.Entity("ko.entity_framework.entities.Student", b =>
                 {
-                    b.Navigation("Announcements");
-
                     b.Navigation("Applications");
 
-                    b.Navigation("Documents");
-
                     b.Navigation("MaintenanceRequests");
-
-                    b.Navigation("Properties");
 
                     b.Navigation("Reviews");
 

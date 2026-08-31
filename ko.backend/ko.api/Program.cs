@@ -19,6 +19,23 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ---------------------------------------------------------------------
+// FIX: WebApplication.CreateBuilder(args) wires up appsettings.json /
+// appsettings.{Environment}.json with reloadOnChange: true by default.
+// That spins up a FileSystemWatcher, which on Render's containers hits
+// the inotify instance limit (128) and crashes the app on startup with
+// "Unhandled exception. System.IO.IOException: The configured user
+// limit (128) on the number of inotify instances has been reached...".
+//
+// Rebuild the configuration sources with reloadOnChange: false to avoid
+// registering any file watchers.
+// ---------------------------------------------------------------------
+builder.Configuration.Sources.Clear();
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
+    .AddEnvironmentVariables();
+
 // Add services to the container.
 
 builder.Services.AddControllers();

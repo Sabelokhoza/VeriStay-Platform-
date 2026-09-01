@@ -87,15 +87,21 @@ export const authApi = createApi({
                 body: data,
             }),
         }),
-
-        updateProfile: builder.mutation({
-            query: (data) => ({
-                url: 'Auth/update-profile',
-                method: 'PUT',
-                headers: { 'Content-type': 'application/json' },
-                body: data,
-            }),
+        getUser: builder.query({
+        query: (userId: string) => ({
+            url:    `User/get-user-by-id?user_id=${userId}`,
+            method: 'GET',
         }),
+    }),
+    updateProfile: builder.mutation({
+        query: (data) => ({
+            url:     'User/update-profile', 
+            method:  'PUT',
+            headers: { 'Content-type': 'application/json' },
+            body:    data,
+        }),
+    }),
+        
     }),
 });
 
@@ -104,6 +110,7 @@ export const {
     useRegisterMutation,
     useForgotPasswordMutation,
     useRegisterLandlordMutation,
+    useGetUserQuery,
     useResetPasswordMutation,
     useUpdateProfileMutation,
     useRegisterConsultantMutation,

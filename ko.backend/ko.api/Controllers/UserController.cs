@@ -1,6 +1,7 @@
 ﻿using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,6 +43,14 @@ namespace ko.api.Controllers
             var dummy = string.Empty;
             var studentDashboardDataDto = await _userService.GetAdminDashboardData(dummy);
             return Ok(ApiResponse.Success(studentDashboardDataDto, "admin Dashboard data retrieved successfully"));
+        }
+
+        [HttpPut("update-profile")]
+        public async Task<ActionResult<ApiResponse<ProfileDto>>> UpdateProfile(
+            [FromBody] UpdateProfileDto dto)
+        {
+            var result = await _userService.UpdateProfileAsync(dto);
+            return Ok(ApiResponse.Success(result, "Profile updated successfully"));
         }
 
         [HttpPost("update-landlord-status")]

@@ -9,6 +9,6 @@ namespace ko.core.Contracts
         Task<StudentDashboardDataDto> GetStudentDashboardData(string userId);
         Task<LandlordDashboardDataDto> GetLandlordDashboardData(string userId);
         Task<AdminDashboardDto> GetAdminDashboardData(string userId);
-
+        Task<ProfileDto> UpdateProfileAsync(UpdateProfileDto dto);
     }
 }

@@ -38,21 +38,30 @@ namespace ko.core.Models
         public string Password { get; set; }
     }
 
-  
+
 
     public class ProfileDto
     {
         public string Id { get; set; }
         public string FullName { get; set; }
-
         public string Email { get; set; }
-
         public string StudentNumber { get; set; }
-
         public string University { get; set; } = "University Of The Freestate";
+        public string PhoneNumber { get; set; }
+        public decimal Budget { get; set; }
+        public string Role { get; set; } 
+    }
 
+    public class UpdateProfileDto
+    {
+        public string Id { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
         public string PhoneNumber { get; set; }
 
-        public decimal Budget { get; set; }
+        // Student only
+        public string? StudentNumber { get; set; }
+        public string? University { get; set; }
+        public decimal? Budget { get; set; }
     }
 }

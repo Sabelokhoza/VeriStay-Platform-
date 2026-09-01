@@ -43,6 +43,65 @@ namespace ko.core.Services
             _fileUploadService = fileUploadService;
         }
 
+        public async Task<ProfileDto> UpdateProfileAsync(UpdateProfileDto dto)
+        {
+            _logger.LogInformation(
+                "Updating profile for user {UserId}", dto.Id);
+
+            var user = await _userManager.FindByIdAsync(dto.Id);
+            if (user == null)
+                throw new NotFoundException(nameof(UpdateProfileAsync), dto.Id);
+
+            if (!string.Equals(user.Email, dto.Email,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                var existing = await _userManager.FindByEmailAsync(dto.Email);
+                if (existing != null && existing.Id != dto.Id)
+                    throw new BadRequestException(
+                        "This email address is already in use.");
+            }
+
+            user.FullName = dto.FullName;
+            user.Email = dto.Email;
+            user.UserName = dto.Email;
+            user.PhoneNumber = dto.PhoneNumber;
+
+            if (!string.IsNullOrEmpty(dto.StudentNumber))
+                user.StudentNumber = dto.StudentNumber;
+
+            if (!string.IsNullOrEmpty(dto.University))
+                user.University = dto.University;
+
+            if (dto.Budget.HasValue)
+                user.Budget = dto.Budget.Value;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ",
+                    result.Errors.Select(e => e.Description));
+                throw new BadRequestException(errors);
+            }
+
+            _logger.LogInformation(
+                "User {UserId} updated successfully.", dto.Id);
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "Student";
+
+            return new ProfileDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                StudentNumber = user.StudentNumber,
+                University = user.University,
+                PhoneNumber = user.PhoneNumber,
+                Budget = user.Budget,
+                Role = role,
+            };
+        }
 
         public async Task<bool> UpdateLandLordStatus(string userId, bool isApproved = false)
         {
@@ -254,9 +313,9 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Fetching user with ID: {UserId}", userId);
 
-            var user = await _appDbContext.Users.Where(w => w.Id == userId)
+            var user = await _appDbContext.Users
+                .Where(w => w.Id == userId)
                 .AsNoTracking()
-                .ProjectTo<ProfileDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 
             if (user == null)
@@ -264,12 +323,24 @@ namespace ko.core.Services
                 _logger.LogWarning("User with ID {UserId} not found.", userId);
                 throw new NotFoundException("User with ID {UserId} not found.", userId);
             }
-            else
-            {
-                _logger.LogInformation("User with ID {UserId} retrieved successfully.", userId);
-            }
 
-            return user;
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "Student";
+
+            _logger.LogInformation(
+                "User with ID {UserId} retrieved successfully.", userId);
+
+            return new ProfileDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                StudentNumber = user.StudentNumber,
+                University = user.University,
+                PhoneNumber = user.PhoneNumber,
+                Budget = user.Budget,
+                Role = role,              
+            };
         }
 
         private async Task<bool> SendStatusUpdateEmailAsync(ApplicationUser user, bool isApproved)

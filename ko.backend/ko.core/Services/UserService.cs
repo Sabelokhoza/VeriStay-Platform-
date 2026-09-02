@@ -209,7 +209,7 @@ namespace ko.core.Services
             adminDashboardDto.TotalLandlords = landlords.Count;
             adminDashboardDto.PendingLandlords = pendingLandlords.Count();
 
-            pendingLandlords = landlords.Where(w => w.IsActive == true).Select(s => new AdminLandlordDto()
+            pendingLandlords = landlords.Where(w => w.IsActive != true || w.VerificationStatus != VerificationStatus.Approved).Select(s => new AdminLandlordDto()
             {
                 Id = s.Id,
                 FullName = s.FullName,
@@ -273,7 +273,7 @@ namespace ko.core.Services
             adminDashboardDto.TotalStudents = students.Count;
             adminDashboardDto.TotalTenancies = tenencies.Count;
             adminDashboardDto.PendingLandlordsList = pendingLandlords;
-            adminDashboardDto.PendingPropertiesList = p;
+            adminDashboardDto.PendingPropertiesList = pendingPropetyList;
             adminDashboardDto.OpenMaintenanceCount = mantainances;
             adminDashboardDto.TotalApplications = applications.Count;
             adminDashboardDto.TotalAvailableBeds = await _appDbContext.Properties

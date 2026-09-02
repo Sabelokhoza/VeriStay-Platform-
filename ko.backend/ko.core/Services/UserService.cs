@@ -169,7 +169,7 @@ namespace ko.core.Services
 
             }).ToList();
 
-            var pendingPropetyList = properties.Where(w => w.IsAvailable).Select(s => new AdminPropertyDto()
+            var pendingPropetyList = properties.Where(w => w.IsAvailable && w.Status != PropertyStatus.Approved).Select(s => new AdminPropertyDto()
             {
                 Id = s.Id,
                 Title = s.Title,

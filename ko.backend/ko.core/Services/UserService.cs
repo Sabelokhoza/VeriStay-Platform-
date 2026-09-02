@@ -178,10 +178,11 @@ namespace ko.core.Services
                 MonthlyRent = s.MonthlyRent,
                 AvailableBeds = s.AvailableBeds,
                 LandlordId = s.LandlordId,
-                Status = s.Status == PropertyStatus.Approved ? 0
-                : s.Status == PropertyStatus.PendingApproval ? 1
-                : s.Status == PropertyStatus.Rejected ? 3
-                : 0,
+                Status = s.Status == PropertyStatus.Approved ? 1
+               : s.Status == PropertyStatus.PendingApproval ? 0
+               : s.Status == PropertyStatus.Rejected ? 2
+               : s.Status == PropertyStatus.Delisted ? 2
+               : 0,
                 CreatedAt = s.CreatedAt
 
             }).ToList();
@@ -199,6 +200,7 @@ namespace ko.core.Services
                 Status = s.Status == PropertyStatus.Approved ? 1
                : s.Status == PropertyStatus.PendingApproval ? 0
                : s.Status == PropertyStatus.Rejected ? 2
+               : s.Status == PropertyStatus.Delisted ? 2
                : 0,
                 CreatedAt = s.CreatedAt
 
@@ -207,7 +209,7 @@ namespace ko.core.Services
             adminDashboardDto.TotalLandlords = landlords.Count;
             adminDashboardDto.PendingLandlords = pendingLandlords.Count();
 
-            pendingLandlords = landlords.Select(s => new AdminLandlordDto()
+            pendingLandlords = landlords.Where(w => w.IsActive == true).Select(s => new AdminLandlordDto()
             {
                 Id = s.Id,
                 FullName = s.FullName,
@@ -216,7 +218,7 @@ namespace ko.core.Services
                 VerificationStatus = s.VerificationStatus,
                 CreatedAt = s.CreatedAt,
                 PropertiesCount = _appDbContext.Properties.Count(w => w.LandlordId == s.Id),
-                DocumentsUrl = s.IdentificationDocument
+                DocumentsUrl = s.IdentificationDocument,
 
             }).ToList();
 

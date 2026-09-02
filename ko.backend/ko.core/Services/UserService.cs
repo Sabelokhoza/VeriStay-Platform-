@@ -181,7 +181,7 @@ namespace ko.core.Services
                 Status = s.Status == PropertyStatus.Approved ? 1
                : s.Status == PropertyStatus.PendingApproval ? 0
                : s.Status == PropertyStatus.Rejected ? 2
-               : s.Status == PropertyStatus.Delisted ? 2
+               : s.Status == PropertyStatus.Delisted ? 3
                : 0,
                 CreatedAt = s.CreatedAt
 
@@ -200,7 +200,7 @@ namespace ko.core.Services
                 Status = s.Status == PropertyStatus.Approved ? 1
                : s.Status == PropertyStatus.PendingApproval ? 0
                : s.Status == PropertyStatus.Rejected ? 2
-               : s.Status == PropertyStatus.Delisted ? 2
+               : s.Status == PropertyStatus.Delisted ? 3
                : 0,
                 CreatedAt = s.CreatedAt
 

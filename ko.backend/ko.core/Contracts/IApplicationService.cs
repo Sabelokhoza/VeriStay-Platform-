@@ -2,9 +2,6 @@
 
 namespace ko.core.Contracts
 {
-    // =============================================
-    // IApplicationService
-    // =============================================
 
     public interface IApplicationService
     {
@@ -18,7 +15,6 @@ namespace ko.core.Contracts
         Task<bool> DeleteAsync(int? id);
         Task<bool> ReviewAsync(ReviewApplicationDto dto);
         Task<bool> AcceptDeclineOffer(int applicationId, bool isAcccepted);
-        // Events
         Task<bool> onInsert(AddApplicationDto dto);
         Task<bool> afterInsert(ApplicationDto dto);
         Task<bool> onUpdate(ApplicationDto dto);

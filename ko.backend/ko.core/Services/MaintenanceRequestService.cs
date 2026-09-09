@@ -17,9 +17,9 @@ namespace ko.core.Services
         private readonly IAppLogger<MaintenanceRequestService> _logger;
         private readonly IMapper _mapper;
         private readonly IEmailServiceMailJet _emailServiceMailJet;
-        private readonly INotificationService _notificationService; // 👈 added
-        private readonly UserManager<ApplicationUser> _userManager;  // 👈 added
-        private readonly IConfiguration _configuration;              // 👈 added
+        private readonly INotificationService _notificationService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IConfiguration _configuration;
 
         public MaintenanceRequestService(
             AppDbContext appDbContext,
@@ -27,23 +27,20 @@ namespace ko.core.Services
             IAppLogger<MaintenanceRequestService> logger,
             IMapper mapper,
             IEmailServiceMailJet emailServiceMailJet,
-            INotificationService notificationService,              // 👈 added
-            UserManager<ApplicationUser> userManager,              // 👈 added
-            IConfiguration configuration)                         // 👈 added
+            INotificationService notificationService,
+            UserManager<ApplicationUser> userManager,
+            IConfiguration configuration)
         {
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
             _mapper = mapper;
             _emailServiceMailJet = emailServiceMailJet;
-            _notificationService = notificationService;            // 👈 added
-            _userManager = userManager;                    // 👈 added
-            _configuration = configuration;                  // 👈 added
+            _notificationService = notificationService;
+            _userManager = userManager;
+            _configuration = configuration;
         }
 
-        // =============================================
-        // CRUD
-        // =============================================
 
         public async Task<MaintenanceRequestDto?> AddAsync(
             string studentId, AddMaintenanceRequestDto dto)
@@ -77,13 +74,11 @@ namespace ko.core.Services
             await _genericService.UpdateAsync(
                 updateMaintenanceRequestDto.Id, updateMaintenanceRequestDto);
 
-            // ✅ Get request details for notification + email
             var entity = await _appDbContext.MaintenanceRequests
                 .FirstOrDefaultAsync(m => m.Id == updateMaintenanceRequestDto.Id);
 
             if (entity != null)
             {
-                // Push notification to student
                 await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,
                     title: "🔧 Maintenance Request Resolved",
@@ -91,16 +86,12 @@ namespace ko.core.Services
                              "has been resolved by your landlord.",
                     type: "maintenance");
 
-                // Send feedback email
                 await SendMaintenanceFeedbackEmailAsync(entity, updateMaintenanceRequestDto);
             }
 
             return true;
         }
 
-        // =============================================
-        // GET methods
-        // =============================================
 
         public async Task<List<MaintenanceRequestDto>> GetAllAsync()
         {
@@ -197,7 +188,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // ✅ Uncommented and completed UpdateStatusAsync
         public async Task<bool> UpdateStatusAsync(
             int id, MaintenanceStatus status, string? landlordNotes)
         {
@@ -223,7 +213,6 @@ namespace ko.core.Services
             _logger.LogInformation(
                 "Maintenance request {0} status updated to {1}", id, status);
 
-            // ✅ Push notification to student on status change
             string title = string.Empty;
             string message = string.Empty;
 
@@ -255,9 +244,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // =============================================
-        // Email Helpers
-        // =============================================
 
         private async Task SendMaintenanceFeedbackEmailAsync(
             MaintenanceRequest entity,
@@ -349,9 +335,6 @@ namespace ko.core.Services
             }
         }
 
-        // =============================================
-        // Events
-        // =============================================
 
         public Task<bool> onInsert(AddMaintenanceRequestDto dto) => Task.FromResult(true);
         public Task<bool> afterInsert(MaintenanceRequestDto dto) => Task.FromResult(true);

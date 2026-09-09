@@ -506,7 +506,6 @@ namespace ko.core.Services
                 }
                 listingDto.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
 
-                // Split: within budget + 20% buffer -> recommendations, everything else -> listings
                 if (maxAllowedPrice.HasValue && item.MonthlyRent <= maxAllowedPrice.Value)
                 {
                     result.recommendations.Add(listingDto);

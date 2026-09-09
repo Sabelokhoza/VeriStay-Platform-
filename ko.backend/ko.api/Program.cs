@@ -19,24 +19,12 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------------------------------------------------------------------
-// FIX: WebApplication.CreateBuilder(args) wires up appsettings.json /
-// appsettings.{Environment}.json with reloadOnChange: true by default.
-// That spins up a FileSystemWatcher, which on Render's containers hits
-// the inotify instance limit (128) and crashes the app on startup with
-// "Unhandled exception. System.IO.IOException: The configured user
-// limit (128) on the number of inotify instances has been reached...".
-//
-// Rebuild the configuration sources with reloadOnChange: false to avoid
-// registering any file watchers.
-// ---------------------------------------------------------------------
 builder.Configuration.Sources.Clear();
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: false)
     .AddEnvironmentVariables();
 
-// Add services to the container.
 
 builder.Services.AddControllers();
 
@@ -44,29 +32,24 @@ builder.Services.AddControllers();
 builder.Services.AddCors(opts =>
 {
     opts.AddPolicy("AllowAll", opts => opts.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-    //to be updated  when front-end is done. (Sabelo)
 });
 
 
 var connect = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(connect);
 });
 
-// Use AddIdentityCore instead of AddIdentity to avoid overriding JWT auth scheme
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
 {
-    // Password configuration
     opts.Password.RequiredLength = 6;
     opts.Password.RequireDigit = false;
     opts.Password.RequireLowercase = false;
     opts.Password.RequireUppercase = false;
     opts.Password.RequireNonAlphanumeric = false;
 
-    // Email configuration
     opts.SignIn.RequireConfirmedEmail = true;
 })
 .AddEntityFrameworkStores<AppDbContext>()
@@ -118,8 +101,6 @@ builder.Services.AddScoped<Client>(_ =>
 FirebaseApp.Create(new AppOptions
 {
     Credential = GoogleCredential.FromFile("veristay-e83d8-firebase-adminsdk-fbsvc-a267d08b94.json")
-    // Download this from Firebase Console ?
-    // Project Settings ? Service Accounts ? Generate new private key
 });
 
 
@@ -138,7 +119,6 @@ builder.Services.AddAutoMapper(typeof(PropertyMappingProfile).Assembly);
 
 builder.Services.AddCoreServices(builder.Configuration);
 
-//flaten api response
 builder.Services.Configure<ApiBehaviorOptions>(opts =>
 {
     opts.InvalidModelStateResponseFactory = actionContext =>
@@ -154,10 +134,8 @@ builder.Services.Configure<ApiBehaviorOptions>(opts =>
     };
 });
 
-// Services
 builder.Services.AddHttpClient();
 
-// Authentication - explicitly set JWT as default scheme
 var jwt = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddAuthentication(options =>
@@ -181,7 +159,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>

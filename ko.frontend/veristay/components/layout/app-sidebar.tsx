@@ -1,21 +1,4 @@
-import {
-    Award,
-    BarChart,
-    BookOpenCheck,
-    ChartAreaIcon,
-    ClipboardCheck,
-    ContactRound,
-    Folders,
-    GraduationCap,
-    GraduationCapIcon,
-    HandCoins,
-    LayoutDashboard,
-    LifeBuoy,
-    Pen,
-    User2Icon,
-    Users,
-    UsersRound,
-} from 'lucide-react';
+import { GraduationCapIcon, LayoutDashboard, LifeBuoy } from 'lucide-react';
 import * as React from 'react';
 
 import { NavMain } from '@/components/layout/nav-main';
@@ -36,26 +19,6 @@ import { Role, useUser } from '@/hooks/use-user';
 const navMainStudent = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }];
 const navMainLandlord = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }];
 
-const navMainPartner = [
-    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-    // {
-    //     title: 'Manage',
-    //     url: '/manage',
-    //     icon: ContactRound,
-    //     items: [
-    //         { title: 'Compliance', url: '/manage/compliance', icon: ClipboardCheck },
-    //         { title: 'Students', url: '/manage/students', icon: GraduationCap },
-    //         { title: 'Reports', url: '/manage/reports', icon: BarChart },
-    //     ],
-    // },
-    { title: 'Students', url: '/students', icon: GraduationCap },
-    { title: 'Team', url: '/team', icon: UsersRound },
-    { title: 'Enrollments', url: '/enrollments', icon: BookOpenCheck },
-    { title: 'Courses', url: '/courses', icon: Folders },
-    { title: 'Certificates', url: '/certifications', icon: Award },
-    { title: 'Billing', url: '/billing', icon: HandCoins },
-];
-
 const navMainAdmin = [
     { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
 ];
@@ -74,8 +37,6 @@ export function AppSidebar() {
         switch (role) {
             case Role.Student:
                 return navMainStudent;
-            case Role.Partner:
-                return navMainPartner;
             case Role.Admin:
                 return navMainAdmin;
             case Role.Landlord:

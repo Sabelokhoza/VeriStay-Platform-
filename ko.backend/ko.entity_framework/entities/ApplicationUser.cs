@@ -32,7 +32,6 @@ namespace ko.entity_framework.entities
         public bool IsRead { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation
         public ApplicationUser? User { get; set; }
     }
 

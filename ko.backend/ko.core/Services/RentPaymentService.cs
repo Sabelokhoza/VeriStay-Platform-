@@ -21,7 +21,7 @@ namespace ko.core.Services
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly INotificationService _notificationService; // 👈 added
+        private readonly INotificationService _notificationService;
 
         public RentPaymentService(
             AppDbContext appDbContext,
@@ -33,7 +33,7 @@ namespace ko.core.Services
             IConfiguration configuration,
             UserManager<ApplicationUser> userManager,
             IServiceProvider serviceProvider,
-            INotificationService notificationService) // 👈 added
+            INotificationService notificationService)
         {
             _appDbContext = appDbContext;
             _logger = logger;
@@ -44,12 +44,9 @@ namespace ko.core.Services
             _configuration = configuration;
             _userManager = userManager;
             _serviceProvider = serviceProvider;
-            _notificationService = notificationService; // 👈 added
+            _notificationService = notificationService;
         }
 
-        // =============================================
-        // Private helper — map entity to DTO
-        // =============================================
 
         private static RentPaymentDto MapToDto(RentPayment p, Tenancy tenancy)
         {
@@ -69,9 +66,6 @@ namespace ko.core.Services
             };
         }
 
-        // =============================================
-        // Private helper — deduplicate then generate
-        // =============================================
 
         private async Task EnsureMonthlyPaymentsGeneratedAsync(Tenancy tenancy)
         {
@@ -82,7 +76,6 @@ namespace ko.core.Services
                 ? today.AddMonths(1)
                 : leaseEnd;
 
-            // ── Step 1: remove duplicates ─────────────────────────────────
             var allPayments = await _appDbContext.RentPayments
                 .Where(r => r.TenancyId == tenancy.Id)
                 .OrderBy(r => r.Id)
@@ -103,7 +96,6 @@ namespace ko.core.Services
                 await _appDbContext.SaveChangesAsync();
             }
 
-            // ── Step 2: build expected due dates ──────────────────────────
             var expectedDueDates = new List<DateTime>();
             var current = new DateTime(
                 leaseStart.Year, leaseStart.Month, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -116,7 +108,6 @@ namespace ko.core.Services
 
             if (!expectedDueDates.Any()) return;
 
-            // ── Step 3: find missing months ───────────────────────────────
             var existingPayments = await _appDbContext.RentPayments
                 .Where(r => r.TenancyId == tenancy.Id)
                 .ToListAsync();
@@ -131,7 +122,6 @@ namespace ko.core.Services
 
             if (!missing.Any()) return;
 
-            // ── Step 4: insert missing payments ───────────────────────────
             _logger.LogInformation(
                 "Auto-generating {0} monthly payment(s) for tenancy {1}",
                 missing.Count, tenancy.Id);
@@ -153,9 +143,6 @@ namespace ko.core.Services
             await _appDbContext.SaveChangesAsync();
         }
 
-        // =============================================
-        // Private helper — mark overdue
-        // =============================================
 
         private async Task MarkOverduePaymentsAsync(int tenancyId)
         {
@@ -173,9 +160,6 @@ namespace ko.core.Services
             await _appDbContext.SaveChangesAsync();
         }
 
-        // =============================================
-        // Private helper — load tenancy with includes
-        // =============================================
 
         private async Task<Tenancy> LoadTenancyAsync(int tenancyId)
         {
@@ -188,9 +172,6 @@ namespace ko.core.Services
             return tenancy;
         }
 
-        // =============================================
-        // Get student payment summary
-        // =============================================
 
         public async Task<StudentPaymentSummaryDto> GetStudentPaymentSummaryAsync(
             string studentId)
@@ -237,9 +218,6 @@ namespace ko.core.Services
             };
         }
 
-        // =============================================
-        // Get by tenancy id
-        // =============================================
 
         public async Task<List<RentPaymentDto>> GetByTenancyIdAsync(int tenancyId)
         {
@@ -257,9 +235,6 @@ namespace ko.core.Services
             return payments.Select(p => MapToDto(p, tenancy)).ToList();
         }
 
-        // =============================================
-        // Get by id
-        // =============================================
 
         public async Task<RentPaymentDto?> GetByIdAsync(int? id)
         {
@@ -277,9 +252,6 @@ namespace ko.core.Services
             return MapToDto(payment, tenancy);
         }
 
-        // =============================================
-        // Get all
-        // =============================================
 
         public async Task<List<RentPaymentDto>> GetAllAsync()
         {
@@ -302,9 +274,6 @@ namespace ko.core.Services
             return payments.Select(p => MapToDto(p, p.Tenancy)).ToList();
         }
 
-        // =============================================
-        // Get overdue
-        // =============================================
 
         public async Task<List<RentPaymentDto>> GetOverdueAsync()
         {
@@ -330,9 +299,6 @@ namespace ko.core.Services
             return payments.Select(p => MapToDto(p, p.Tenancy)).ToList();
         }
 
-        // =============================================
-        // Add (manual — landlord / admin)
-        // =============================================
 
         public async Task<RentPaymentDto?> AddAsync(AddRentPaymentDto dto)
         {
@@ -378,9 +344,6 @@ namespace ko.core.Services
             return result;
         }
 
-        // =============================================
-        // Mark as paid
-        // =============================================
 
         public async Task<RentPaymentDto> MarkAsPaidAsync(MarkRentPaidDto dto)
         {
@@ -404,7 +367,6 @@ namespace ko.core.Services
             var tenancy = await _appDbContext.Tenancies
                 .FirstOrDefaultAsync(t => t.Id == payment.TenancyId);
 
-            // Generate and upload receipt PDF
             try
             {
                 var receiptUrl = await _receiptGenerator
@@ -418,7 +380,6 @@ namespace ko.core.Services
             }
             catch (Exception ex)
             {
-                // Don't fail the payment if receipt generation fails
                 _logger.LogInformation(
                     "Receipt generation failed for payment {0}: {1}. Using fallback.",
                     payment.Id, ex.Message);
@@ -427,7 +388,6 @@ namespace ko.core.Services
                 await _appDbContext.SaveChangesAsync();
             }
 
-            // ✅ Push notification to student — payment confirmed
             await _notificationService.SendToUserAsync(
                 userId: tenancy.StudentId,
                 title: "✅ Payment Confirmed",
@@ -442,9 +402,6 @@ namespace ko.core.Services
             return MapToDto(payment, tenancy);
         }
 
-        // =============================================
-        // Send payment reminder
-        // =============================================
 
         public async Task<bool> SendPaymentReminderAsync(SendReminderDto dto)
         {
@@ -601,7 +558,6 @@ namespace ko.core.Services
                 throw new BadRequestException(
                     "Failed to send reminder email. Please try again.");
 
-            // ✅ Push notification to student — payment reminder
             await _notificationService.SendToUserAsync(
                 userId: tenancy.StudentId,
                 title: "⚠️ Rent Payment Reminder",
@@ -616,9 +572,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // =============================================
-        // Landlord payments overview
-        // =============================================
 
         public async Task<LandlordPaymentsOverviewDto> GetLandlordPaymentsOverviewAsync(
             string landlordId)
@@ -640,7 +593,6 @@ namespace ko.core.Services
                 await MarkOverduePaymentsAsync(tenancy.Id);
             }
 
-            // Re-fetch fresh
             tenancies = await _appDbContext.Tenancies
                 .Where(t => props.Select(s => s.Id).Contains(t.PropertyId))
                 .ToListAsync();
@@ -685,9 +637,6 @@ namespace ko.core.Services
             };
         }
 
-        // =============================================
-        // Delete
-        // =============================================
 
         public async Task<bool> DeleteAsync(int? id)
         {
@@ -706,9 +655,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // =============================================
-        // Cleanup duplicates (admin one-time fix)
-        // =============================================
 
         public async Task<int> CleanupDuplicatePaymentsAsync()
         {
@@ -737,9 +683,6 @@ namespace ko.core.Services
             return duplicates.Count;
         }
 
-        // =============================================
-        // Events
-        // =============================================
 
         public Task<bool> onInsert(AddRentPaymentDto dto) => Task.FromResult(true);
         public Task<bool> onUpdate(RentPaymentDto dto) => Task.FromResult(true);

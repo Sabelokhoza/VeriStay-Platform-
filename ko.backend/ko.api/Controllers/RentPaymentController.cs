@@ -53,9 +53,6 @@ namespace ko.api.Controllers
             }
         }
 
-        /// <summary>
-        /// Get full payment summary for a student — Student only
-        /// </summary>
         [HttpGet("get-student-summary")]
         public async Task<ActionResult<ApiResponse<StudentPaymentSummaryDto>>> GetStudentSummary(
             [FromQuery] string studentId)
@@ -65,9 +62,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Payment summary retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all payments for a tenancy — Landlord and Admin
-        /// </summary>
         [HttpGet("get-by-tenancy")]
         public async Task<ActionResult<ApiResponse<List<RentPaymentDto>>>> GetByTenancy(
             [FromQuery] int tenancyId)
@@ -77,9 +71,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Payments retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get single payment by id
-        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<RentPaymentDto>>> GetById(int id)
         {
@@ -88,9 +79,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Payment retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all payments — Admin only
-        /// </summary>
         [HttpGet("get-all")]
         public async Task<ActionResult<ApiResponse<List<RentPaymentDto>>>> GetAll()
         {
@@ -99,9 +87,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "All payments retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all overdue payments — Admin and Landlord
-        /// </summary>
         [HttpGet("get-overdue")]
         public async Task<ActionResult<ApiResponse<List<RentPaymentDto>>>> GetOverdue()
         {
@@ -110,9 +95,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Overdue payments retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get payment overview for all tenants — Landlord only
-        /// </summary>
         [HttpGet("landlord-overview")]
         public async Task<ActionResult<ApiResponse<LandlordPaymentsOverviewDto>>> GetLandlordOverview(
             [FromQuery] string landlordId)
@@ -123,9 +105,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Landlord payment overview retrieved successfully"));
         }
 
-        /// <summary>
-        /// Send payment reminder to a student — Landlord only
-        /// </summary>
         [HttpPost("send-reminder")]
         public async Task<ActionResult<ApiResponse<bool>>> SendReminder(
             [FromBody] SendReminderDto dto)
@@ -136,9 +115,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Payment reminder sent successfully"));
         }
 
-        /// <summary>
-        /// Create a new rent payment — Landlord and Admin
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<RentPaymentDto>>> Add([FromBody] AddRentPaymentDto dto)
         {
@@ -147,9 +123,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Rent payment added successfully"));
         }
 
-        /// <summary>
-        /// Mark a payment as paid — Student only (simulated)
-        /// </summary>
         [HttpPatch("mark-paid")]
         public async Task<ActionResult<ApiResponse<RentPaymentDto>>> MarkAsPaid(
             [FromBody] MarkRentPaidDto dto)
@@ -159,9 +132,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Payment marked as paid successfully"));
         }
 
-        /// <summary>
-        /// Delete a payment — Admin only
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {

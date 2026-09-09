@@ -18,13 +18,7 @@ namespace ko.api.Controllers
             _logger = logger;
         }
 
-        // =============================================
-        // CRUD
-        // =============================================
 
-        /// <summary>
-        /// Add a new property — Landlord only
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<PropertyDto>>> Add([FromBody] AddPropertyDto dto)
         {
@@ -34,9 +28,6 @@ namespace ko.api.Controllers
                 ApiResponse.Success(result, "Property added successfully"));
         }
 
-        /// <summary>
-        /// Get all properties — Admin only
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<PropertyDto>>>> GetAll()
         {
@@ -45,9 +36,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Properties retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get property by id — All authenticated users
-        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<PropertyDto>>> GetById(int id)
         {
@@ -56,9 +44,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all properties by landlord id — Admin and Landlord
-        /// </summary>
         [HttpGet("landlord/{landlordId}")]
         public async Task<ActionResult<ApiResponse<List<PropertyDto>>>> GetByLandlordId(string landlordId)
         {
@@ -67,9 +52,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Landlord properties retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all approved and available properties — All authenticated users
-        /// </summary>
         [HttpGet("approved")]
         public async Task<ActionResult<ApiResponse<List<PropertyDto>>>> GetApproved()
         {
@@ -91,9 +73,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Listings retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get listings by details id
-        /// </summary>
         [HttpGet("get-listing-by-details-id")]
         public async Task<ActionResult<ApiResponse<ListingDetailsDto>>> GetListingsDetailsbyPropertyId(int propertyId )
         {
@@ -102,9 +81,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Listings details retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get  property details by id
-        /// </summary>
         [HttpGet("get-property-info")]
         public async Task<ActionResult<ApiResponse<ListingDetailsDto>>> GetProperyInfoAsync(int propertyId)
         {
@@ -113,9 +89,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Listings details retrieved successfully"));
         }
 
-        /// <summary>
-        /// Search approved properties with filters — All authenticated users
-        /// </summary>
         [HttpGet("search")]
         public async Task<ActionResult<ApiResponse<List<PropertyDto>>>> Search(
             [FromQuery] string? city = null,
@@ -129,9 +102,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Search completed successfully"));
         }
 
-        /// <summary>
-        /// Update property — Landlord only
-        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Update(int id, [FromBody] PropertyDto dto)
         {
@@ -139,9 +109,6 @@ namespace ko.api.Controllers
             var result = await _propertyService.UpdateAsync(id, dto);
             return Ok(ApiResponse.Success(result, "Property updated successfully"));
         }
-        /// <summary>
-        /// Update a property — Landlord only
-        /// </summary>
         [HttpPut("update-propery/{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> UpdateProperty(
             int id,
@@ -153,9 +120,6 @@ namespace ko.api.Controllers
 
             return Ok(ApiResponse.Success(true, "Property updated successfully."));
         }
-        /// <summary>
-        /// Delete property — Admin and Landlord
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {
@@ -164,13 +128,7 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property deleted successfully"));
         }
 
-        // =============================================
-        // Status Management
-        // =============================================
 
-        /// <summary>
-        /// Approve a property listing — Admin only
-        /// </summary>
         [HttpPatch("{id:int}/approve")]
         public async Task<ActionResult<ApiResponse<bool>>> Approve(int id)
         {
@@ -179,9 +137,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property approved successfully"));
         }
 
-        /// <summary>
-        /// Reject a property listing — Admin only
-        /// </summary>
         [HttpPatch("{id:int}/reject")]
         public async Task<ActionResult<ApiResponse<bool>>> Reject(int id)
         {
@@ -190,9 +145,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property rejected successfully"));
         }
 
-        /// <summary>
-        /// Delist a property — Admin and Landlord
-        /// </summary>
         [HttpPatch("{id:int}/delist")]
         public async Task<ActionResult<ApiResponse<bool>>> Delist(int id)
         {
@@ -201,9 +153,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property delisted successfully"));
         }
 
-        /// <summary>
-        /// Toggle property availability — Landlord only
-        /// </summary>
         [HttpPatch("{id:int}/toggle-availability")]
         public async Task<ActionResult<ApiResponse<bool>>> ToggleAvailability(int id)
         {
@@ -212,13 +161,7 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property availability updated successfully"));
         }
 
-        // =============================================
-        // Property Images
-        // =============================================
 
-        /// <summary>
-        /// Add an image to a property — Landlord only
-        /// </summary>
         [HttpPost("add-image")]
         public async Task<ActionResult<ApiResponse<PropertyImageDto>>> AddImage(
             IFormFile image,
@@ -237,9 +180,6 @@ namespace ko.api.Controllers
                 ApiResponse.Success(result, "Image added successfully"));
         }
 
-        /// <summary>
-        /// Get all images for a property — All authenticated users
-        /// </summary>
         [HttpGet("{propertyId:int}/images")]
         public async Task<ActionResult<ApiResponse<List<PropertyImageDto>>>> GetImagesForProperty(int propertyId)
         {
@@ -248,9 +188,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property images retrieved successfully"));
         }
 
-        /// <summary>
-        /// Delete a property image — Admin and Landlord
-        /// </summary>
         [HttpDelete("images/{imageId:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> DeleteImage(int imageId)
         {
@@ -259,9 +196,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Image deleted successfully"));
         }
 
-        /// <summary>
-        /// Set an image as the primary image for a property — Landlord only
-        /// </summary>
         [HttpPatch("images/{imageId:int}/set-primary")]
         public async Task<ActionResult<ApiResponse<bool>>> SetPrimaryImage(int imageId)
         {

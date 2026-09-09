@@ -12,7 +12,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import SupportTab from '../platform/support-tab';
+import SupportTab from '../shared/support-tab';
 import { useState } from 'react';
 
 export function NavSecondary({

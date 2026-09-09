@@ -22,11 +22,7 @@ namespace ko.core.Services
         private readonly IAppLogger<AuthService> _logger;
         private readonly IEmailService _emailService;
         private readonly IFileUploadService _fileUploadService;
-        //private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        //private readonly ICentreAdminService _centreAdminService;
-        //private readonly ICentreStudentService _centreStudentService;
-        //private readonly ITrainingCentreService _trainingCentreService;
         private readonly JwtSettings _jwtSettings;
         private readonly IConfiguration _configuration;
         private readonly IEmailServiceMailJet _emailServiceMailJet;
@@ -38,33 +34,15 @@ namespace ko.core.Services
             _signInManager = signInManager;
             _logger = logger;
             _mapper = mapper;
-            //_centreAdminService = centreAdminService;
-            //_jwtSettings = jwtSettings.Value;
-            //_userService = userService;
-            //_centreStudentService = centreStudentService;
             _appDbContext = appDbContext;
             _jwtSettings = jwtSettings.Value;
             _configuration = configuration;
             _emailService = emailService;
             _fileUploadService = fileUploadService;
             _emailServiceMailJet = emailServiceMailJet;
-            //_trainingCentreService = trainingCentreService;
         }
 
-        //public async Task<AuthResponse> RefreshUserToken(string email)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(email);
 
-        //    var jwtSecurityToken = await GenerateToken(user);
-        //    var response = new AuthResponse()
-        //    {
-        //        Email = user.Email,
-        //        Token = jwtSecurityToken,
-        //        Id = user.Id,
-        //        UserName = user.UserName
-        //    };
-        //    return response;
-        //}
 
         public async Task<bool> ForgotPassword(RequestForgotPasswordDto model)
         {
@@ -213,10 +191,6 @@ namespace ko.core.Services
                 throw new BadRequestException($"Invalid Email or Password");
             }
 
-            //if (user.EmailConfirmed == false)
-            //{
-            //    throw new BadRequestException($"Please confirm your email");
-            //}
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
             if (!result.Succeeded)
@@ -237,72 +211,19 @@ namespace ko.core.Services
         }
 
 
-        //public async Task<UpdateProfileDto> UpdateProfile(UpdateProfileDto updateProfileDto)
-        //{
-        //    _logger.LogInformation("Updating profile for user ID: {UserId}", updateProfileDto.Id);
-
-        //    var user = await GetIdentityUser(updateProfileDto.Id);
 
 
-        //    if (updateProfileDto.isSouthAfrican)
-        //    {
-        //        var isValidIdNumber = await _userService.ValidateIdNumber(updateProfileDto.IdNumber);
 
-        //        if (!isValidIdNumber.IsValid)
-        //        {
-        //            throw new BadRequestException(isValidIdNumber.ErrorMessage, new string[] { isValidIdNumber.ErrorMessage });
-        //        }
 
-        //        updateProfileDto.DateOfBirth = isValidIdNumber.Info.BirthDate.ToString("yyyy/MM/dd");
 
-        //        if (updateProfileDto.DateOfBirth != user.DateOfBirth)
-        //        {
-        //            if (!await CheckIfPersonIs16orOlder(updateProfileDto.DateOfBirth))
-        //            {
-        //                throw new BadRequestException("Individual must be 16 years or older", new string[] { "Individual must be 16 years or older" });
-        //            }
-        //        }
-        //    }
 
-        //    if (updateProfileDto.Email != user.Email && await CheckIfEmailExists(updateProfileDto.Email))
-        //    {
-        //        throw new BadRequestException("An existing account is using {0} , email address . Please  try with another email address", new string[] { "Duplicate email , Please Login" });
-        //    }
 
-        //    if (updateProfileDto.IdNumber != user.IdNumber && await CheckIfIdNumberIsUsed(updateProfileDto.IdNumber))
-        //    {
-        //        throw new BadRequestException("An existing account is using {0} , id number is found . Please  try with another email address", new string[] { "Duplicate ID/Passport number , Please Login" });
-        //    }
 
-        //    user.IdNumber = updateProfileDto.IdNumber;
-        //    user.FirstName = updateProfileDto.FirstName;
-        //    user.LastName = updateProfileDto.LastName;
-        //    user.UserName = updateProfileDto.Email;
-        //    user.Email = updateProfileDto.Email;
-        //    user.Address = updateProfileDto.Address;
-        //    user.PhoneNumber = updateProfileDto.PhoneNumber;
 
-        //    _logger.LogInformation("Attempting to update user via UserManager for ID {UserId}.", user.Id);
 
-        //    var result = await _userManager.UpdateAsync(user);
 
-        //    if (result.Succeeded)
-        //    {
-        //        _logger.LogInformation("User with ID {UserId} updated successfully.", user.Id);
-        //        return updateProfileDto;
-        //    }
-        //    else
-        //    {
-        //        StringBuilder str = new StringBuilder();
-        //        foreach (var error in result.Errors)
-        //        {
-        //            _logger.LogError("Error updating user {UserId}: {Error}", user.Id, error.Description);
-        //            str.AppendFormat("{0}\n", error.Description);
-        //        }
 
-        //        throw new BadRequestException($"{str}");
-        //    }
-        //}
+
 
         public async Task<RegistrationResponse> RegisterLandLordAsync(IFormFile identificationDocument, RegisterLandlordDto registerDto)
         {

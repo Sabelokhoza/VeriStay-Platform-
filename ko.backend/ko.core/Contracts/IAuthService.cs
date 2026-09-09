@@ -36,7 +36,6 @@ namespace ko.core.Contracts
         Task<PropertyImageDto?> GetByIdAsync(int? id);
         Task<bool> DeleteAsync(int? id);
         Task<bool> SetPrimaryAsync(int imageId);
-        // Events
         Task<bool> onInsert(AddPropertyImageDto dto);
         Task<bool> afterInsert(PropertyImageDto dto);
         Task<bool> onDelete(PropertyImageDto dto);
@@ -44,9 +43,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IVerificationDocumentService
-    // =============================================
 
     public interface IVerificationDocumentService
     {
@@ -56,7 +52,6 @@ namespace ko.core.Contracts
         Task<List<VerificationDocumentDto>> GetByLandlordIdAsync(string landlordId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> ReviewAsync(ReviewVerificationDocumentDto dto);
-        // Events
         Task<bool> onInsert(AddVerificationDocumentDto dto);
         Task<bool> afterInsert(VerificationDocumentDto dto);
         Task<bool> onUpdate(VerificationDocumentDto dto);
@@ -66,9 +61,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IWaitingListService
-    // =============================================
 
     public interface IWaitingListService
     {
@@ -79,7 +71,6 @@ namespace ko.core.Contracts
         Task<List<WaitingListEntryDto>> GetByStudentIdAsync(string studentId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> NotifyNextAsync(int propertyId);
-        // Events
         Task<bool> onInsert(AddWaitingListEntryDto dto);
         Task<bool> afterInsert(WaitingListEntryDto dto);
         Task<bool> onDelete(WaitingListEntryDto dto);
@@ -87,9 +78,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // ILeaseDocumentService
-    // =============================================
 
     public interface ILeaseDocumentService
     {
@@ -99,7 +87,6 @@ namespace ko.core.Contracts
         Task<List<LeaseDocumentDto>> GetByTenancyIdAsync(int tenancyId);
         Task<List<LeaseDocumentDto>> GetByStudentIdAsync(string studentId);
         Task<bool> DeleteAsync(int? id);
-        // Events
         Task<bool> onInsert(AddLeaseDocumentDto dto);
         Task<bool> afterInsert(LeaseDocumentDto dto);
         Task<bool> onDelete(LeaseDocumentDto dto);
@@ -107,18 +94,13 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IRentPaymentService
-    // =============================================
 
     public interface IRentPaymentService
     {
-        // Student
         Task<StudentPaymentSummaryDto> GetStudentPaymentSummaryAsync(string studentId);
         Task<List<RentPaymentDto>> GetByTenancyIdAsync(int tenancyId);
         Task<RentPaymentDto?> GetByIdAsync(int? id);
 
-        // Landlord / Admin
         Task<RentPaymentDto?> AddAsync(AddRentPaymentDto dto);
         Task<bool> DeleteAsync(int? id);
         Task<List<RentPaymentDto>> GetOverdueAsync();
@@ -126,10 +108,8 @@ namespace ko.core.Contracts
         Task<LandlordPaymentsOverviewDto> GetLandlordPaymentsOverviewAsync(string landlordId);
         Task<bool> SendPaymentReminderAsync(SendReminderDto dto);
 
-        // Mark paid
         Task<RentPaymentDto> MarkAsPaidAsync(MarkRentPaidDto dto);
 
-        // Events
         Task<bool> onInsert(AddRentPaymentDto dto);
         Task<bool> afterInsert(RentPaymentDto dto);
         Task<bool> onUpdate(RentPaymentDto dto);
@@ -139,9 +119,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IMaintenanceRequestService
-    // =============================================
 
     public interface IMaintenanceRequestService
     {
@@ -154,7 +131,6 @@ namespace ko.core.Contracts
         Task<List<MaintenanceRequestDto>> GetMantainanceByPropertiesAsync(List<PropertyDto> properties);
         Task<List<MaintenanceRequestDto>> GetByStudentIdAsync(string studentId);
         Task<bool> DeleteAsync(int? id);
-        // Events
         Task<bool> onInsert(AddMaintenanceRequestDto dto);
         Task<bool> afterInsert(MaintenanceRequestDto dto);
         Task<bool> onUpdate(MaintenanceRequestDto dto);
@@ -164,9 +140,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IReviewService
-    // =============================================
 
     public interface IReviewService
     {
@@ -178,7 +151,6 @@ namespace ko.core.Contracts
         Task<double> GetAverageRatingByLandlordIdAsync(string landlordId);
         Task<double> GetAverageRatingAsync(int propertyId);
         Task<bool> DeleteAsync(int? id);
-        // Events
         Task<bool> onInsert(AddReviewDto dto);
         Task<bool> afterInsert(ReviewDto dto);
         Task<bool> onDelete(ReviewDto dto);
@@ -186,9 +158,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IDisputeService
-    // =============================================
 
     public interface IDisputeService
     {
@@ -199,7 +168,6 @@ namespace ko.core.Contracts
         Task<List<DisputeDto>> GetByLandlordIdAsync(string landlordId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> ResolveAsync(ResolveDisputeDto dto);
-        // Events
         Task<bool> onInsert(AddDisputeDto dto);
         Task<bool> afterInsert(DisputeDto dto);
         Task<bool> onUpdate(DisputeDto dto);
@@ -209,9 +177,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // ILandlordService
-    // =============================================
 
     public interface ILandlordService
     {
@@ -222,7 +187,6 @@ namespace ko.core.Contracts
         Task<bool> UpdateAsync(string id, LandlordDto dto);
         Task<bool> SuspendAsync(string id);
         Task<bool> ApproveAsync(string id);
-        // Events
         Task<bool> onInsert(RegisterLandlordDto dto);
         Task<bool> afterInsert(LandlordDto dto);
         Task<bool> onUpdate(LandlordDto dto);
@@ -232,9 +196,6 @@ namespace ko.core.Contracts
     }
 
 
-    // =============================================
-    // IStudentService
-    // =============================================
 
     public interface IStudentService
     {
@@ -244,7 +205,6 @@ namespace ko.core.Contracts
         Task<bool> DeleteAsync(string? id);
         Task<bool> UpdateAsync(string id, StudentDto dto);
         Task<bool> SuspendAsync(string id);
-        // Events
         Task<bool> onInsert(RegisterStudentDto dto);
         Task<bool> afterInsert(StudentDto dto);
         Task<bool> onUpdate(StudentDto dto);

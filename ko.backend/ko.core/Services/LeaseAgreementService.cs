@@ -68,7 +68,6 @@ namespace ko.core.Services
                     $"This Lease Agreement (\"Agreement\") is entered into on {DateTime.UtcNow:dd MMMM yyyy}, " +
                     $"between the Landlord and the Tenant named below, for the rental of the property described herein.");
 
-                // --- Parties ---
                 col.Item().Element(c => SectionTitle(c, "1. Parties"));
                 col.Item().Row(row =>
                 {
@@ -77,7 +76,6 @@ namespace ko.core.Services
                     row.RelativeItem().Element(c => PartyBox(c, "TENANT (STUDENT)", t.StudentName));
                 });
 
-                // --- Property ---
                 col.Item().Element(c => SectionTitle(c, "2. Property"));
                 col.Item().Background("#f8f9fa").Padding(12).Column(pc =>
                 {
@@ -85,19 +83,16 @@ namespace ko.core.Services
                     pc.Item().Text(row => { row.Span("Property: ").Bold(); row.Span(t.PropertyTittle); });
                 });
 
-                // --- Lease term ---
                 col.Item().Element(c => SectionTitle(c, "3. Lease Term"));
                 col.Item().Text(
                     $"The lease shall commence on {t.LeaseStartDate:dd MMMM yyyy} and terminate on " +
                     $"{t.LeaseEndDate:dd MMMM yyyy}, unless terminated earlier in accordance with the terms of this Agreement.");
 
-                // --- Rent ---
                 col.Item().Element(c => SectionTitle(c, "4. Rent"));
                 col.Item().Text(
                     $"The Tenant agrees to pay the Landlord a monthly rent of R {t.MonthlyRent:N2}, due on or before " +
                     $"the 1st day of each calendar month, for the duration of the lease term.");
 
-                // --- Terms ---
                 col.Item().Element(c => SectionTitle(c, "5. General Terms"));
                 col.Item().Text(
                     "5.1  The Tenant shall maintain the property in good condition and report any maintenance " +
@@ -107,7 +102,6 @@ namespace ko.core.Services
                     "subject to applicable notice periods.\n" +
                     "5.4  This Agreement is governed by the laws of the Republic of South Africa.");
 
-                // --- Signatures ---
                 col.Item().PaddingTop(10).Element(c => SectionTitle(c, "6. Signatures"));
                 col.Item().Text("By signing below, both parties acknowledge that they have read, understood, " +
                                  "and agree to be bound by the terms of this Agreement.")
@@ -142,7 +136,7 @@ namespace ko.core.Services
             container.Column(c =>
             {
                 c.Spacing(4);
-                c.Item().Height(50); // blank space for a wet/pen signature
+                c.Item().Height(50);
                 c.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken1);
                 c.Item().Text(label).FontSize(9).Bold().FontColor(Colors.Grey.Medium);
                 c.Item().Text(string.IsNullOrWhiteSpace(name) ? "N/A" : name).FontSize(10);

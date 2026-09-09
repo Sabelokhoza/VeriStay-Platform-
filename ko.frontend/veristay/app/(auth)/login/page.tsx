@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useLoginMutation } from '@/app/errors/authApi';
+import { useLoginMutation, useGetUserQuery } from '@/app/errors/authApi';
 import { jwtDecode } from 'jwt-decode';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import userModel from '@/app/api/model/userModel';
 import { setLoggedInUser } from '@/app/store/useAuthSlice';
 import BaseCard from '@/components/shared/base-card';
-import { useGetUserByIdQuery } from '@/app/errors/studentApi';
 import { jwtDecodeModel } from '@/app/api/model/userModel';
 
 export default function LoginPage() {
@@ -25,7 +24,7 @@ export default function LoginPage() {
         data: userData,
         isLoading: isUserLoading,
         error: userError,
-    } = useGetUserByIdQuery(userId || '', {
+    } = useGetUserQuery(userId || '', {
         skip: !userId,
     });
 

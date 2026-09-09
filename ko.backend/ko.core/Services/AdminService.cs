@@ -36,7 +36,6 @@ namespace ko.core.Services
             _configuration = configuration;
         }
 
-        // ── Disputes ──────────────────────────────────────────────────────
 
         public async Task<List<DisputeDto>> GetAllDisputesAsync()
         {
@@ -87,7 +86,6 @@ namespace ko.core.Services
             await _appDbContext.Disputes.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
 
-            // Notify admin via email
             var dashUrl = _configuration["Ui:Url"] ?? "";
             await _emailService.SendEmailAsync(new EmailMessage(
                 to: _configuration["Email:From"]!,
@@ -124,7 +122,6 @@ namespace ko.core.Services
             dispute.ResolvedAt = DateTime.UtcNow;
             await _appDbContext.SaveChangesAsync();
 
-            // Notify student
             var student = await _userManager.FindByIdAsync(dispute.StudentId);
             if (student?.Email != null)
                 await _emailService.SendEmailAsync(new EmailMessage(
@@ -155,7 +152,6 @@ namespace ko.core.Services
             };
         }
 
-        // ── Complaints ────────────────────────────────────────────────────
 
         public async Task<List<ComplaintDto>> GetAllComplaintsAsync()
         {
@@ -273,7 +269,6 @@ namespace ko.core.Services
             if (complaint == null)
                 throw new NotFoundException(nameof(NotifyComplaintAsync), complaintId);
 
-            // Notify landlord if complaint is about them
             if (!string.IsNullOrEmpty(complaint.LandlordId))
             {
                 var landlord = await _userManager.FindByIdAsync(complaint.LandlordId);
@@ -293,7 +288,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // ── User management ───────────────────────────────────────────────
 
         public async Task<List<UserAccountDto>> GetAllUsersAsync()
         {
@@ -348,7 +342,6 @@ namespace ko.core.Services
             landlord.IsActive = !dto.IsSuspended;
             await _userManager.UpdateAsync(landlord);
 
-            // Delist all their properties if suspending
             if (dto.IsSuspended)
             {
                 var properties = await _appDbContext.Properties
@@ -358,7 +351,6 @@ namespace ko.core.Services
                 await _appDbContext.SaveChangesAsync();
             }
 
-            // Notify landlord
             if (landlord.Email != null)
                 await _emailService.SendEmailAsync(new EmailMessage(
                     to: landlord.Email,
@@ -377,7 +369,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // ── Accommodation Report ──────────────────────────────────────────
 
         public async Task<AccommodationReportDto> GetAccommodationReportAsync()
         {
@@ -402,7 +393,6 @@ namespace ko.core.Services
                 ? Math.Round((decimal)occupiedBeds / totalBeds * 100, 1)
                 : 0;
 
-            // City breakdown
             var cityBreakdown = approved
                 .GroupBy(p => p.City)
                 .Select(g =>

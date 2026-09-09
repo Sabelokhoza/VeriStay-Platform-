@@ -76,9 +76,6 @@ namespace ko.core.Models
         [Required]
         public string Password { get; set; }
     }
-    // =============================================
-    // PROPERTY DTOs
-    // =============================================
     public class UpdatePropertyDto
     {
         [Required]
@@ -238,9 +235,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // VERIFICATION DOCUMENT DTOs
-    // =============================================
 
     public class VerificationDocumentDto
     {
@@ -275,9 +269,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // APPLICATION DTOs
-    // =============================================
 
     public class ApplicationDto
     {
@@ -348,9 +339,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // WAITING LIST DTOs
-    // =============================================
 
     public class WaitingListEntryDto
     {
@@ -371,9 +359,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // TENANCY DTOs
-    // =============================================
 
     public class TenancyDto
     {
@@ -411,9 +396,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // LEASE DOCUMENT DTOs
-    // =============================================
 
     public class LeaseDocumentDto
     {
@@ -438,9 +420,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // RENT PAYMENT DTOs
-    // =============================================
 
     public class RentPaymentDto
     {
@@ -649,9 +628,6 @@ namespace ko.core.Models
 
     
 
-    // =============================================
-    // MAINTENANCE REQUEST DTOs
-    // =============================================
 
     public class MaintenanceRequestDto
     {
@@ -684,7 +660,6 @@ namespace ko.core.Models
         [Required]
         public MaintenancePriority Priority { get; set; }
 
-        //public List<string> PhotoUrls { get; set; } = new();
     }
 
     public class UpdateMaintenanceRequestDto
@@ -731,9 +706,6 @@ namespace ko.core.Models
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
 
-        /// <summary>
-        /// 0=Pending, 1=Approved, 2=Rejected, 3=Suspended
-        /// </summary>
         public VerificationStatus VerificationStatus { get; set; }
 
         public DateTime CreatedAt { get; set; }
@@ -776,9 +748,6 @@ namespace ko.core.Models
    
 
 
-    // =============================================
-    // ANNOUNCEMENT DTOs
-    // =============================================
 
     public class AnnouncementDto
     {
@@ -802,9 +771,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // REVIEW DTOs
-    // =============================================
 
     public class ReviewDto
     {
@@ -837,16 +803,10 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // DISPUTE DTOs
-    // =============================================
 
     
 
 
-    // =============================================
-    // LANDLORD PROFILE DTOs
-    // =============================================
 
     public class LandlordDto
     {
@@ -882,9 +842,6 @@ namespace ko.core.Models
     }
 
 
-    // =============================================
-    // STUDENT PROFILE DTOs
-    // =============================================
 
     public class StudentDto
     {

@@ -59,7 +59,6 @@ namespace ko.core.Models
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
 
-        // Student only
         public string? StudentNumber { get; set; }
         public string? University { get; set; }
         public decimal? Budget { get; set; }

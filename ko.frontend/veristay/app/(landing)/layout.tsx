@@ -95,11 +95,11 @@ export default function LandingLayout({ children }: { readonly children: React.R
                                     Why Us
                                 </Link>
                                 <Link
-                                    href="/courses"
+                                    href="/listings"
                                     className="text-sm font-medium hover:text-primary transition-colors py-2"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
-                                    Courses
+                                    Listings
                                 </Link>
                                 <Link
                                     href="/login"

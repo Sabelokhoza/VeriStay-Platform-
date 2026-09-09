@@ -230,7 +230,6 @@ namespace ko.core.Services
             if (entity == null) throw new NotFoundException(nameof(EndTenancyAsync), id);
 
             entity.Status = TenancyStatus.Ended;
-            //entity.EndDate = DateTime.UtcNow;
 
             var property = await _appDbContext.Properties.FindAsync(entity.PropertyId);
             if (property != null)

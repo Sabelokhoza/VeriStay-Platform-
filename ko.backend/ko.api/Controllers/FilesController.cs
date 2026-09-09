@@ -21,7 +21,6 @@ namespace ko.api.Controllers
             {
                 var filePath = await _fileUploadService.UploadFileAsync(file, bucketName, "documents");
 
-                // Get the public URL
                 var publicUrl = $"https://nwiqvwivjrtwyacomlqq.supabase.co/storage/v1/object/public/{bucketName}/{filePath}";
 
                 return Ok(new { FilePath = filePath, PublicUrl = publicUrl });

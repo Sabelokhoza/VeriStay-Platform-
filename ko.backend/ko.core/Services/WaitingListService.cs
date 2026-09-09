@@ -38,7 +38,6 @@ namespace ko.core.Services
 
             var entity = _mapper.Map<WaitingListEntry>(dto);
             entity.StudentId = studentId;
-        //    entity.IsNotified = false;
             entity.DateCreated = DateTime.UtcNow;
 
             await _appDbContext.WaitingListEntries.AddAsync(entity);
@@ -126,7 +125,7 @@ namespace ko.core.Services
             _logger.LogInformation("Notifying next student on waiting list for property {0}", propertyId);
 
             var next = await _appDbContext.WaitingListEntries
-                .Where(w => w.PropertyId == propertyId) // /*&& !w.IsNotified/
+                .Where(w => w.PropertyId == propertyId)
                 .OrderBy(w => w.DateCreated)
                 .FirstOrDefaultAsync();
 
@@ -136,8 +135,6 @@ namespace ko.core.Services
                 return false;
             }
 
-            //next.IsNotified = true;
-            //next.DateNotified = DateTime.UtcNow;
 
             await _appDbContext.SaveChangesAsync();
 

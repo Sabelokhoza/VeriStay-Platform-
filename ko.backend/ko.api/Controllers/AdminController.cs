@@ -18,7 +18,6 @@ namespace ko.api.Controllers
             _logger = logger;
         }
 
-        // ── Disputes ──────────────────────────────────────────────────────
 
         [HttpGet("disputes")]
         public async Task<ActionResult<ApiResponse<List<DisputeDto>>>> GetDisputes()
@@ -43,7 +42,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Dispute resolved"));
         }
 
-        // ── Complaints ────────────────────────────────────────────────────
 
         [HttpGet("complaints")]
         public async Task<ActionResult<ApiResponse<List<ComplaintDto>>>> GetComplaints()
@@ -77,7 +75,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Notification sent"));
         }
 
-        // ── Users ─────────────────────────────────────────────────────────
 
         [HttpGet("users")]
         public async Task<ActionResult<ApiResponse<List<UserAccountDto>>>> GetUsers()
@@ -103,7 +100,6 @@ namespace ko.api.Controllers
                 dto.IsSuspended ? "Landlord suspended" : "Landlord reinstated"));
         }
 
-        // ── Report ────────────────────────────────────────────────────────
 
         [HttpGet("accommodation-report")]
         public async Task<ActionResult<ApiResponse<AccommodationReportDto>>> GetReport()

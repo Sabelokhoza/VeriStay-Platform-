@@ -19,9 +19,6 @@ namespace ko.api.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Create a new tenancy — Admin and Landlord
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ApiResponse<TenancyDto>>> Add([FromBody] AddTenancyDto dto)
         {
@@ -31,9 +28,6 @@ namespace ko.api.Controllers
                 ApiResponse.Success(result, "Tenancy added successfully"));
         }
 
-        /// <summary>
-        /// Get all tenancies — Admin only
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<TenancyDto>>>> GetAll()
         {
@@ -42,9 +36,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Tenancies retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get tenancy by id — All authenticated users
-        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<TenancyDto>>> GetById(int id)
         {
@@ -53,9 +44,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Tenancy retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get user housemates
-        /// </summary>
         [HttpGet("get-housemates")]
         public async Task<ActionResult<ApiResponse<ProfileDto>>> GetHousematesByUserId(string userId)
         {
@@ -63,9 +51,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Housemates retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get tenancies by student id — Admin and Student
-        /// </summary>
         [HttpGet("student/{studentId}")]
         public async Task<ActionResult<ApiResponse<List<TenancyDto>>>> GetByStudentId(string studentId)
         {
@@ -73,9 +58,6 @@ namespace ko.api.Controllers
             var result = await _tenancyService.GetByStudentIdAsync(studentId);
             return Ok(ApiResponse.Success(result, "Student tenancies retrieved successfully"));
         }
-        /// <summary>
-        /// Get tenancies by student id — Admin and Student
-        /// </summary>
         [HttpGet("get-tenancy-info")]
         public async Task<ActionResult<ApiResponse<List<TenancyDto>>>> GetTenacyInfoByStudentIdAsync(string studentId)
         {
@@ -83,9 +65,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Student tenanciy retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get tenancies by property id — Admin and Landlord
-        /// </summary>
         [HttpGet("property/{propertyId:int}")]
         public async Task<ActionResult<ApiResponse<List<TenancyDto>>>> GetByPropertyId(int propertyId)
         {
@@ -94,9 +73,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property tenancies retrieved successfully"));
         }
 
-        /// <summary>
-        /// Upload a lease document for a tenancy
-        /// </summary>
         [HttpPost("upload-lease")]
         [Authorize(Roles = "Student, Landlord, Admin")]
         public async Task<ActionResult<ApiResponse<TenancyDto>>> UploadLeaseDocument(
@@ -108,9 +84,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Lease document uploaded successfully"));
         }
 
-        /// <summary>
-        /// Update a tenancy — Admin and Landlord
-        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Update(int id, [FromBody] TenancyDto dto)
         {
@@ -119,9 +92,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Tenancy updated successfully"));
         }
 
-        /// <summary>
-        /// Delete a tenancy — Admin only
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {
@@ -130,9 +100,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Tenancy deleted successfully"));
         }
 
-        /// <summary>
-        /// End an active tenancy — Admin and Landlord
-        /// </summary>
         [HttpPatch("{id:int}/end")]
         public async Task<ActionResult<ApiResponse<bool>>> EndTenancy(int id)
         {

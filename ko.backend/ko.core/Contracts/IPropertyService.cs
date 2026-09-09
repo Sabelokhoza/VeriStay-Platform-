@@ -14,7 +14,6 @@ namespace ko.core.Contracts
         Task<bool> UpdatePropertyAsync(int id, UpdatePropertyDto dto);
         Task<bool> ApproveAsync(int id);
         Task<bool> RejectAsync(int id);
-        // Events
         Task<bool> onInsert(AddPropertyDto dto);
         Task<bool> afterInsert(PropertyDto dto);
         Task<bool> onUpdate(PropertyDto dto);
@@ -24,15 +23,9 @@ namespace ko.core.Contracts
 
         Task<List<PropertyDto>> GetApprovedAsync();
 
-        // =============================================
-        // Status Management
-        // =============================================
         Task<bool> DelistAsync(int id);
         Task<bool> ToggleAvailabilityAsync(int id);
 
-        // =============================================
-        // Search
-        // =============================================
         Task<List<PropertyDto>> SearchAsync(
             string? city = null,
             decimal? minRent = null,
@@ -40,9 +33,6 @@ namespace ko.core.Contracts
             int? minBeds = null,
             string? amenity = null);
 
-        // =============================================
-        // Property Images
-        // =============================================
         Task<PropertyImageDto?> AddImageAsync(AddPropertyImageDto dto);
         Task<List<PropertyImageDto>> GetImagesByPropertyIdAsync(int propertyId);
         Task<bool> DeleteImageAsync(int imageId);

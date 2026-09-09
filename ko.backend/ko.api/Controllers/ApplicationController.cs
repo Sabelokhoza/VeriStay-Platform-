@@ -18,13 +18,7 @@ namespace ko.api.Controllers
             _logger = logger;
         }
 
-        // =============================================
-        // CRUD
-        // =============================================
 
-        /// <summary>
-        /// Add a new application — Student only
-        /// </summary>
         [HttpPost("apply")]
         public async Task<ActionResult<ApiResponse<ApplicationDto>>> Add([FromBody] AddApplicationDto dto)
         {
@@ -34,9 +28,6 @@ namespace ko.api.Controllers
                 ApiResponse.Success(result, "Application added successfully"));
         }
 
-        /// <summary>
-        /// Get all applications — Admin only
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<ApplicationDto>>>> GetAll()
         {
@@ -45,9 +36,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Applications retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get application by id — All authenticated users
-        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<ApplicationDto>>> GetById(int id)
         {
@@ -56,9 +44,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Application retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all applications by student id — Admin and Student
-        /// </summary>
         [HttpGet("student/{studentId}")]
         public async Task<ActionResult<ApiResponse<List<ApplicationDto>>>> GetByStudentId(string studentId)
         {
@@ -67,9 +52,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Student applications retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get all applications by property id — Admin and Landlord
-        /// </summary>
         [HttpGet("property/{propertyId:int}")]
         public async Task<ActionResult<ApiResponse<List<ApplicationDto>>>> GetByPropertyId(int propertyId)
         {
@@ -78,9 +60,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property applications retrieved successfully"));
         }
 
-        /// <summary>
-        /// Delete application — Admin and Student
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {
@@ -89,13 +68,7 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Application deleted successfully"));
         }
 
-        // =============================================
-        // Review
-        // =============================================
 
-        /// <summary>
-        /// Review (approve/reject) an application — Admin and Landlord
-        /// </summary>
         [HttpPatch("review")]
         public async Task<ActionResult<ApiResponse<bool>>> Review([FromBody] ReviewApplicationDto dto)
         {
@@ -104,18 +77,12 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Application reviewed successfully"));
         }
 
-        /// <summary>
-        /// Accept/Decline Offer for an application — Student only
-        /// </summary>
         [HttpGet("accept-decline")]
         public async Task<ActionResult<ApiResponse<bool>>> Review(int applicationId , bool isAccepted = false)
         {
             var result = await _applicationService.AcceptDeclineOffer(applicationId,isAccepted);
             return Ok(ApiResponse.Success(result, "Apllication status updated successfully"));
         }
-        /// <summary>
-        /// View Student application
-        /// </summary>
         [HttpGet("view-student-application")]
         public async Task<ActionResult<ApiResponse<StudentApplication>>> Review(int applicationId )
         {

@@ -222,19 +222,16 @@ namespace ko.core.Services
 
             }).ToList();
 
-            // Step 1 — get properties grouped by city (client side)
             var propertiesByCity = await _appDbContext.Properties
                 .Where(p => p.Status == PropertyStatus.Approved)
                 .Select(p => new { p.Id, p.City, p.AvailableBeds })
-                .ToListAsync(); // ✅ bring to memory first
+                .ToListAsync();
 
-            // Step 2 — get all active tenancies
             var activeTenancies = await _appDbContext.Tenancies
                 .Where(t => t.Status == TenancyStatus.Active)
                 .Select(t => new { t.PropertyId })
                 .ToListAsync();
 
-            // Step 3 — group and calculate in memory (no EF translation issues)
             var cityBreakdown = propertiesByCity
                 .GroupBy(p => p.City)
                 .Select(cityGroup =>

@@ -15,7 +15,6 @@ public class NotificationsController : ControllerBase
         _notificationService = notificationService;
     }
 
-    // GET api/Notifications/user/{userId}
     [HttpGet("user/{userId}")]
     public async Task<ActionResult<ApiResponse<List<AppNotificationDto>>>> GetUserNotifications(
         string userId)
@@ -24,7 +23,6 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse.Success(result, "Notifications retrieved"));
     }
 
-    // GET api/Notifications/unread-count/{userId}
     [HttpGet("unread-count/{userId}")]
     public async Task<ActionResult<ApiResponse<int>>> GetUnreadCount(string userId)
     {
@@ -32,7 +30,6 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse.Success(count, "Unread count retrieved"));
     }
 
-    // PATCH api/Notifications/{id}/read
     [HttpPatch("{id}/read")]
     public async Task<ActionResult<ApiResponse<bool>>> MarkAsRead(int id)
     {
@@ -40,7 +37,6 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse.Success(result, "Notification marked as read"));
     }
 
-    // PATCH api/Notifications/user/{userId}/read-all
     [HttpPatch("user/{userId}/read-all")]
     public async Task<ActionResult<ApiResponse<bool>>> MarkAllRead(string userId)
     {
@@ -48,7 +44,6 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse.Success(result, "All notifications marked as read"));
     }
 
-    // DELETE api/Notifications/{id}
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
@@ -56,7 +51,6 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse.Success(result, "Notification deleted"));
     }
 
-    // DELETE api/Notifications/user/{userId}/all
     [HttpDelete("user/{userId}/all")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteAll(string userId)
     {

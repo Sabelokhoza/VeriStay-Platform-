@@ -77,7 +77,6 @@ namespace ko.core.Middleware
             }
 
 
-            //To do this might not work 
             await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResponse));
         }
     }

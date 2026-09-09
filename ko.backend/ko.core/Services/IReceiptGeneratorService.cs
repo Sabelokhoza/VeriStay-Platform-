@@ -51,9 +51,6 @@ namespace ko.core.Services
             return uploadedUrl;
         }
 
-        // =============================================
-        // PDF Generation
-        // =============================================
         private static byte[] GeneratePdf(
     RentPayment payment,
     Tenancy tenancy,
@@ -79,7 +76,6 @@ namespace ko.core.Services
 
                     page.Content().Column(col =>
                     {
-                        // ── Header ────────────────────────────────────────
                         col.Item()
                             .Background(Colors.Blue.Darken2)
                             .Padding(36)
@@ -118,7 +114,6 @@ namespace ko.core.Services
                                 });
                             });
 
-                        // ── Status banner ──────────────────────────────────
                         col.Item()
                             .Background(Colors.Green.Lighten4)
                             .BorderBottom(1)
@@ -129,10 +124,8 @@ namespace ko.core.Services
                             .FontSize(11).Bold()
                             .FontColor(Colors.Green.Darken2);
 
-                        // ── Body ──────────────────────────────────────────
                         col.Item().Padding(36).Column(body =>
                         {
-                            // Amount block
                             body.Item()
                                 .Background(Colors.Blue.Lighten4)
                                 .Border(1)
@@ -158,7 +151,6 @@ namespace ko.core.Services
 
                             body.Item().PaddingTop(20);
 
-                            // Receipt ref bar
                             body.Item()
                                 .Background(Colors.Grey.Lighten4)
                                 .Border(1)
@@ -179,7 +171,6 @@ namespace ko.core.Services
 
                             body.Item().PaddingTop(24);
 
-                            // ── Payment details only ───────────────────────
                             body.Item()
                                 .Text("PAYMENT DETAILS")
                                 .FontSize(9).Bold()
@@ -189,8 +180,8 @@ namespace ko.core.Services
                             {
                                 table.ColumnsDefinition(c =>
                                 {
-                                    c.RelativeColumn(2); // label column wider
-                                    c.RelativeColumn(3); // value column
+                                    c.RelativeColumn(2);
+                                    c.RelativeColumn(3);
                                 });
 
                                 void AddRow(string label, string value, bool highlight = false)
@@ -226,14 +217,12 @@ namespace ko.core.Services
                                 AddRow("Status", "✓ Paid", highlight: true);
                             });
 
-                            // ── PAID watermark ─────────────────────────────
                             body.Item().PaddingTop(40).AlignCenter()
                                 .Text("PAID")
                                 .FontSize(72).Bold().Italic()
                                 .FontColor(Colors.Green.Lighten3);
                         });
 
-                        // ── Footer ─────────────────────────────────────────
                         col.Item()
                             .Background(Colors.Grey.Lighten4)
                             .BorderTop(1)
@@ -266,9 +255,6 @@ namespace ko.core.Services
             }).GeneratePdf();
         }
 
-        // =============================================
-        // Wrap byte[] as IFormFile
-        // =============================================
 
         private static IFormFile CreateFormFile(byte[] bytes, string fileName)
         {

@@ -18,9 +18,6 @@ namespace ko.api.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Add a student to a property's waiting list — Student only
-        /// </summary>
         [HttpPost("{studentId}")]
         public async Task<ActionResult<ApiResponse<WaitingListEntryDto>>> Add(string studentId, [FromBody] AddWaitingListEntryDto dto)
         {
@@ -30,9 +27,6 @@ namespace ko.api.Controllers
                 ApiResponse.Success(result, "Waiting list entry added successfully"));
         }
 
-        /// <summary>
-        /// Get all waiting list entries — Admin only
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<WaitingListEntryDto>>>> GetAll()
         {
@@ -41,9 +35,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Waiting list entries retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get waiting list entry by id — All authenticated users
-        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<WaitingListEntryDto>>> GetById(int id)
         {
@@ -52,9 +43,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Waiting list entry retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get waiting list entries by property id — Admin and Landlord
-        /// </summary>
         [HttpGet("property/{propertyId:int}")]
         public async Task<ActionResult<ApiResponse<List<WaitingListEntryDto>>>> GetByPropertyId(int propertyId)
         {
@@ -63,9 +51,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property waiting list retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get waiting list entries by student id — Admin and Student
-        /// </summary>
         [HttpGet("student/{studentId}")]
         public async Task<ActionResult<ApiResponse<List<WaitingListEntryDto>>>> GetByStudentId(string studentId)
         {
@@ -74,9 +59,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Student waiting list entries retrieved successfully"));
         }
 
-        /// <summary>
-        /// Remove an entry from the waiting list — Admin and Student
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {
@@ -85,9 +67,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Waiting list entry deleted successfully"));
         }
 
-        /// <summary>
-        /// Notify the next eligible student on a property's waiting list — Admin and Landlord
-        /// </summary>
         [HttpPatch("property/{propertyId:int}/notify-next")]
         public async Task<ActionResult<ApiResponse<bool>>> NotifyNext(int propertyId)
         {

@@ -109,7 +109,6 @@ namespace ko.core.Services
 
             try
             {
-                // Get configuration values
                 var smtpServer = _configuration["Email:smtpServer"];
                 var smtpPortStr = _configuration["Email:smtpPort"];
                 var username = _configuration["Email:username"];
@@ -117,15 +116,13 @@ namespace ko.core.Services
                 var useSslStr = _configuration["Email:useSsl"];
                 var securityOption = _configuration["Email:securityOption"];
 
-                // Validate configuration
                 if (string.IsNullOrEmpty(smtpServer))
                     throw new InvalidOperationException("SMTP server is missing");
 
                 if (!int.TryParse(smtpPortStr, out int smtpPort))
                     throw new InvalidOperationException($"Invalid port: '{smtpPortStr}'");
 
-                // Determine security options
-                SecureSocketOptions socketOptions = SecureSocketOptions.StartTls; // Default
+                SecureSocketOptions socketOptions = SecureSocketOptions.StartTls;
 
                 if (!string.IsNullOrEmpty(securityOption))
                 {
@@ -145,7 +142,6 @@ namespace ko.core.Services
                 }
 
 
-                // Try to connect with timeout
                 var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                 await client.ConnectAsync(smtpServer, smtpPort, socketOptions, cts.Token);
                 await client.AuthenticateAsync(username, password, cts.Token);

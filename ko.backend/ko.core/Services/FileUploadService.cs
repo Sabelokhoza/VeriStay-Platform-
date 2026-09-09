@@ -29,16 +29,13 @@ namespace ko.core.Services
             {
                 _logger.LogInformation("Uploading file {FileName} to bucket {BucketName}", file.FileName, bucketName);
 
-                // Generate unique filename
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var filePath = string.IsNullOrEmpty(folder) ? fileName : $"{folder}/{fileName}";
 
-                // Convert IFormFile to byte array
                 using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
                 var fileBytes = memoryStream.ToArray();
 
-                // Upload to Supabase Storage
                 await _supabaseClient.Storage
                     .From(bucketName)
                     .Upload(fileBytes, filePath, new Supabase.Storage.FileOptions

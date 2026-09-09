@@ -149,7 +149,6 @@ namespace ko.core.Services
             _logger.LogInformation(
                 "Retrieving announcements for student {0}", studentId);
 
-            // Get student's active tenancy property
             var tenancy = await _appDbContext.Tenancies
                 .FirstOrDefaultAsync(t =>
                     t.StudentId == studentId &&

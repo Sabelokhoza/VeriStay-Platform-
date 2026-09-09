@@ -23,38 +23,19 @@ namespace ko.core.Contracts
             IsSuccess = false;
         }
 
-        /// <summary>
-        /// The main response data (only present on successful responses)
-        /// </summary>
         public T Data { get; set; }
 
-        /// <summary>
-        /// Indicates if the operation was successful
-        /// </summary>
         [JsonPropertyName("success")]
         public bool IsSuccess { get; set; }
 
-        /// <summary>
-        /// Message for both success and error scenarios
-        /// </summary>
         public string Message { get; set; }
 
-        /// <summary>
-        /// Additional details (validation errors, exception details, etc.)
-        /// </summary>
         public object Details { get; set; }
 
-        /// <summary>
-        /// Trace ID for debugging and logging correlation
-        /// </summary>
         public string TraceId { get; set; }
 
-        /// <summary>
-        /// Response timestamp
-        /// </summary>
         public DateTime Timestamp { get; set; }
 
-        // Static factory methods for easier creation
         public static ApiResponse<T> Success(T data, string message = null)
         {
             return new ApiResponse<T>(data) { Message = message };
@@ -70,7 +51,6 @@ namespace ko.core.Contracts
             return new ApiResponse<T>(message, validationErrors);
         }
 
-        // Method to create response from ApiException
         public static ApiResponse<T> FromException(ApiException ex, string traceId = null)
         {
             return new ApiResponse<T>(ex.Message, ex.ErrorData)
@@ -80,7 +60,6 @@ namespace ko.core.Contracts
         }
     }
 
-    // Non-generic version for operations that don't return data
     public class ApiResponse : ApiResponse<object>
     {
         public ApiResponse() : base() { }

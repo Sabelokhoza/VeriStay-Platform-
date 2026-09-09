@@ -54,9 +54,6 @@ namespace ko.core.Services
             _notificationService = notificationService;
         }
 
-        // =============================================
-        // CRUD
-        // =============================================
 
         public async Task<ApplicationDto?> AddAsync(string studentId, AddApplicationDto dto)
         {
@@ -249,7 +246,6 @@ namespace ko.core.Services
 
             var property = await _propertyService.GetByIdAsync(entity.PropertyId);
 
-            // ✅ Push notification to student
             if (dto.Status == ApplicationStatus.Approved)
             {
                 await _notificationService.SendToUserAsync(
@@ -259,7 +255,6 @@ namespace ko.core.Services
                              "has been approved. Log in to accept the offer.",
                     type: "application");
 
-                // Send approval email to student
                 var student = await _userManager.FindByIdAsync(entity.StudentId);
                 if (student != null && property != null)
                     await SendApplicationApprovedEmailAsync(student, property, entity);
@@ -273,7 +268,6 @@ namespace ko.core.Services
                              "was not approved. Keep searching on VeriStay!",
                     type: "application");
 
-                // Send rejection email to student
                 var student = await _userManager.FindByIdAsync(entity.StudentId);
                 if (student != null && property != null)
                     await SendApplicationRejectedEmailAsync(student, property, entity);
@@ -308,7 +302,6 @@ namespace ko.core.Services
                     MonthlyRent = property.MonthlyRent
                 });
 
-                // ✅ Notify student tenancy created
                 await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,
                     title: "🏠 Welcome to Your New Home!",
@@ -321,7 +314,6 @@ namespace ko.core.Services
                 entity.Status = ApplicationStatus.Declined;
                 await _appDbContext.SaveChangesAsync();
 
-                // ✅ Notify student offer declined
                 await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,
                     title: "Offer Declined",
@@ -333,9 +325,6 @@ namespace ko.core.Services
             return true;
         }
 
-        // =============================================
-        // Events
-        // =============================================
 
         public async Task<bool> onInsert(AddApplicationDto dto)
         {
@@ -361,14 +350,12 @@ namespace ko.core.Services
             var property = await _propertyService.GetByIdAsync(dto.PropertyId);
             var landlord = await _userManager.FindByIdAsync(property.LandlordId);
 
-            // Send emails
             if (student != null && property != null)
                 await SendApplicationSubmittedEmailAsync(student, property, dto);
 
             if (landlord != null && student != null && property != null)
                 await SendNewApplicationEmailAsync(landlord, student, property, dto);
 
-            // ✅ Push notification to landlord
             if (landlord != null)
             {
                 await _notificationService.SendToUserAsync(
@@ -387,9 +374,6 @@ namespace ko.core.Services
         public Task<bool> onDelete(ApplicationDto dto) => Task.FromResult(true);
         public Task<bool> afterDelete(ApplicationDto dto) => Task.FromResult(true);
 
-        // =============================================
-        // Email Helpers
-        // =============================================
 
         private async Task<bool> SendApplicationSubmittedEmailAsync(
             ApplicationUser student, PropertyDto property, ApplicationDto dto)

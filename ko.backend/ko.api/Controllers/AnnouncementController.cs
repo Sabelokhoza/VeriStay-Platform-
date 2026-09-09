@@ -18,9 +18,6 @@ namespace ko.api.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Add a new announcement — Landlord only
-        /// </summary>
         [HttpPost("{landlordId}")]
         public async Task<ActionResult<ApiResponse<AnnouncementDto>>> Add(string landlordId, [FromBody] AddAnnouncementDto dto)
         {
@@ -30,9 +27,6 @@ namespace ko.api.Controllers
                 ApiResponse.Success(result, "Announcement added successfully"));
         }
 
-        /// <summary>
-        /// Get all announcements — Admin only
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<AnnouncementDto>>>> GetAll()
         {
@@ -49,9 +43,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Announcements retrieved"));
         }
 
-        /// <summary>
-        /// Get announcement by id — All authenticated users
-        /// </summary>
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ApiResponse<AnnouncementDto>>> GetById(int id)
         {
@@ -60,9 +51,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Announcement retrieved successfully"));
         }
 
-        /// <summary>
-        /// Get announcements by property id — All authenticated users
-        /// </summary>
         [HttpGet("property/{propertyId:int}")]
         public async Task<ActionResult<ApiResponse<List<AnnouncementDto>>>> GetByPropertyId(int propertyId)
         {
@@ -71,9 +59,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property announcements retrieved successfully"));
         }
 
-        /// <summary>
-        /// Update an announcement — Landlord only
-        /// </summary>
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Update(int id, [FromBody] AnnouncementDto dto)
         {
@@ -90,9 +75,6 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Announcements retrieved successfully"));
         }
 
-        /// <summary>
-        /// Delete an announcement — Admin and Landlord
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {

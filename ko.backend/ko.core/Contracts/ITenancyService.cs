@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace ko.core.Contracts
 {
-    // =============================================
-    // ITenancyService
-    // =============================================
 
     public interface ITenancyService
     {
@@ -21,7 +18,6 @@ namespace ko.core.Contracts
         Task<bool> EndTenancyAsync(int id);
         Task<List<ProfileDto>> GetHousematesByUserId(string userId);
         Task<List<ProfileDto>> GetTenanciesByProperties(List<PropertyDto> properties);
-        // Events
         Task<bool> onInsert(AddTenancyDto dto);
         Task<bool> afterInsert(TenancyDto dto);
         Task<bool> onUpdate(TenancyDto dto);

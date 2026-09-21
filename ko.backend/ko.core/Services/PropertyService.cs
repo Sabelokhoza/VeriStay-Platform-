@@ -185,7 +185,11 @@ namespace ko.core.Services
                 var canUpdate = await onUpdate(dto);
                 if (!canUpdate) return false;
 
-                _mapper.Map(dto, entity);
+                 _mapper.Map(dto, entity);
+
+                entity.IsAvailable = dto.IsAvailable;
+                entity.AvailableBeds = dto.AvailableBeds;
+
                 await _appDbContext.SaveChangesAsync();
 
                 _logger.LogInformation("Property with id {0} has been successfully updated", id);

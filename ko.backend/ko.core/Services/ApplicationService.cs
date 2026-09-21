@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using FirebaseAdmin.Messaging;
 using ko.core.Contracts;
 using ko.core.Models;
 using ko.entity_framework;
 using ko.entity_framework.entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -248,6 +248,10 @@ namespace ko.core.Services
 
             if (dto.Status == ApplicationStatus.Approved)
             {
+
+
+               
+
                 await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,
                     title: "🎉 Application Approved!",
@@ -290,7 +294,23 @@ namespace ko.core.Services
             if (isAccepted)
             {
                 entity.Status = ApplicationStatus.Accepted;
+
                 var property = await _propertyService.GetByIdAsync(entity.PropertyId);
+
+                bool isAvailable = CheckAvailability(property);
+
+                if (!isAvailable)
+                {
+                    entity.Status = ApplicationStatus.Rejected;
+                    await _notificationService.SendToUserAsync(
+                    userId: entity.StudentId,
+                    title: " Application ReJected!",
+                    message: $"Your application for {property?.Title ?? "a property"} " +
+                             "Has been rejected , All Beds Are filled",
+                    type: "application");
+
+                }
+
                 await _appDbContext.SaveChangesAsync();
 
                 await _tenancyService.AddAsync(new AddTenancyDto
@@ -325,6 +345,10 @@ namespace ko.core.Services
             return true;
         }
 
+        private bool CheckAvailability(PropertyDto? property)
+        {
+             return property != null && property.IsAvailable && property.AvailableBeds > 0;
+        }
 
         public async Task<bool> onInsert(AddApplicationDto dto)
         {

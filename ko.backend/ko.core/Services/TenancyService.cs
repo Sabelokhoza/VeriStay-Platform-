@@ -247,7 +247,17 @@ namespace ko.core.Services
 
         #region Events
 
-        public Task<bool> onInsert(AddTenancyDto dto) => Task.FromResult(true);
+        public async Task<bool> onInsert(AddTenancyDto dto)
+        {
+            var _propertyService = _serviceProvider.GetService<IPropertyService>();
+            var propery = await _propertyService.GetByIdAsync(dto.PropertyId);
+            if (propery.IsAvailable == false)
+            {
+                throw new BadRequestException("Propery is fulli occupied , Try again next time");
+            }
+
+            return true;
+        }
         public async Task<bool> afterInsert(TenancyDto dto)
         {
             var _propertyService = _serviceProvider.GetService<IPropertyService>();
@@ -257,8 +267,8 @@ namespace ko.core.Services
                 throw new  BadRequestException("Propery is fulli occupied , Try again next time");
             }
 
-            propery.AvailableBeds = propery.AvailableBeds - 1;
-            await _propertyService.UpdateAsync(propery.Id, propery);
+            //propery.AvailableBeds = propery.AvailableBeds - 1;
+            //await _propertyService.UpdateAsync(propery.Id, propery);
 
             var entity = await _appDbContext.Tenancies.FindAsync(dto.Id);
             if (entity == null) return false;

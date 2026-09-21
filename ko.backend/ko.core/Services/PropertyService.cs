@@ -203,6 +203,28 @@ namespace ko.core.Services
             }
         }
 
+        public async Task<int> GetAvailableBedsAsync(int propertyId)
+        {
+
+            var property = await  GetByIdAsync(propertyId);
+            var activeTenancyCount = await GetActiveTenacyCount(property);
+
+            var availableBeds =  property.AvailableBeds - activeTenancyCount;
+
+            if (availableBeds <= 0 && property.IsAvailable )
+            {
+                property.IsAvailable = false;
+                await UpdateAsync(propertyId, property);
+            }
+
+            return availableBeds > 0 ? availableBeds : 0;
+        }
+        public async Task<int> GetActiveTenacyCount(PropertyDto property)
+        {
+            var tenacies = await _appDbContext.Tenancies.CountAsync(w => w.PropertyId == property.Id && w.LeaseEndDate > DateTime.UtcNow);
+            return tenacies == null ? 0 : tenacies;
+        }
+
         public async Task<bool> DeleteAsync(int? id)
         {
             _logger.LogInformation("Attempting to delete property with id {0}", id);
@@ -510,6 +532,8 @@ namespace ko.core.Services
                 }
                 listingDto.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
 
+                listingDto.AvailableBeds = await GetAvailableBedsAsync(item.Id);
+
                 if (maxAllowedPrice.HasValue && item.MonthlyRent <= maxAllowedPrice.Value)
                 {
                     result.recommendations.Add(listingDto);
@@ -518,6 +542,7 @@ namespace ko.core.Services
                 {
                     result.listings.Add(listingDto);
                 }
+
             }
 
             return result;
@@ -533,6 +558,7 @@ namespace ko.core.Services
             listing.LandLordEmail = landlord.Email;
             listing.LandlordName = landlord.FullName;
             listing.Images = await GetImagesByPropertyIdAsync(item.Id);
+            listing.AvailableBeds = await GetAvailableBedsAsync(item.Id);
 
             var _reviewService = _serviceProvider.GetRequiredService<IReviewService>();
             listing.Reviews = await _reviewService.GetByPropertyIdAsync(id);

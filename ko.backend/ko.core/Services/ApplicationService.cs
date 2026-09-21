@@ -297,11 +297,14 @@ namespace ko.core.Services
 
                 var property = await _propertyService.GetByIdAsync(entity.PropertyId);
 
-                bool isAvailable = CheckAvailability(property);
+                var availableBeds = await _propertyService.GetAvailableBedsAsync(property.Id);
+
+                bool isAvailable = availableBeds > 0;
 
                 if (!isAvailable)
                 {
                     entity.Status = ApplicationStatus.Rejected;
+
                     await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,
                     title: " Application ReJected!",
@@ -322,12 +325,16 @@ namespace ko.core.Services
                     MonthlyRent = property.MonthlyRent
                 });
 
-                await _notificationService.SendToUserAsync(
-                    userId: entity.StudentId,
-                    title: "🏠 Welcome to Your New Home!",
-                    message: $"Your tenancy for {property?.Title ?? "your property"} " +
-                             "has been created. Check your dashboard.",
-                    type: "application");
+                if (isAvailable)
+                {
+                    await _notificationService.SendToUserAsync(
+                      userId: entity.StudentId,
+                      title: "🏠 Welcome to Your New Home!",
+                      message: $"Your tenancy for {property?.Title ?? "your property"} " +
+                               "has been created. Check your dashboard.",
+                      type: "application");
+                }
+              
             }
             else
             {
@@ -345,10 +352,6 @@ namespace ko.core.Services
             return true;
         }
 
-        private bool CheckAvailability(PropertyDto? property)
-        {
-             return property != null && property.IsAvailable && property.AvailableBeds > 0;
-        }
 
         public async Task<bool> onInsert(AddApplicationDto dto)
         {

@@ -38,6 +38,7 @@ namespace ko.core.Contracts
         Task<bool> DeleteImageAsync(int imageId);
         Task<bool> SetPrimaryImageAsync(int imageId);
         Task<List<ListingDto>> GetListings();
+        Task<int> GetAvailableBedsAsync(int propertyId);
         Task<ListingDetailsDto> GetListingDetailsbyPropertyId(int id);
         Task<ListingDto> GetProperyInfoAsync(int propertyId);
         Task<FinalListingsDto> GetListings(

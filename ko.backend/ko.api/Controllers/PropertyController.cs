@@ -88,6 +88,13 @@ namespace ko.api.Controllers
             var result = await _propertyService.GetProperyInfoAsync(propertyId);
             return Ok(ApiResponse.Success(result, "Listings details retrieved successfully"));
         }
+        [HttpGet("get-available-beds")]
+        public async Task<ActionResult<ApiResponse<int>>> GetAvailableBedsAsync(int propertyId)
+        {
+          //  _logger.LogInformation("GET api/property/get-property-info - Retrieving listings");
+            var result = await _propertyService.GetAvailableBedsAsync(propertyId);
+            return Ok(ApiResponse.Success(result, "Available beds retrieved successfully"));
+        }
 
         [HttpGet("search")]
         public async Task<ActionResult<ApiResponse<List<PropertyDto>>>> Search(

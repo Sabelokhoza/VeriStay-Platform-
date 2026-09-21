@@ -289,7 +289,7 @@ namespace ko.core.Services
             user.EmailConfirmed = true;
             user.IsActive = true;
             user.ProofOfIncomeUrl = await _fileUploadService.UploadFileAsync(proofOfIncome, "uploads", "ProofOfIncome");
-            user.ProofOfRegistrationUrl = await _fileUploadService.UploadFileAsync(proofOfIncome, "uploads", "ProofOfRegistration");
+            user.ProofOfRegistrationUrl = await _fileUploadService.UploadFileAsync(proofOfRegistration, "uploads", "ProofOfRegistration");
 
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);

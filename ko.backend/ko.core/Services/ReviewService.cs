@@ -43,11 +43,18 @@ namespace ko.core.Services
             if (dto.Rating < 1 || dto.Rating > 5)
                 throw new ArgumentException("Rating must be between 1 and 5");
             var property = await _appDbContext.Properties.FirstOrDefaultAsync(w => w.Id == dto.PropertyId);
+            if (property == null)
+                throw new NotFoundException(nameof(AddAsync), dto.PropertyId);
+
+            // The landlord is whoever owns the property; don't trust the id sent by the client.
+            dto.LandlordId = property.LandlordId;
+
             var student = await _userManager.FindByIdAsync(studentId);
             var landlord = await _userManager.FindByIdAsync(dto.LandlordId);
 
             var entity = _mapper.Map<Review>(dto);
             entity.StudentId = studentId;
+            entity.LandlordId = property.LandlordId;
             entity.CreatedAt = DateTime.UtcNow;
 
             await _appDbContext.Reviews.AddAsync(entity);
@@ -57,8 +64,8 @@ namespace ko.core.Services
             _logger.LogInformation("Review with id {0} has been added successfully", result.Id);
 
             await afterInsert(dto: result);
-            result.LandlordName = landlord.FullName;
-            result.StudentName = student.FullName;
+            result.LandlordName = landlord?.FullName ?? string.Empty;
+            result.StudentName = student?.FullName ?? string.Empty;
             result.PropertyTitle = property.Title;
             return result;
         }

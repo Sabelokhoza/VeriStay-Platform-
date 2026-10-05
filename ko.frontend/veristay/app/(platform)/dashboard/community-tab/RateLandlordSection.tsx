@@ -38,7 +38,7 @@ export function RateLandlordSection({
             const response = await addReview({
                 studentId,
                 dto: {
-                    landlordId: tenancy.studentId,
+                    landlordId: tenancy.landlordId,
                     propertyId: tenancy.propertyId,
                     rating,
                     comment: comment.trim(),

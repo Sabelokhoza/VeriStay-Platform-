@@ -150,7 +150,7 @@ export default function ListingsPage() {
             {/* Search / filter bar */}
             <div className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur">
                 <div className="container mx-auto flex items-center gap-3 overflow-x-auto px-4 py-3">
-                    <div className="flex flex-1 max-w-2xl items-center rounded-full border bg-white shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-600 overflow-hidden">
+                    <div className="flex flex-1 max-w-2xl items-center rounded-full border bg-background shadow-sm transition-all focus-within:ring-2 focus-within:ring-blue-600 overflow-hidden">
                         <div className="relative border-r">
                             <select
                                 value={searchField}
@@ -158,7 +158,7 @@ export default function ListingsPage() {
                                     setSearchField(e.target.value as typeof searchField);
                                     setSearch('');
                                 }}
-                                className="appearance-none bg-transparent py-2 pl-4 pr-8 text-sm font-medium text-foreground focus:outline-none cursor-pointer"
+                                className="appearance-none bg-background py-2 pl-4 pr-8 text-sm font-medium text-foreground focus:outline-none cursor-pointer"
                             >
                                 <option value="city">City</option>
                                 <option value="title">Title</option>
@@ -169,13 +169,13 @@ export default function ListingsPage() {
                         </div>
 
                         <div className="flex flex-1 items-center px-4 py-2">
-                            <Search className="mr-3 h-5 w-5 shrink-0 text-gray-500" />
+                            <Search className="mr-3 h-5 w-5 shrink-0 text-muted-foreground" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder={placeholderMap[searchField]}
-                                className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                             />
                             {search && (
                                 <button

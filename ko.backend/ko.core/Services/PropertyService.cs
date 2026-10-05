@@ -357,24 +357,59 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Retrieving images for property {0}", propertyId);
 
+            // AsNoTracking + signing the DTOs: writing the signed URL onto tracked entities meant
+            // any later SaveChanges in the request stored the temporary URL in place of the path.
             var images = await _appDbContext.PropertyImages
+                .AsNoTracking()
                 .Where(i => i.PropertyId == propertyId)
                 .ToListAsync();
 
-            foreach (var item in images)
+            var result = _mapper.Map<List<PropertyImageDto>>(images);
+            foreach (var item in result)
             {
-                item.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", item.ImageUrl);
+                item.ImageUrl = await SignImageUrlAsync(item.ImageUrl);
             }
 
+            // Drop images whose file is missing from storage instead of failing the whole page.
+            return result.Where(i => !string.IsNullOrEmpty(i.ImageUrl)).ToList();
+        }
 
+        /// <summary>
+        /// Signed URL for a stored image path, or "" when the file can't be found.
+        /// Also accepts a previously signed URL (rows corrupted by the old tracking bug)
+        /// and re-signs the path inside it.
+        /// </summary>
+        private async Task<string> SignImageUrlAsync(string? storedPath)
+        {
+            if (string.IsNullOrWhiteSpace(storedPath)) return string.Empty;
 
-            return _mapper.Map<List<PropertyImageDto>>(images);
+            var path = storedPath;
+            const string marker = "/object/sign/uploads/";
+            var markerIndex = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (markerIndex >= 0)
+            {
+                path = path[(markerIndex + marker.Length)..];
+                var queryIndex = path.IndexOf('?');
+                if (queryIndex >= 0) path = path[..queryIndex];
+                path = Uri.UnescapeDataString(path);
+            }
+
+            try
+            {
+                return await _fileUploadService.GetSignedUrlAsync("uploads", path);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Could not sign image {0}: {1}", path, ex.Message);
+                return string.Empty;
+            }
         }
         public async Task<PropertyImageDto> GetPrimaryImageByPropertyIdAsync(int propertyId)
         {
             _logger.LogInformation("Retrieving primary image for property {0}", propertyId);
 
             var images = await _appDbContext.PropertyImages
+                .AsNoTracking()
                 .Where(i => i.PropertyId == propertyId && i.IsPrimary == true)
                 .FirstOrDefaultAsync();
 
@@ -464,7 +499,7 @@ namespace ko.core.Services
                 listing.Image = await GetPrimaryImageByPropertyIdAsync(item.Id);
                 if (listing.Image != null)
                 {
-                    listing.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listing.Image.ImageUrl);
+                    listing.Image.ImageUrl = await SignImageUrlAsync(listing.Image.ImageUrl);
                 }
 
                 listing.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
@@ -485,7 +520,7 @@ namespace ko.core.Services
             listing.Image = await GetPrimaryImageByPropertyIdAsync(property.Id);
             if (listing.Image != null)
             {
-                listing.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listing.Image.ImageUrl);
+                listing.Image.ImageUrl = await SignImageUrlAsync(listing.Image.ImageUrl);
             }
 
             return listing;
@@ -528,7 +563,7 @@ namespace ko.core.Services
                 listingDto.Image = await GetPrimaryImageByPropertyIdAsync(item.Id);
                 if (listingDto.Image != null)
                 {
-                    listingDto.Image.ImageUrl = await _fileUploadService.GetSignedUrlAsync("uploads", listingDto.Image.ImageUrl);
+                    listingDto.Image.ImageUrl = await SignImageUrlAsync(listingDto.Image.ImageUrl);
                 }
                 listingDto.AverageListing = await _reviewService.GetAverageRatingAsync(item.Id);
 

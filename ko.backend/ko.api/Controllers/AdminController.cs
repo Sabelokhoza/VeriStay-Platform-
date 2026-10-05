@@ -137,6 +137,23 @@ namespace ko.api.Controllers
                 result ? "User activated" : "User deactivated"));
         }
 
+        [HttpPut("users/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<UserAccountDto>>> UpdateUser(
+            string userId, [FromBody] UpdateUserAccountDto dto)
+        {
+            var result = await _adminService.UpdateUserAsync(userId, dto);
+            return Ok(ApiResponse.Success(result, "User updated"));
+        }
+
+        [HttpDelete("users/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(string userId)
+        {
+            var result = await _adminService.DeleteUserAsync(userId, User.FindFirst("uid")?.Value);
+            return Ok(ApiResponse.Success(result, "User deleted"));
+        }
+
         [HttpPost("landlords/suspend")]
         public async Task<ActionResult<ApiResponse<bool>>> SuspendLandlord(
             [FromBody] SuspendLandlordDto dto)

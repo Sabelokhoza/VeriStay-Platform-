@@ -1,5 +1,5 @@
-import { useGetAllUsersQuery, UserAccountDto, useSuspendLandlordMutation, useToggleUserActiveMutation } from "@/app/errors/listingsApi";
-import { Loader2, ShieldX, Users , X} from "lucide-react";
+import { useGetAllUsersQuery, UserAccountDto, useSuspendLandlordMutation, useToggleUserActiveMutation, useUpdateUserMutation, useDeleteUserMutation } from "@/app/errors/listingsApi";
+import { Loader2, ShieldX, Users , X, Pencil, Trash2, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Loading from '../loading';
@@ -18,10 +18,17 @@ export default function UsersTab() {
     const [suspendTarget, setSuspendTarget] = useState<UserAccountDto | null>(null);
     const [suspendReason, setSuspendReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const [editTarget,    setEditTarget]    = useState<UserAccountDto | null>(null);
+    const [editForm,      setEditForm]      = useState({ fullName: '', email: '', phoneNumber: '' });
+    const [editError,     setEditError]     = useState<string | null>(null);
+    const [deleteTarget,  setDeleteTarget]  = useState<UserAccountDto | null>(null);
+    const [deleteError,   setDeleteError]   = useState<string | null>(null);
 
     const { data: users = [], refetch ,isLoading} = useGetAllUsersQuery();
     const [toggleActive]  = useToggleUserActiveMutation();
     const [suspendLandlord] = useSuspendLandlordMutation();
+    const [updateUser, { isLoading: isSaving }]   = useUpdateUserMutation();
+    const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
     if(isLoading){
         return <Loading/>
@@ -62,6 +69,43 @@ export default function UsersTab() {
             toast.error(err?.data?.Message ?? 'Failed to update landlord');
         } finally {
             setActionLoading(false);
+        }
+    }
+
+    function openEdit(user: UserAccountDto) {
+        setEditForm({ fullName: user.fullName ?? '', email: user.email ?? '', phoneNumber: user.phoneNumber ?? '' });
+        setEditError(null);
+        setEditTarget(user);
+    }
+
+    async function handleSaveEdit() {
+        if (!editTarget) return;
+        if (!editForm.fullName.trim()) { setEditError('Full name is required.'); return; }
+        if (!/^\S+@\S+\.\S+$/.test(editForm.email.trim())) { setEditError('Enter a valid email address.'); return; }
+        try {
+            await updateUser({
+                id:          editTarget.id,
+                fullName:    editForm.fullName.trim(),
+                email:       editForm.email.trim(),
+                phoneNumber: editForm.phoneNumber.trim(),
+            }).unwrap();
+            toast.success('User updated');
+            setEditTarget(null);
+            refetch();
+        } catch (err: any) {
+            setEditError(err?.data?.Message ?? err?.data?.message ?? 'Failed to update user.');
+        }
+    }
+
+    async function handleDelete() {
+        if (!deleteTarget) return;
+        try {
+            await deleteUser(deleteTarget.id).unwrap();
+            toast.success('User deleted');
+            setDeleteTarget(null);
+            refetch();
+        } catch (err: any) {
+            setDeleteError(err?.data?.Message ?? err?.data?.message ?? 'Failed to delete user.');
         }
     }
 
@@ -138,6 +182,20 @@ export default function UsersTab() {
                                                 {user.isActive ? ' Suspend' : 'Reinstate'}
                                             </button>
                                         )}
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => openEdit(user)}
+                                                title="Edit user"
+                                                className="flex flex-1 items-center justify-center rounded-lg border px-2 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => { setDeleteError(null); setDeleteTarget(user); }}
+                                                title="Delete user"
+                                                className="flex flex-1 items-center justify-center rounded-lg border border-red-200 px-2 py-1.5 text-red-600 hover:bg-red-50">
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -183,6 +241,89 @@ export default function UsersTab() {
                                 {suspendTarget.isActive ? 'Confirm Suspension' : 'Reinstate Landlord'}
                             </button>
                             <button onClick={() => setSuspendTarget(null)}
+                                className="w-full text-center text-xs text-muted-foreground hover:text-foreground">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    <div className="relative w-full max-w-md rounded-2xl bg-background shadow-xl overflow-hidden">
+                        <div className="bg-blue-600 px-6 py-5 text-white">
+                            <button onClick={() => setEditTarget(null)} disabled={isSaving}
+                                className="absolute right-4 top-4 rounded-full p-1.5 text-white/70 hover:text-white hover:bg-white/10">
+                                <X className="h-4 w-4" />
+                            </button>
+                            <h2 className="text-lg font-bold">Edit User</h2>
+                            <p className="text-sm text-blue-100 mt-0.5">{editTarget.role}</p>
+                        </div>
+                        <div className="px-6 py-5 space-y-4">
+                            {editError && (
+                                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">{editError}</div>
+                            )}
+                            {([
+                                ['fullName',    'Full Name',    'text'],
+                                ['email',       'Email',        'email'],
+                                ['phoneNumber', 'Phone Number', 'tel'],
+                            ] as const).map(([key, label, type]) => (
+                                <div key={key} className="space-y-1">
+                                    <label className="text-sm font-semibold">{label}</label>
+                                    <input
+                                        type={type}
+                                        value={editForm[key]}
+                                        onChange={e => { setEditError(null); setEditForm(f => ({ ...f, [key]: e.target.value })); }}
+                                        disabled={isSaving}
+                                        className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50" />
+                                </div>
+                            ))}
+                            <p className="text-xs text-muted-foreground">
+                                Changing the email also changes the address this user logs in with.
+                            </p>
+                            <button onClick={handleSaveEdit} disabled={isSaving}
+                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+                                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                Save Changes
+                            </button>
+                            <button onClick={() => setEditTarget(null)} disabled={isSaving}
+                                className="w-full text-center text-xs text-muted-foreground hover:text-foreground">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {deleteTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    <div className="relative w-full max-w-md rounded-2xl bg-background shadow-xl overflow-hidden">
+                        <div className="bg-red-600 px-6 py-5 text-white">
+                            <button onClick={() => setDeleteTarget(null)} disabled={isDeleting}
+                                className="absolute right-4 top-4 rounded-full p-1.5 text-white/70 hover:text-white hover:bg-white/10">
+                                <X className="h-4 w-4" />
+                            </button>
+                            <h2 className="text-lg font-bold">Delete User</h2>
+                            <p className="text-sm text-red-100 mt-0.5">{deleteTarget.fullName} · {deleteTarget.email}</p>
+                        </div>
+                        <div className="px-6 py-5 space-y-4">
+                            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800 space-y-1">
+                                <p className="font-semibold">This permanently removes the account and can&apos;t be undone.</p>
+                                <p className="text-xs">
+                                    Accounts with applications, tenancies, properties or other history can&apos;t be
+                                    deleted. Deactivate those instead so their records are kept.
+                                </p>
+                            </div>
+                            {deleteError && (
+                                <div className="rounded-lg border border-red-200 bg-background px-4 py-2.5 text-sm text-red-700">{deleteError}</div>
+                            )}
+                            <button onClick={handleDelete} disabled={isDeleting}
+                                className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+                                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                Delete Permanently
+                            </button>
+                            <button onClick={() => setDeleteTarget(null)} disabled={isDeleting}
                                 className="w-full text-center text-xs text-muted-foreground hover:text-foreground">
                                 Cancel
                             </button>

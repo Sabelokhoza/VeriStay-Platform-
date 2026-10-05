@@ -924,6 +924,14 @@ getAllUsers: builder.query<UserAccountDto[], void>({
     transformResponse: (r: ApiResponse<UserAccountDto[]>) => r.data,
     providesTags: [{ type: 'Listing' as const, id: 'users' }],
 }),
+updateUser: builder.mutation<ApiResponse<UserAccountDto>, { id: string; fullName: string; email: string; phoneNumber: string }>({
+    query: ({ id, ...body }) => ({ url: `Admin/users/${id}`, method: 'PUT', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'users' }],
+}),
+deleteUser: builder.mutation<ApiResponse<boolean>, string>({
+    query: (userId) => ({ url: `Admin/users/${userId}`, method: 'DELETE' }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'users' }],
+}),
 toggleUserActive: builder.mutation<ApiResponse<boolean>, string>({
     query: (userId) => ({ url: `Admin/users/${userId}/toggle-active`, method: 'PATCH' }),
     invalidatesTags: [{ type: 'Listing' as const, id: 'users' }],
@@ -1145,6 +1153,8 @@ useGetImagesByPropertyIdQuery,
     useAdminApprovePropertyMutation,
     useAdminRejectPropertyMutation,
     useAcceptDeclineOfferMutation,
+    useUpdateUserMutation,
+    useDeleteUserMutation,
     useUpdateDisputeMutation,
     useUpdateComplaintMutation,
     useReviewApplicationMutation,

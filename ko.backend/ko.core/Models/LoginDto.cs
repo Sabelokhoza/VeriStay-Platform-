@@ -592,6 +592,13 @@ namespace ko.core.Models
         public int ApplicationCount { get; set; }
     }
 
+    public class UpdateUserAccountDto
+    {
+        [Required] public string FullName { get; set; }
+        [Required, EmailAddress] public string Email { get; set; }
+        public string? PhoneNumber { get; set; }
+    }
+
     public class AccommodationReportDto
     {
         public int TotalProperties { get; set; }

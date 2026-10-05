@@ -27,6 +27,8 @@ namespace ko.core.Contracts
 
         Task<List<UserAccountDto>> GetAllUsersAsync();
         Task<bool> ToggleUserActiveAsync(string userId);
+        Task<UserAccountDto> UpdateUserAsync(string userId, UpdateUserAccountDto dto);
+        Task<bool> DeleteUserAsync(string userId, string? currentAdminId);
         Task<bool> SuspendLandlordAsync(SuspendLandlordDto dto);
 
         Task<AccommodationReportDto> GetAccommodationReportAsync();

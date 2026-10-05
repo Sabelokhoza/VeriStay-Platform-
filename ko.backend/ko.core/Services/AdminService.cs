@@ -496,6 +496,84 @@ namespace ko.core.Services
             return user.IsActive;
         }
 
+        public async Task<UserAccountDto> UpdateUserAsync(string userId, UpdateUserAccountDto dto)
+        {
+            _logger.LogInformation("Admin updating user {0}", userId);
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) throw new NotFoundException(nameof(UpdateUserAsync), userId);
+
+            var email = dto.Email.Trim();
+            if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+            {
+                var existing = await _userManager.FindByEmailAsync(email);
+                if (existing != null && existing.Id != user.Id)
+                    throw new BadRequestException("Another account already uses this email address.");
+
+                // Accounts log in with their email as username, so keep both in step.
+                user.Email = email;
+                user.UserName = email;
+            }
+
+            user.FullName = dto.FullName.Trim();
+            user.PhoneNumber = string.IsNullOrWhiteSpace(dto.PhoneNumber) ? null : dto.PhoneNumber.Trim();
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return new UserAccountDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email ?? string.Empty,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                Role = roles.FirstOrDefault() ?? "Unknown",
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt,
+            };
+        }
+
+        public async Task<bool> DeleteUserAsync(string userId, string? currentAdminId)
+        {
+            _logger.LogInformation("Admin deleting user {0}", userId);
+            if (userId == currentAdminId)
+                throw new BadRequestException("You can't delete your own account.");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) throw new NotFoundException(nameof(DeleteUserAsync), userId);
+
+            // User foreign keys cascade, so deleting someone with history would silently wipe
+            // properties, tenancies, payments and reviews. Only allow deleting accounts with
+            // no activity; everyone else should be deactivated instead.
+            var hasHistory =
+                await _appDbContext.Properties.AnyAsync(p => p.LandlordId == userId) ||
+                await _appDbContext.Applications.AnyAsync(a => a.StudentId == userId) ||
+                await _appDbContext.Tenancies.AnyAsync(t => t.StudentId == userId) ||
+                await _appDbContext.WaitingListEntries.AnyAsync(w => w.StudentId == userId) ||
+                await _appDbContext.MaintenanceRequests.AnyAsync(m => m.StudentId == userId) ||
+                await _appDbContext.Reviews.AnyAsync(r => r.StudentId == userId || r.LandlordId == userId) ||
+                await _appDbContext.Announcements.AnyAsync(a => a.LandlordId == userId) ||
+                await _appDbContext.Disputes.AnyAsync(d => d.StudentId == userId || d.LandlordId == userId) ||
+                await _appDbContext.Complaints.AnyAsync(c => c.SubmittedById == userId || c.LandlordId == userId);
+
+            if (hasHistory)
+                throw new BadRequestException(
+                    "This account has applications, tenancies, properties or other records linked to it " +
+                    "and can't be deleted. Deactivate it instead.");
+
+            var notifications = await _appDbContext.AppNotifications.Where(n => n.UserId == userId).ToListAsync();
+            _appDbContext.AppNotifications.RemoveRange(notifications);
+            await _appDbContext.SaveChangesAsync();
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+                throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
+
+            _logger.LogInformation("User {0} deleted", userId);
+            return true;
+        }
+
         public async Task<bool> SuspendLandlordAsync(SuspendLandlordDto dto)
         {
             _logger.LogInformation(

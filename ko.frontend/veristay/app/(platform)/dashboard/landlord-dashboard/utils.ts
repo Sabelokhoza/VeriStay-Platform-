@@ -49,7 +49,9 @@ export function getAppStatusLabel(status: number) {
         case 0: return 'Pending';
         case 1: return 'Approved';
         case 2: return 'Rejected';
+        case 3: return 'Waiting List';
         case 4: return 'Accepted';
+        case 5: return 'Declined by student';
         default: return 'Unknown';
     }
 }
@@ -59,7 +61,9 @@ export function getAppStatusStyle(status: number) {
         case 0: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
         case 1: return 'bg-green-100  text-green-800  border-green-200';
         case 2: return 'bg-red-100    text-red-800    border-red-200';
-        case 4: return 'bg-gray-100   text-gray-700   border-gray-200';
+        case 3: return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 4: return 'bg-blue-100   text-blue-800   border-blue-200';
+        case 5: return 'bg-gray-100   text-gray-700   border-gray-200';
         default: return 'bg-gray-100  text-gray-700   border-gray-200';
     }
 }

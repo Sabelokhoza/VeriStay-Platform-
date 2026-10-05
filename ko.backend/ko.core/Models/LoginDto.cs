@@ -335,7 +335,7 @@ namespace ko.core.Models
         [Required]
         public ApplicationStatus Status { get; set; }
 
-        public string LandlordNotes { get; set; }
+        public string? LandlordNotes { get; set; }
     }
 
 
@@ -369,6 +369,7 @@ namespace ko.core.Models
         public string LandlordName { get; set; }
         public string Location { get; set; }
         public string LeaseDocument { get; set; } = string.Empty;
+        public DateTime? SignedLeaseUploadedAt { get; set; }
         public int PropertyId { get; set; }
         public string PropertyTitle { get; set; }
         public DateTime LeaseStartDate { get; set; }

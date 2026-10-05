@@ -73,6 +73,14 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Property tenancies retrieved successfully"));
         }
 
+        [HttpGet("landlord/{landlordId}")]
+        public async Task<ActionResult<ApiResponse<List<TenancyDto>>>> GetByLandlordId(string landlordId)
+        {
+            _logger.LogInformation("GET api/tenancy/landlord/{0} - Retrieving tenancies for landlord", landlordId);
+            var result = await _tenancyService.GetByLandlordIdAsync(landlordId);
+            return Ok(ApiResponse.Success(result, "Landlord tenancies retrieved successfully"));
+        }
+
         [HttpPost("upload-lease")]
         [Authorize(Roles = "Student, Landlord, Admin")]
         public async Task<ActionResult<ApiResponse<TenancyDto>>> UploadLeaseDocument(
@@ -80,7 +88,7 @@ namespace ko.api.Controllers
             [Required(ErrorMessage = "Lease document is required")] IFormFile leaseDocument)
         {
             _logger.LogInformation("POST api/Tenancy/upload-lease - Uploading lease for tenancy {0}", tenancyId);
-            var result = await _tenancyService.UploadLeaseDocumentAsync(tenancyId, leaseDocument);
+            var result = await _tenancyService.UploadLeaseDocumentAsync(tenancyId, leaseDocument, User.IsInRole("Student"));
             return Ok(ApiResponse.Success(result, "Lease document uploaded successfully"));
         }
 

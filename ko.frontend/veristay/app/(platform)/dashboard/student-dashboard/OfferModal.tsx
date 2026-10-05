@@ -21,6 +21,7 @@ export function OfferModal({
     isLoading: boolean;
 }) {
     const [confirming, setConfirming] = useState<'accept' | 'decline' | null>(null);
+    const [confirmDecline, setConfirmDecline] = useState(false);
 
     function handleAccept() {
         setConfirming('accept');
@@ -110,18 +111,44 @@ export function OfferModal({
                             Accept Offer
                         </button>
 
-                        <button
-                            onClick={handleDecline}
-                            disabled={isLoading}
-                            className="flex items-center justify-center gap-2 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading && confirming === 'decline' ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
+                        {confirmDecline ? (
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-3 space-y-2">
+                                <p className="text-xs text-red-800">
+                                    Declining releases this spot so the landlord can offer it to
+                                    someone else. This can&apos;t be undone.
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleDecline}
+                                        disabled={isLoading}
+                                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoading && confirming === 'decline' ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <ThumbsDown className="h-4 w-4" />
+                                        )}
+                                        Yes, decline
+                                    </button>
+                                    <button
+                                        onClick={() => setConfirmDecline(false)}
+                                        disabled={isLoading}
+                                        className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+                                    >
+                                        Keep offer
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setConfirmDecline(true)}
+                                disabled={isLoading}
+                                className="flex items-center justify-center gap-2 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 <ThumbsDown className="h-4 w-4" />
-                            )}
-                            Decline Offer
-                        </button>
+                                Decline Offer
+                            </button>
+                        )}
 
                         <button
                             onClick={onClose}

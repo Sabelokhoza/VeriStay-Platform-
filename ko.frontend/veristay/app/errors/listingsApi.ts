@@ -275,6 +275,7 @@ export interface TenancyDto {
     propertyId: number;
     propertyTitle: string;
     leaseDocument:  string;
+    signedLeaseUploadedAt: string | null;
     leaseStartDate: string;
     leaseEndDate: string;
     monthlyRent: number;
@@ -728,8 +729,18 @@ export const listingsApi = createApi({
             body: formData,
         };
     },
-    invalidatesTags: [{ type: 'Listing' as const, id: 'LIST' }],
+    invalidatesTags: ['Listing'],
 }),
+        getTenanciesByLandlordId: builder.query<TenancyDto[], string>({
+            query: (landlordId) => ({
+                url: `Tenancy/landlord/${landlordId}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ApiResponse<TenancyDto[]>) => response.data,
+            providesTags: (_result, _error, landlordId) => [
+                { type: 'Listing' as const, id: `landlord-tenancies-${landlordId}` },
+            ],
+        }),
         getHousemates: builder.query<HousemateDto[], string>({
             query: (userId) => ({
                 url: `Tenancy/get-housemates?userId=${userId}`,
@@ -956,6 +967,15 @@ rejectLandlord: builder.mutation<ApiResponse<boolean>, string>({
     }),
     invalidatesTags: [{ type: 'Listing' as const, id: 'admin-dashboard' }],
 }),
+        reviewApplication: builder.mutation<boolean, { applicationId: number; status: number; landlordNotes?: string }>({
+            query: ({ applicationId, status, landlordNotes }) => ({
+                url: 'Application/review',
+                method: 'PATCH',
+                body: { applicationId, status, landlordNotes: landlordNotes ?? '' },
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: ['Listing'],
+        }),
  acceptDeclineOffer: builder.mutation<boolean, { applicationId: number; isAccepted: boolean }>({
             query: ({ applicationId, isAccepted }) => ({
                 url: `Application/accept-decline?applicationId=${applicationId}&isAccepted=${isAccepted}`,
@@ -1117,6 +1137,8 @@ useGetImagesByPropertyIdQuery,
     useAdminApprovePropertyMutation,
     useAdminRejectPropertyMutation,
     useAcceptDeclineOfferMutation,
+    useReviewApplicationMutation,
+    useGetTenanciesByLandlordIdQuery,
     useAddReviewMutation,
      useUploadLeaseDocumentMutation,
      useGetStudentPaymentSummaryQuery,

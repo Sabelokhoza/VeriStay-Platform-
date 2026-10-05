@@ -144,7 +144,7 @@ namespace ko.core.Services
             return dto;
         }
 
-        public async Task<TenancyDto> UploadLeaseDocumentAsync(int tenancyId, IFormFile leaseDocument)
+        public async Task<TenancyDto> UploadLeaseDocumentAsync(int tenancyId, IFormFile leaseDocument, bool uploadedByStudent)
         {
             _logger.LogInformation("Uploading lease document for tenancy {0}", tenancyId);
 
@@ -160,6 +160,10 @@ namespace ko.core.Services
                 throw new BadRequestException("Failed to upload lease document");
 
             tenancy.LeaseDocument = documentUrl;
+
+            // A student upload is the signed copy; a landlord/admin upload replaces the lease
+            // the student still has to sign.
+            tenancy.SignedLeaseUploadedAt = uploadedByStudent ? DateTime.UtcNow : null;
 
             await _appDbContext.SaveChangesAsync();
 
@@ -178,6 +182,34 @@ namespace ko.core.Services
                 .ToListAsync();
 
             return _mapper.Map<List<TenancyDto>>(data);
+        }
+
+        public async Task<List<TenancyDto>> GetByLandlordIdAsync(string landlordId)
+        {
+            _logger.LogInformation("Retrieving tenancies for landlord {0}", landlordId);
+
+            var data = await _appDbContext.Tenancies
+                .Include(t => t.Property)
+                .Where(t => t.Property.LandlordId == landlordId)
+                .OrderByDescending(o => o.Id)
+                .ToListAsync();
+
+            var result = new List<TenancyDto>();
+            foreach (var entity in data)
+            {
+                var dto = _mapper.Map<TenancyDto>(entity);
+                var student = await _userManager.FindByIdAsync(entity.StudentId);
+                dto.StudentName = student?.FullName ?? string.Empty;
+                dto.LandlordId = entity.Property.LandlordId;
+                dto.PropertyTitle = entity.Property.Title;
+                dto.Location = $"{entity.Property.Address} - {entity.Property.City}";
+                dto.LeaseDocument = string.IsNullOrEmpty(entity.LeaseDocument)
+                    ? ""
+                    : await _fileUploadService.GetSignedUrlAsync("uploads", entity.LeaseDocument);
+                result.Add(dto);
+            }
+
+            return result;
         }
 
         public async Task<bool> DeleteAsync(int? id)

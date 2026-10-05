@@ -11,8 +11,9 @@ namespace ko.core.Contracts
         Task<TenancyDto?> GetByIdAsync(int? id);
         Task<List<TenancyDto>> GetByStudentIdAsync(string studentId);
         Task<TenancyDto> GetTenacyInfoByStudentIdAsync(string studentId);
-        Task<TenancyDto> UploadLeaseDocumentAsync(int tenancyId, IFormFile leaseDocument);
+        Task<TenancyDto> UploadLeaseDocumentAsync(int tenancyId, IFormFile leaseDocument, bool uploadedByStudent);
         Task<List<TenancyDto>> GetByPropertyIdAsync(int propertyId);
+        Task<List<TenancyDto>> GetByLandlordIdAsync(string landlordId);
         Task<bool> DeleteAsync(int? id);
         Task<bool> UpdateAsync(int id, TenancyDto dto);
         Task<bool> EndTenancyAsync(int id);

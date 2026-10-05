@@ -80,7 +80,8 @@ export function ApplicationCard({
                 <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-xs text-green-800">
                     <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 shrink-0" />
-                        Congratulations! Tap this card to accept or decline the offer.
+                        Congratulations! Tap this card to accept or decline the offer. If you prefer
+                        another place you applied to, you can decline this one.
                     </div>
                     <ChevronRight className="h-4 w-4 shrink-0" />
                 </div>
@@ -92,6 +93,18 @@ export function ApplicationCard({
                     {app.landlordNotes && (
                         <span className="ml-1">Reason: {app.landlordNotes}</span>
                     )}
+                </div>
+            )}
+            {statusLabel === 'Accepted' && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    You accepted this offer. See My Tenancy for your lease.
+                </div>
+            )}
+            {statusLabel === 'Declined' && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-700">
+                    <XCircle className="h-4 w-4 shrink-0" />
+                    You declined this offer.
                 </div>
             )}
         </div>

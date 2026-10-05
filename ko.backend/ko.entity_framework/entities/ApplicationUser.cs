@@ -199,6 +199,7 @@ namespace ko.entity_framework.entities
         public TenancyStatus Status { get; set; } = TenancyStatus.Active;
         public List<RentPayment> RentPayments { get; set; } = new();
         public string LeaseDocument { get; set; } = string.Empty;
+        public DateTime? SignedLeaseUploadedAt { get; set; }
         public string LandLordName = string.Empty;
         public string StudentName = string.Empty;
         public string PropertyTittle = string.Empty;

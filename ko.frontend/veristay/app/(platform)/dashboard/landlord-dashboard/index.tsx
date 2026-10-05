@@ -6,11 +6,13 @@ import { Plus, AlertCircle, ChevronRight, ShieldCheck } from 'lucide-react';
 import {
     useGetLandlordDashboardQuery,
     useMarkMaintenanceResolvedMutation,
+    useReviewApplicationMutation,
     MaintenanceStatus,
     ApplicationDto,
     LandlordMaintenanceDto,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
+import { toast } from 'react-toastify';
 import ReputationSection, { LandlordPaymentsTab } from '../landlord-payments-tab';
 import AnnouncementsTab from '../announcement-tab';
 import { isPlaceholder, tabs, Tab } from './utils';
@@ -57,29 +59,26 @@ export function LandlordDashboard() {
         router.push(`/dashboard/property/${id}`);
     }
 
-    async function handleApprove() {
+    const [reviewApplication] = useReviewApplicationMutation();
+
+    // ApplicationStatus: 1 = Approved, 2 = Rejected. The student then accepts or declines an approved offer.
+    async function reviewSelectedApp(status: 1 | 2) {
         if (!selectedApp) return;
         setActionLoading(true);
         try {
-            await new Promise(r => setTimeout(r, 800));
+            await reviewApplication({ applicationId: selectedApp.id, status }).unwrap();
+            toast.success(status === 1 ? 'Application approved. The student has been notified.' : 'Application rejected.');
             setSelectedApp(null);
             refetch();
+        } catch (err: any) {
+            toast.error(err?.data?.Message ?? err?.data?.message ?? 'Failed to review application.');
         } finally {
             setActionLoading(false);
         }
     }
 
-    async function handleReject() {
-        if (!selectedApp) return;
-        setActionLoading(true);
-        try {
-            await new Promise(r => setTimeout(r, 800));
-            setSelectedApp(null);
-            refetch();
-        } finally {
-            setActionLoading(false);
-        }
-    }
+    const handleApprove = () => reviewSelectedApp(1);
+    const handleReject  = () => reviewSelectedApp(2);
 
     const [markMaintenanceResolved] = useMarkMaintenanceResolvedMutation();
 
@@ -244,7 +243,7 @@ export function LandlordDashboard() {
                     )}
 
                     {activeTab === 'tenants' && (
-                        <TenantsTab tenants={tenants} />
+                        <TenantsTab tenants={tenants} landlordId={landlord?.id ?? userId} />
                     )}
 
                     {activeTab === 'maintenance' && (

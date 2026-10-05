@@ -287,33 +287,37 @@ namespace ko.core.Services
             if (entity == null)
                 throw new NotFoundException(nameof(AcceptDeclineOffer), applicationId);
 
+            if (entity.Status != ApplicationStatus.Approved)
+                throw new BadRequestException(
+                    "Only approved applications can be accepted or declined.");
+
             var mapped = _mapper.Map<ApplicationDto>(entity);
             var canUpdate = await onUpdate(mapped);
             if (!canUpdate) return false;
 
+            var property = await _propertyService.GetByIdAsync(entity.PropertyId);
+            var student = await _userManager.FindByIdAsync(entity.StudentId);
+
             if (isAccepted)
             {
-                entity.Status = ApplicationStatus.Accepted;
-
-                var property = await _propertyService.GetByIdAsync(entity.PropertyId);
-
                 var availableBeds = await _propertyService.GetAvailableBedsAsync(property.Id);
 
-                bool isAvailable = availableBeds > 0;
-
-                if (!isAvailable)
+                if (availableBeds <= 0)
                 {
                     entity.Status = ApplicationStatus.Rejected;
+                    await _appDbContext.SaveChangesAsync();
 
                     await _notificationService.SendToUserAsync(
-                    userId: entity.StudentId,
-                    title: " Application ReJected!",
-                    message: $"Your application for {property?.Title ?? "a property"} " +
-                             "Has been rejected , All Beds Are filled",
-                    type: "application");
+                        userId: entity.StudentId,
+                        title: "Application Rejected",
+                        message: $"Your application for {property?.Title ?? "a property"} " +
+                                 "has been rejected, all beds are filled.",
+                        type: "application");
 
+                    return true;
                 }
 
+                entity.Status = ApplicationStatus.Accepted;
                 await _appDbContext.SaveChangesAsync();
 
                 await _tenancyService.AddAsync(new AddTenancyDto
@@ -325,16 +329,19 @@ namespace ko.core.Services
                     MonthlyRent = property.MonthlyRent
                 });
 
-                if (isAvailable)
-                {
-                    await _notificationService.SendToUserAsync(
-                      userId: entity.StudentId,
-                      title: "🏠 Welcome to Your New Home!",
-                      message: $"Your tenancy for {property?.Title ?? "your property"} " +
-                               "has been created. Check your dashboard.",
-                      type: "application");
-                }
-              
+                await _notificationService.SendToUserAsync(
+                    userId: entity.StudentId,
+                    title: "🏠 Welcome to Your New Home!",
+                    message: $"Your tenancy for {property?.Title ?? "your property"} " +
+                             "has been created. Check your dashboard.",
+                    type: "application");
+
+                await _notificationService.SendToUserAsync(
+                    userId: property.LandlordId,
+                    title: "✅ Offer Accepted",
+                    message: $"{student?.FullName ?? "A student"} accepted your offer for " +
+                             $"{property.Title}. A tenancy has been created.",
+                    type: "application");
             }
             else
             {
@@ -346,6 +353,13 @@ namespace ko.core.Services
                     title: "Offer Declined",
                     message: "You declined the accommodation offer. " +
                              "Continue searching on VeriStay.",
+                    type: "application");
+
+                await _notificationService.SendToUserAsync(
+                    userId: property.LandlordId,
+                    title: "Offer Declined",
+                    message: $"{student?.FullName ?? "A student"} declined your offer for " +
+                             $"{property.Title}. The bed is still available.",
                     type: "application");
             }
 

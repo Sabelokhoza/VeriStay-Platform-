@@ -14,6 +14,7 @@ export function LeaseDocumentCard({ tenancy }: { tenancy: TenancyDto }) {
     const [uploadLeaseDocument, { isLoading: isUploading }] = useUploadLeaseDocumentMutation();
 
     const hasDocument = !isPlaceholder(tenancy.leaseDocument);
+    const isSigned    = !!tenancy.signedLeaseUploadedAt;
 
     async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -31,7 +32,7 @@ export function LeaseDocumentCard({ tenancy }: { tenancy: TenancyDto }) {
 
         try {
             await uploadLeaseDocument({ tenancyId: tenancy.id, file }).unwrap();
-            toast.success('Lease document uploaded successfully!');
+            toast.success('Signed lease uploaded. Your landlord can now see it.');
             if (fileRef.current) fileRef.current.value = '';
         } catch (err: any) {
             const msg = err?.data?.Message ?? err?.data?.message ?? 'Failed to upload document.';
@@ -49,20 +50,33 @@ export function LeaseDocumentCard({ tenancy }: { tenancy: TenancyDto }) {
             <div className="p-5 space-y-4">
                 {hasDocument ? (
                     <>
-                        <div className="flex items-center gap-4 rounded-xl border border-green-200 bg-green-50 p-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100">
-                                <FileText className="h-6 w-6 text-green-600" />
+                        <div className={`flex items-center gap-4 rounded-xl border p-4 ${isSigned ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
+                            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${isSigned ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                                <FileText className={`h-6 w-6 ${isSigned ? 'text-green-600' : 'text-yellow-600'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-green-800 truncate">
+                                <p className={`text-sm font-semibold truncate ${isSigned ? 'text-green-800' : 'text-yellow-800'}`}>
                                     Lease Agreement — {isPlaceholder(tenancy.propertyTitle) ? `Property #${tenancy.propertyId}` : tenancy.propertyTitle}
                                 </p>
-                                <p className="text-xs text-green-600 mt-0.5">
-                                    PDF · Signed · Valid until {formatDate(tenancy.leaseEndDate)}
+                                <p className={`text-xs mt-0.5 ${isSigned ? 'text-green-600' : 'text-yellow-700'}`}>
+                                    PDF · {isSigned ? 'Signed' : 'Not signed yet'} · Valid until {formatDate(tenancy.leaseEndDate)}
                                 </p>
                                 <div className="mt-1 flex items-center gap-1">
-                                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                                    <span className="text-xs font-medium text-green-700">Document available</span>
+                                    {isSigned ? (
+                                        <>
+                                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                                            <span className="text-xs font-medium text-green-700">
+                                                Signed copy uploaded on {formatDate(tenancy.signedLeaseUploadedAt)}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <AlertCircle className="h-3.5 w-3.5 text-yellow-600" />
+                                            <span className="text-xs font-medium text-yellow-700">
+                                                Download, sign and upload your signed copy
+                                            </span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -96,16 +110,16 @@ export function LeaseDocumentCard({ tenancy }: { tenancy: TenancyDto }) {
                                     ? <Loader2 className="h-4 w-4 animate-spin" />
                                     : <Upload className="h-4 w-4" />
                                 }
-                                {isUploading ? 'Uploading...' : 'Replace'}
+                                {isUploading ? 'Uploading...' : isSigned ? 'Replace' : 'Upload Signed'}
                             </button>
                         </div>
 
                         <div className="flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-xs text-blue-800">
                             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                             <p>
-                                This is your signed lease agreement.
-                                Download a copy for your records.
-                                If you need to upload a signed version, use the Replace button.
+                                {isSigned
+                                    ? 'This is your signed lease agreement. Download a copy for your records. Use Replace if you need to upload a corrected version.'
+                                    : 'Download the lease, sign it, then use Upload Signed to send the signed PDF back. Your landlord will see when it has been uploaded.'}
                             </p>
                         </div>
                     </>

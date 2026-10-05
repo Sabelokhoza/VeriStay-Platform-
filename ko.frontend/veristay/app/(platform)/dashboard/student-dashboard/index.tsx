@@ -9,8 +9,10 @@ import {
     ApplicationDto,
     MaintenanceRequestDto,
     useGetTenanciesByStudentIdQuery,
+    useAcceptDeclineOfferMutation,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
+import { toast } from 'react-toastify';
 import { TenancyTab } from '../tenancy-tab';
 import { NewMaintenanceRequestModal } from '../new-maintenance-request-modal';
 import { CommunityTab } from '../community-tab';
@@ -63,31 +65,28 @@ export function StudentDashboard() {
     const activeTenancy = tenancies.find((t) => t.status === 0) ?? tenancies[0] ?? null;
     const activePropertyId = activeTenancy?.propertyId ?? null;
 
+    const [acceptDeclineOffer] = useAcceptDeclineOfferMutation();
+
     function openOfferModal(app: ApplicationDto) {
         setModal({ type: 'offer', app });
     }
 
-    async function handleAcceptOffer() {
+    async function respondToOffer(isAccepted: boolean) {
+        if (modal.type !== 'offer') return;
         setOfferLoading(true);
         try {
-            await new Promise((r) => setTimeout(r, 1000));
-            setModal({ type: 'result', outcome: 'accepted' });
+            await acceptDeclineOffer({ applicationId: modal.app.id, isAccepted }).unwrap();
+            setModal({ type: 'result', outcome: isAccepted ? 'accepted' : 'declined' });
             refetch();
+        } catch (err: any) {
+            toast.error(err?.data?.Message ?? err?.data?.message ?? 'Failed to respond to the offer.');
         } finally {
             setOfferLoading(false);
         }
     }
 
-    async function handleDeclineOffer() {
-        setOfferLoading(true);
-        try {
-            await new Promise((r) => setTimeout(r, 1000));
-            setModal({ type: 'result', outcome: 'declined' });
-            refetch();
-        } finally {
-            setOfferLoading(false);
-        }
-    }
+    const handleAcceptOffer  = () => respondToOffer(true);
+    const handleDeclineOffer = () => respondToOffer(false);
 
     return (
         <>

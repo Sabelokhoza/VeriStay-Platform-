@@ -673,6 +673,13 @@ namespace ko.core.Models
 
     }
 
+    public class LandlordUpdateMaintenanceDto
+    {
+        [Required] public string LandlordId { get; set; }
+        [Required] public MaintenanceStatus Status { get; set; }
+        public string LandlordResponse { get; set; } = string.Empty;
+    }
+
     public class UpdateMaintenanceRequestDto
     {
         [Required]

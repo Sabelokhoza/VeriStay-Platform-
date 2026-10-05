@@ -24,6 +24,7 @@ import { ApplicationsList } from './ApplicationsList';
 import { TenantsTab } from './TenantsTab';
 import { MaintenanceTab } from './MaintenanceTab';
 import { DisputesComplaintsTab } from './DisputesComplaintsTab';
+import { EditMaintenanceModal } from './EditMaintenanceModal';
 
 export function LandlordDashboard() {
     const router = useRouter();
@@ -31,6 +32,7 @@ export function LandlordDashboard() {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [selectedApp, setSelectedApp]                   = useState<ApplicationDto | null>(null);
     const [selectedMaint, setSelectedMaint]               = useState<LandlordMaintenanceDto | null>(null);
+    const [editingMaint, setEditingMaint]                 = useState<LandlordMaintenanceDto | null>(null);
     const [actionLoading, setActionLoading]               = useState(false);
     const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
 
@@ -247,9 +249,11 @@ export function LandlordDashboard() {
 
                     {activeTab === 'maintenance' && (
                         <MaintenanceTab
+                            landlordId={landlord?.id ?? userId}
                             maintenance={maintenance}
                             openCount={openMaint.length}
                             onSelectMaint={setSelectedMaint}
+                            onEditMaint={setEditingMaint}
                         />
                     )}
 
@@ -290,6 +294,14 @@ export function LandlordDashboard() {
                     onClose={() => setSelectedMaint(null)}
                     onResolve={handleResolve}
                     isLoading={actionLoading}
+                />
+            )}
+            {editingMaint && (
+                <EditMaintenanceModal
+                    item={editingMaint}
+                    landlordId={landlord?.id ?? userId}
+                    onClose={() => setEditingMaint(null)}
+                    onSuccess={() => setEditingMaint(null)}
                 />
             )}
             {showAddPropertyModal && (

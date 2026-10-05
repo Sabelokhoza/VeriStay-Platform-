@@ -221,6 +221,44 @@ namespace ko.core.Services
             return true;
         }
 
+        public async Task<bool> LandlordUpdateAsync(int id, LandlordUpdateMaintenanceDto dto)
+        {
+            await EnsureLandlordOwnsRequestAsync(id, dto.LandlordId);
+            return await UpdateStatusAsync(id, dto.Status, dto.LandlordResponse?.Trim());
+        }
+
+        public async Task<bool> LandlordDeleteAsync(int id, string landlordId)
+        {
+            _logger.LogInformation(
+                "Landlord {0} deleting maintenance request {1}", landlordId, id);
+
+            await EnsureLandlordOwnsRequestAsync(id, landlordId);
+
+            var entity = await GetByIdAsync(id);
+            var canDelete = await onDelete(entity!);
+            if (!canDelete) return false;
+
+            await _genericService.RemoveAsync(id);
+            await afterDelete(entity!);
+            return true;
+        }
+
+        private async Task EnsureLandlordOwnsRequestAsync(int id, string landlordId)
+        {
+            var propertyId = await _appDbContext.MaintenanceRequests
+                .Where(m => m.Id == id)
+                .Select(m => (int?)m.PropertyId)
+                .FirstOrDefaultAsync();
+            if (propertyId == null)
+                throw new NotFoundException(nameof(EnsureLandlordOwnsRequestAsync), id);
+
+            var ownsProperty = await _appDbContext.Properties
+                .AnyAsync(p => p.Id == propertyId && p.LandlordId == landlordId);
+            if (!ownsProperty)
+                throw new ForbiddenException(
+                    "You can only manage maintenance requests for your own properties.");
+        }
+
         public async Task<bool> UpdateStatusAsync(
             int id, MaintenanceStatus status, string? landlordNotes)
         {
@@ -237,7 +275,7 @@ namespace ko.core.Services
 
             var previousStatus = entity.Status;
             entity.Status = status;
-            entity.LandlordResponse = landlordNotes;
+            entity.LandlordResponse = landlordNotes ?? string.Empty;
 
             if (status == MaintenanceStatus.Resolved)
                 entity.DateModified = DateTime.UtcNow;
@@ -264,7 +302,8 @@ namespace ko.core.Services
                     break;
             }
 
-            if (!string.IsNullOrEmpty(title))
+            // Only notify on an actual status change, so editing a response doesn't re-send alerts.
+            if (!string.IsNullOrEmpty(title) && previousStatus != status)
             {
                 await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,

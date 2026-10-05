@@ -80,5 +80,21 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Maintenance request deleted successfully"));
         }
 
+        [HttpPut("{id:int}/landlord")]
+        public async Task<ActionResult<ApiResponse<bool>>> LandlordUpdate(int id, [FromBody] LandlordUpdateMaintenanceDto dto)
+        {
+            _logger.LogInformation("PUT api/maintenancerequest/{0}/landlord - Landlord updating maintenance request", id);
+            var result = await _maintenanceRequestService.LandlordUpdateAsync(id, dto);
+            return Ok(ApiResponse.Success(result, "Maintenance request updated successfully"));
+        }
+
+        [HttpDelete("{id:int}/landlord/{landlordId}")]
+        public async Task<ActionResult<ApiResponse<bool>>> LandlordDelete(int id, string landlordId)
+        {
+            _logger.LogInformation("DELETE api/maintenancerequest/{0}/landlord - Landlord deleting maintenance request", id);
+            var result = await _maintenanceRequestService.LandlordDeleteAsync(id, landlordId);
+            return Ok(ApiResponse.Success(result, "Maintenance request deleted successfully"));
+        }
+
     }
 }

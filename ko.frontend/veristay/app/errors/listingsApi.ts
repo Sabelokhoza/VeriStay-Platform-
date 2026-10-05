@@ -798,6 +798,30 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: `maintenance-${studentId}` },
             ],
         }),
+        landlordUpdateMaintenance: builder.mutation<
+            boolean,
+            { id: number; landlordId: string; status: MaintenanceStatus; landlordResponse: string }
+        >({
+            query: ({ id, ...body }) => ({
+                url: `MaintenanceRequest/${id}/landlord`,
+                method: 'PUT',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: (_result, _error, { landlordId }) => [
+                { type: 'Listing' as const, id: `landlord-dashboard-${landlordId}` },
+            ],
+        }),
+        landlordDeleteMaintenance: builder.mutation<boolean, { id: number; landlordId: string }>({
+            query: ({ id, landlordId }) => ({
+                url: `MaintenanceRequest/${id}/landlord/${landlordId}`,
+                method: 'DELETE',
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: (_result, _error, { landlordId }) => [
+                { type: 'Listing' as const, id: `landlord-dashboard-${landlordId}` },
+            ],
+        }),
         markMaintenanceResolved: builder.mutation<boolean, UpdateMaintenanceRequestDto>({
             query: (dto) => ({
                 url: 'MaintenanceRequest/mark-as-resolved',
@@ -1110,6 +1134,8 @@ useGetImagesByPropertyIdQuery,
     useUpdateAnnouncementMutation,
     useDeleteAnnouncementMutation,
     useUpdateMaintenanceRequestMutation,
+    useLandlordUpdateMaintenanceMutation,
+    useLandlordDeleteMaintenanceMutation,
     useDeleteMaintenanceRequestMutation,
     useAddComplaintMutation,
     useUpdateComplaintStatusMutation,

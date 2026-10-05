@@ -45,6 +45,8 @@ export function MaintenanceTab({
                     {maintenanceRequests.map((req: MaintenanceRequestDto) => {
                         const statusLabel = getMaintenanceStatusLabel(req.status);
                         const priorityLabel = getPriorityLabel(req.priority);
+                        // Once the landlord has picked a request up it can no longer be changed.
+                        const isEditable = req.status === MaintenanceStatus.Open;
                         return (
                             <div
                                 key={req.id}

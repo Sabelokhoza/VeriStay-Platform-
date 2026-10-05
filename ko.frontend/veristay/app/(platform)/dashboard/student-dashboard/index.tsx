@@ -7,6 +7,7 @@ import {
     useGetStudentDashboardQuery,
     useGetStudentMaintenanceRequestsQuery,
     ApplicationDto,
+    MaintenanceRequestDto,
     useGetTenanciesByStudentIdQuery,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
@@ -27,7 +28,8 @@ type ModalState =
     | { type: 'none' }
     | { type: 'offer'; app: ApplicationDto }
     | { type: 'result'; outcome: 'accepted' | 'declined' }
-    | { type: 'new-maintenance-request' };
+    | { type: 'new-maintenance-request' }
+    | { type: 'edit-maintenance-request'; request: MaintenanceRequestDto };
 
 export function StudentDashboard() {
     const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -177,10 +179,12 @@ export function StudentDashboard() {
 
                     {activeTab === 'maintenance' && (
                         <MaintenanceTab
+                            studentId={userId ?? ''}
                             maintenanceRequests={maintenanceRequests}
                             isLoading={maintenanceLoading}
                             isError={maintenanceError}
                             onNewRequest={() => setModal({ type: 'new-maintenance-request' })}
+                            onEditRequest={(request) => setModal({ type: 'edit-maintenance-request', request })}
                         />
                     )}
 
@@ -220,10 +224,11 @@ export function StudentDashboard() {
                 </div>
             </div>
 
-            {modal.type === 'new-maintenance-request' && (
+            {(modal.type === 'new-maintenance-request' || modal.type === 'edit-maintenance-request') && (
                 <NewMaintenanceRequestModal
                     studentId={userId ?? ''}
                     propertyId={activePropertyId}
+                    request={modal.type === 'edit-maintenance-request' ? modal.request : undefined}
                     onClose={() => setModal({ type: 'none' })}
                     onSuccess={() => {
                         setModal({ type: 'none' });

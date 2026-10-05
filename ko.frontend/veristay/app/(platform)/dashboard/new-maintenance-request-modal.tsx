@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { X, Wrench, Loader2, AlertCircle } from 'lucide-react';
 import {
     useAddMaintenanceRequestMutation,
+    useUpdateMaintenanceRequestMutation,
     MaintenancePriority,
+    MaintenanceRequestDto,
 } from '@/app/errors/listingsApi';
 
 const priorityOptions: { value: MaintenancePriority; label: string }[] = [
@@ -17,26 +19,32 @@ const priorityOptions: { value: MaintenancePriority; label: string }[] = [
 export function NewMaintenanceRequestModal({
     studentId,
     propertyId,
+    request,
     onClose,
     onSuccess,
 }: {
     studentId: string;
     propertyId: number | null;
+    request?: MaintenanceRequestDto; // when set, the modal edits this request
     onClose: () => void;
     onSuccess: () => void;
 }) {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [priority, setPriority] = useState<MaintenancePriority>(MaintenancePriority.Low);
+    const isEdit = !!request;
+    const [title, setTitle] = useState(request?.title ?? '');
+    const [description, setDescription] = useState(request?.description ?? '');
+    const [priority, setPriority] = useState<MaintenancePriority>(request?.priority ?? MaintenancePriority.Low);
     const [formError, setFormError] = useState<string | null>(null);
 
-    const [addMaintenanceRequest, { isLoading }] = useAddMaintenanceRequestMutation();
+    const [addMaintenanceRequest, { isLoading: isAdding }] = useAddMaintenanceRequestMutation();
+    const [updateMaintenanceRequest, { isLoading: isUpdating }] = useUpdateMaintenanceRequestMutation();
+    const isLoading = isAdding || isUpdating;
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setFormError(null);
 
-        if (!propertyId) {
+        const targetPropertyId = request?.propertyId ?? propertyId;
+        if (!targetPropertyId) {
             setFormError('No active tenancy was found, so we could not link this request to a property.');
             return;
         }
@@ -46,15 +54,15 @@ export function NewMaintenanceRequestModal({
         }
 
         try {
-            const result = await addMaintenanceRequest({
-                studentId,
-                dto: {
-                    propertyId,
-                    title: title.trim(),
-                    description: description.trim(),
-                    priority,
-                },
-            });
+            const dto = {
+                propertyId: targetPropertyId,
+                title: title.trim(),
+                description: description.trim(),
+                priority,
+            };
+            const result = request
+                ? await updateMaintenanceRequest({ id: request.id, studentId, dto })
+                : await addMaintenanceRequest({ studentId, dto });
 
             if ('data' in result) {
                 onSuccess();
@@ -89,7 +97,7 @@ export function NewMaintenanceRequestModal({
                             <p className="text-xs text-orange-100 font-medium uppercase tracking-wide">
                                 Maintenance
                             </p>
-                            <h2 className="text-lg font-bold">New Request</h2>
+                            <h2 className="text-lg font-bold">{isEdit ? 'Edit Request' : 'New Request'}</h2>
                         </div>
                     </div>
                 </div>
@@ -157,10 +165,10 @@ export function NewMaintenanceRequestModal({
                             {isLoading ? (
                                 <>
                                     <Loader2 className="h-4 w-4 animate-spin" />
-                                    Submitting...
+                                    {isEdit ? 'Saving...' : 'Submitting...'}
                                 </>
                             ) : (
-                                'Submit Request'
+                                isEdit ? 'Save Changes' : 'Submit Request'
                             )}
                         </button>
                         <button

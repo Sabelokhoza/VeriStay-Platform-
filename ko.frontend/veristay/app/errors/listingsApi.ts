@@ -1,9 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithErrorHandling } from '../api/baseApi';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+
 
 export interface DisputeDto {
     id:            number;
@@ -764,6 +762,30 @@ export const listingsApi = createApi({
                 { type: 'Listing' as const, id: `maintenance-${studentId}` },
             ],
         }),
+        updateMaintenanceRequest: builder.mutation<
+            boolean,
+            { id: number; studentId: string; dto: AddMaintenanceRequestDto }
+        >({
+            query: ({ id, dto }) => ({
+                url: `MaintenanceRequest/${id}`,
+                method: 'PUT',
+                body: dto,
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: (_result, _error, { studentId }) => [
+                { type: 'Listing' as const, id: `maintenance-${studentId}` },
+            ],
+        }),
+        deleteMaintenanceRequest: builder.mutation<boolean, { id: number; studentId: string }>({
+            query: ({ id }) => ({
+                url: `MaintenanceRequest/${id}`,
+                method: 'DELETE',
+            }),
+            transformResponse: (response: ApiResponse<boolean>) => response.data,
+            invalidatesTags: (_result, _error, { studentId }) => [
+                { type: 'Listing' as const, id: `maintenance-${studentId}` },
+            ],
+        }),
         markMaintenanceResolved: builder.mutation<boolean, UpdateMaintenanceRequestDto>({
             query: (dto) => ({
                 url: 'MaintenanceRequest/mark-as-resolved',
@@ -945,6 +967,23 @@ addAnnouncement: builder.mutation<AnnouncementDto, {
     }),
     transformResponse: (res: ApiResponse<AnnouncementDto>) => res.data,
 }),
+
+updateAnnouncement: builder.mutation<boolean, AnnouncementDto>({
+    query: (dto) => ({
+        url:    `Announcement/${dto.id}`,
+        method: 'PUT',
+        body:   dto,
+    }),
+    transformResponse: (res: ApiResponse<boolean>) => res.data,
+}),
+
+deleteAnnouncement: builder.mutation<boolean, number>({
+    query: (id) => ({
+        url:    `Announcement/${id}`,
+        method: 'DELETE',
+    }),
+    transformResponse: (res: ApiResponse<boolean>) => res.data,
+}),
 getReceiptUrl: builder.mutation<string, number>({
     query: (paymentId) => ({
         url:    `RentPayment/get-receipt?id=${paymentId}`,  
@@ -1029,6 +1068,10 @@ useGetImagesByPropertyIdQuery,
     useGetComplaintsQuery,
     useGetLandlordAnnouncementsQuery,
     useAddAnnouncementMutation,
+    useUpdateAnnouncementMutation,
+    useDeleteAnnouncementMutation,
+    useUpdateMaintenanceRequestMutation,
+    useDeleteMaintenanceRequestMutation,
     useAddComplaintMutation,
     useUpdateComplaintStatusMutation,
     useNotifyComplaintMutation,

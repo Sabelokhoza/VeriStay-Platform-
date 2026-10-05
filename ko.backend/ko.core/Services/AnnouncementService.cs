@@ -241,7 +241,9 @@ namespace ko.core.Services
                 var canUpdate = await onUpdate(dto);
                 if (!canUpdate) return false;
 
-                _mapper.Map(dto, entity);
+                entity.Message = dto.Message;
+                entity.PropertyId = dto.PropertyId;
+                entity.DateModified = DateTime.UtcNow;
                 await _appDbContext.SaveChangesAsync();
 
                 _logger.LogInformation("Announcement with id {0} has been successfully updated", id);

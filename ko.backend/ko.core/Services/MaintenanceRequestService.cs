@@ -171,12 +171,45 @@ namespace ko.core.Services
             return _mapper.Map<List<MaintenanceRequestDto>>(data);
         }
 
+        public async Task<bool> UpdateAsync(int id, AddMaintenanceRequestDto dto)
+        {
+            _logger.LogInformation(
+                "Attempting to update maintenance request with id {0}", id);
+
+            var entity = await _appDbContext.MaintenanceRequests.FindAsync(id);
+            if (entity == null)
+                throw new NotFoundException(nameof(UpdateAsync), id);
+
+            if (entity.Status != MaintenanceStatus.Open)
+                throw new BadRequestException(
+                    "Only open maintenance requests can be edited.");
+
+            var canUpdate = await onUpdate(_mapper.Map<MaintenanceRequestDto>(entity));
+            if (!canUpdate) return false;
+
+            entity.Title = dto.Title;
+            entity.Description = dto.Description;
+            entity.Priority = dto.Priority;
+            entity.DateModified = DateTime.UtcNow;
+
+            await _appDbContext.SaveChangesAsync();
+            _logger.LogInformation(
+                "Maintenance request {0} has been successfully updated", id);
+
+            await afterUpdate(_mapper.Map<MaintenanceRequestDto>(entity));
+            return true;
+        }
+
         public async Task<bool> DeleteAsync(int? id)
         {
             _logger.LogInformation(
                 "Attempting to delete maintenance request with id {0}", id);
 
             var entity = await GetByIdAsync(id);
+            if (entity!.Status != MaintenanceStatus.Open)
+                throw new BadRequestException(
+                    "Only open maintenance requests can be deleted.");
+
             var canDelete = await onDelete(entity);
             if (!canDelete) return false;
 

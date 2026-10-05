@@ -1,19 +1,38 @@
-import { Wrench } from 'lucide-react';
-import { MaintenanceRequestDto } from '@/app/errors/listingsApi';
+import { useState } from 'react';
+import { Loader2, Pencil, Trash2, Wrench } from 'lucide-react';
+import { MaintenanceRequestDto, MaintenanceStatus, useDeleteMaintenanceRequestMutation } from '@/app/errors/listingsApi';
 import { formatDate, getMaintenanceStatusLabel, getPriorityLabel, priorityStyles } from './utils';
 import { StatusBadge } from './StatusBadge';
 
 export function MaintenanceTab({
+    studentId,
     maintenanceRequests,
     isLoading,
     isError,
     onNewRequest,
+    onEditRequest,
 }: {
+    studentId:           string;
     maintenanceRequests: MaintenanceRequestDto[];
     isLoading:           boolean;
     isError:             boolean;
     onNewRequest:        () => void;
+    onEditRequest:       (req: MaintenanceRequestDto) => void;
 }) {
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [deleteMaintenanceRequest, { isLoading: isDeleting }] = useDeleteMaintenanceRequestMutation();
+
+    async function handleDelete(id: number) {
+        setDeleteError(null);
+        try {
+            await deleteMaintenanceRequest({ id, studentId }).unwrap();
+            setConfirmDeleteId(null);
+        } catch (err: any) {
+            setDeleteError(err?.data?.message ?? 'Failed to delete request.');
+        }
+    }
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -45,7 +64,6 @@ export function MaintenanceTab({
                     {maintenanceRequests.map((req: MaintenanceRequestDto) => {
                         const statusLabel = getMaintenanceStatusLabel(req.status);
                         const priorityLabel = getPriorityLabel(req.priority);
-                        // Once the landlord has picked a request up it can no longer be changed.
                         const isEditable = req.status === MaintenanceStatus.Open;
                         return (
                             <div
@@ -81,8 +99,54 @@ export function MaintenanceTab({
                                             )}
                                         </div>
                                     </div>
-                                    <StatusBadge status={statusLabel} />
+                                    <div className="flex items-center gap-1">
+                                        <StatusBadge status={statusLabel} />
+                                        {isEditable && (
+                                            <>
+                                                <button
+                                                    onClick={() => onEditRequest(req)}
+                                                    title="Edit request"
+                                                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => { setDeleteError(null); setConfirmDeleteId(req.id); }}
+                                                    title="Delete request"
+                                                    className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {confirmDeleteId === req.id && (
+                                    <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <span>Delete this maintenance request?</span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    disabled={isDeleting}
+                                                    className="rounded-md px-2.5 py-1 font-medium hover:bg-red-100"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(req.id)}
+                                                    disabled={isDeleting}
+                                                    className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                                >
+                                                    {isDeleting && <Loader2 className="h-3 w-3 animate-spin" />}
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {deleteError && <p className="mt-1 font-medium">{deleteError}</p>}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}

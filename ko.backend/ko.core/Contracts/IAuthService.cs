@@ -130,6 +130,7 @@ namespace ko.core.Contracts
         Task<List<MaintenanceRequestDto>> GetOpenMantainanceByPropertiesAsync(List<PropertyDto> properties);
         Task<List<MaintenanceRequestDto>> GetMantainanceByPropertiesAsync(List<PropertyDto> properties);
         Task<List<MaintenanceRequestDto>> GetByStudentIdAsync(string studentId);
+        Task<bool> UpdateAsync(int id, AddMaintenanceRequestDto dto);
         Task<bool> DeleteAsync(int? id);
         Task<bool> onInsert(AddMaintenanceRequestDto dto);
         Task<bool> afterInsert(MaintenanceRequestDto dto);

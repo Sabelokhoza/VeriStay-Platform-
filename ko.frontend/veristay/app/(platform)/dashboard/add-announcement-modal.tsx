@@ -1,4 +1,4 @@
-import { LandlordPropertyDto, useAddAnnouncementMutation } from "@/app/errors/listingsApi";
+import { AnnouncementDto, LandlordPropertyDto, useAddAnnouncementMutation, useUpdateAnnouncementMutation } from "@/app/errors/listingsApi";
 import { AlertCircle, Loader2, Megaphone, X } from "lucide-react";
 import { useState } from "react";
 
@@ -8,18 +8,23 @@ import { useState } from "react";
 export default function AddAnnouncementModal({
     landlordId,
     properties,
+    announcement,
     onClose,
     onSuccess,
 }: {
     landlordId: string;
     properties: LandlordPropertyDto[];
+    announcement?: AnnouncementDto;   
     onClose:    () => void;
     onSuccess:  () => void;
 }) {
-    const [message,    setMessage]    = useState('');
-    const [propertyId, setPropertyId] = useState<number | ''>('');
+    const isEdit = !!announcement;
+    const [message,    setMessage]    = useState(announcement?.message ?? '');
+    const [propertyId, setPropertyId] = useState<number | ''>(announcement?.propertyId ?? '');
     const [error,      setError]      = useState<string | null>(null);
-    const [addAnnouncement, { isLoading }] = useAddAnnouncementMutation();
+    const [addAnnouncement,    { isLoading: isAdding }]   = useAddAnnouncementMutation();
+    const [updateAnnouncement, { isLoading: isUpdating }] = useUpdateAnnouncementMutation();
+    const isLoading = isAdding || isUpdating;
 
    async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,14 +40,22 @@ export default function AddAnnouncementModal({
     }
 
     try {
-        await addAnnouncement({
-            landlordId,             
-            propertyId: Number(propertyId), 
-            message:    message.trim(),     
-        }).unwrap();
+        if (announcement) {
+            await updateAnnouncement({
+                ...announcement,
+                propertyId: Number(propertyId),
+                message:    message.trim(),
+            }).unwrap();
+        } else {
+            await addAnnouncement({
+                landlordId,
+                propertyId: Number(propertyId),
+                message:    message.trim(),
+            }).unwrap();
+        }
         onSuccess();
     } catch (err: any) {
-        setError(err?.data?.message ?? 'Failed to post announcement.');
+        setError(err?.data?.message ?? (isEdit ? 'Failed to update announcement.' : 'Failed to post announcement.'));
     }
 }
     return (
@@ -56,10 +69,10 @@ export default function AddAnnouncementModal({
                     </button>
                     <div className="flex items-center gap-2">
                         <Megaphone className="h-5 w-5" />
-                        <h2 className="text-lg font-bold">New Announcement</h2>
+                        <h2 className="text-lg font-bold">{isEdit ? 'Edit Announcement' : 'New Announcement'}</h2>
                     </div>
                     <p className="text-sm text-purple-100 mt-0.5">
-                        Post a message to all tenants of a property
+                        {isEdit ? 'Update the message your tenants will see' : 'Post a message to all tenants of a property'}
                     </p>
                 </div>
 
@@ -111,8 +124,8 @@ export default function AddAnnouncementModal({
                     <button type="submit" disabled={isLoading}
                         className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-3 text-sm font-semibold text-white hover:bg-purple-700 transition-colors disabled:opacity-50">
                         {isLoading
-                            ? <><Loader2 className="h-4 w-4 animate-spin" /> Posting…</>
-                            : <><Megaphone className="h-4 w-4" /> Post Announcement</>
+                            ? <><Loader2 className="h-4 w-4 animate-spin" /> {isEdit ? 'Saving…' : 'Posting…'}</>
+                            : <><Megaphone className="h-4 w-4" /> {isEdit ? 'Save Changes' : 'Post Announcement'}</>
                         }
                     </button>
 

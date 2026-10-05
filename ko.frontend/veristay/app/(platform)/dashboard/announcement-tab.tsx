@@ -1,7 +1,7 @@
-import { Calendar, Megaphone, Plus } from "lucide-react";
+import { Calendar, Loader2, Megaphone, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import AddAnnouncementModal from "./add-announcement-modal";
-import { AnnouncementDto, LandlordPropertyDto, useGetLandlordAnnouncementsQuery } from "@/app/errors/listingsApi";
+import { AnnouncementDto, LandlordPropertyDto, useDeleteAnnouncementMutation, useGetLandlordAnnouncementsQuery } from "@/app/errors/listingsApi";
 
 function formatDate(date: string | null) {
     if (!date) return '—';
@@ -20,9 +20,24 @@ export default function AnnouncementsTab({
     properties: LandlordPropertyDto[];
 }) {
     const [showModal, setShowModal] = useState(false);
+    const [editing, setEditing] = useState<AnnouncementDto | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     const { data: announcements = [], isLoading, refetch } =
         useGetLandlordAnnouncementsQuery(landlordId, { skip: !landlordId });
+    const [deleteAnnouncement, { isLoading: isDeleting }] = useDeleteAnnouncementMutation();
+
+    async function handleDelete(id: number) {
+        setDeleteError(null);
+        try {
+            await deleteAnnouncement(id).unwrap();
+            setConfirmDeleteId(null);
+            refetch();
+        } catch (err: any) {
+            setDeleteError(err?.data?.message ?? 'Failed to delete announcement.');
+        }
+    }
 
     if (isLoading) {
         return (
@@ -103,15 +118,56 @@ export default function AnnouncementsTab({
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
-                                        Posted
-                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                                            Posted
+                                        </span>
+                                        <button
+                                            onClick={() => setEditing(ann)}
+                                            title="Edit announcement"
+                                            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => { setDeleteError(null); setConfirmDeleteId(ann.id); }}
+                                            title="Delete announcement"
+                                            className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {/* Message */}
                                 <p className="text-sm text-foreground leading-relaxed">
                                     {ann.message}
                                 </p>
+
+                                {confirmDeleteId === ann.id && (
+                                    <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <span>Delete this announcement? Tenants will no longer see it.</span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    disabled={isDeleting}
+                                                    className="rounded-md px-2.5 py-1 font-medium hover:bg-red-100"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(ann.id)}
+                                                    disabled={isDeleting}
+                                                    className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                                >
+                                                    {isDeleting && <Loader2 className="h-3 w-3 animate-spin" />}
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {deleteError && <p className="mt-1 font-medium">{deleteError}</p>}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -119,13 +175,15 @@ export default function AnnouncementsTab({
             </div>
 
             {/* Modal */}
-            {showModal && (
+            {(showModal || editing) && (
                 <AddAnnouncementModal
                     landlordId={landlordId}
                     properties={properties}
-                    onClose={() => setShowModal(false)}
+                    announcement={editing ?? undefined}
+                    onClose={() => { setShowModal(false); setEditing(null); }}
                     onSuccess={() => {
                         setShowModal(false);
+                        setEditing(null);
                         refetch();
                     }}
                 />

@@ -64,6 +64,14 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Request updated Successfully successfully"));
         }
 
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse<bool>>> Update(int id, [FromBody] AddMaintenanceRequestDto dto)
+        {
+            _logger.LogInformation("PUT api/maintenancerequest/{0} - Updating maintenance request", id);
+            var result = await _maintenanceRequestService.UpdateAsync(id, dto);
+            return Ok(ApiResponse.Success(result, "Maintenance request updated successfully"));
+        }
+
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {

@@ -282,9 +282,11 @@ namespace ko.core.Services
 
         public async Task<bool> onInsert(AddTenancyDto dto)
         {
+            // Count beds instead of trusting Property.IsAvailable: that flag is only ever
+            // switched off, so it stays false after a tenancy ends and a bed frees up.
             var _propertyService = _serviceProvider.GetService<IPropertyService>();
-            var propery = await _propertyService.GetByIdAsync(dto.PropertyId);
-            if (propery.IsAvailable == false)
+            var availableBeds = await _propertyService.GetAvailableBedsAsync(dto.PropertyId);
+            if (availableBeds <= 0)
             {
                 throw new BadRequestException("Propery is fulli occupied , Try again next time");
             }
@@ -295,34 +297,37 @@ namespace ko.core.Services
         {
             var _propertyService = _serviceProvider.GetService<IPropertyService>();
             var propery = await _propertyService.GetByIdAsync(dto.PropertyId);
-            if (propery.IsAvailable == false)
-            {
-                throw new  BadRequestException("Propery is fulli occupied , Try again next time");
-            }
-
-            //propery.AvailableBeds = propery.AvailableBeds - 1;
-            //await _propertyService.UpdateAsync(propery.Id, propery);
 
             var entity = await _appDbContext.Tenancies.FindAsync(dto.Id);
             if (entity == null) return false;
 
-            _logger.LogInformation("Generating lease agreement PDF for tenancy {0}", entity.Id);
+            // The tenancy is already saved at this point. A failure generating or uploading the
+            // lease PDF must not fail the whole acceptance; the landlord can upload a lease later.
+            try
+            {
+                _logger.LogInformation("Generating lease agreement PDF for tenancy {0}", entity.Id);
 
-            var student = await _userManager.FindByIdAsync(dto.StudentId);
-            var landlord = await _userManager.FindByIdAsync(propery.LandlordId);
-            entity.PropertyTittle = propery.Title;
-            entity.LandLordName = landlord.FullName;
-            entity.StudentName = student.FullName;
-            var pdfBytes = _leaseAgreementService.Generate(entity);
-            var fileName = $"lease-{entity.Id}-{Guid.NewGuid()}.pdf";
+                var student = await _userManager.FindByIdAsync(dto.StudentId);
+                var landlord = await _userManager.FindByIdAsync(propery.LandlordId);
+                entity.PropertyTittle = propery.Title;
+                entity.LandLordName = landlord?.FullName ?? string.Empty;
+                entity.StudentName = student?.FullName ?? string.Empty;
+                var pdfBytes = _leaseAgreementService.Generate(entity);
+                var fileName = $"lease-{entity.Id}-{Guid.NewGuid()}.pdf";
 
-            using var stream = new MemoryStream(pdfBytes);
-            var url = await _fileUploadService.UploadStreamAsync(stream, "uploads", "leases", fileName, "application/pdf");
+                using var stream = new MemoryStream(pdfBytes);
+                var url = await _fileUploadService.UploadStreamAsync(stream, "uploads", "leases", fileName, "application/pdf");
 
-            entity.LeaseDocument = url;
-            await _appDbContext.SaveChangesAsync();
+                entity.LeaseDocument = url;
+                await _appDbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Lease agreement generated and saved for tenancy {0}", entity.Id);
+                _logger.LogInformation("Lease agreement generated and saved for tenancy {0}", entity.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Lease agreement generation failed for tenancy {0}: {1}", entity.Id, ex.Message);
+            }
+
             return true;
         }
 

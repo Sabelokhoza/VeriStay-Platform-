@@ -114,8 +114,8 @@ export function LandlordDashboard() {
             toast.success(status === 1 ? 'Application approved. The student has been notified.' : 'Application rejected.');
             setSelectedApp(null);
             refetch();
-        } catch (err: any) {
-            toast.error(err?.data?.Message ?? err?.data?.message ?? 'Failed to review application.');
+        } catch {
+            // The API layer already shows the error toast.
         } finally {
             setActionLoading(false);
         }

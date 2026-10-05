@@ -15,7 +15,6 @@ import {
     useGetComplaintsQuery,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
-import { toast } from 'react-toastify';
 import { TenancyTab } from '../tenancy-tab';
 import { NewMaintenanceRequestModal } from '../new-maintenance-request-modal';
 import { CommunityTab } from '../community-tab';
@@ -50,7 +49,7 @@ export function StudentDashboard() {
         isError,
         isFetching,
         refetch,
-    } = useGetStudentDashboardQuery(userId, { skip: !userId });
+    } = useGetStudentDashboardQuery(userId, { skip: !userId, refetchOnMountOrArgChange: true });
 
     const {
         data: maintenanceRequests = [],
@@ -132,8 +131,12 @@ export function StudentDashboard() {
             await acceptDeclineOffer({ applicationId: modal.app.id, isAccepted }).unwrap();
             setModal({ type: 'result', outcome: isAccepted ? 'accepted' : 'declined' });
             refetch();
-        } catch (err: any) {
-            toast.error(err?.data?.Message ?? err?.data?.message ?? 'Failed to respond to the offer.');
+        } catch {
+            // The API layer already shows the error toast.
+            // The offer may have changed on the server (e.g. already accepted); close the
+            // modal and reload so the student isn't left acting on a stale offer.
+            setModal({ type: 'none' });
+            refetch();
         } finally {
             setOfferLoading(false);
         }

@@ -317,17 +317,24 @@ namespace ko.core.Services
                     return true;
                 }
 
-                entity.Status = ApplicationStatus.Accepted;
-                await _appDbContext.SaveChangesAsync();
-
-                await _tenancyService.AddAsync(new AddTenancyDto
+                // Status change and tenancy succeed or fail together, so a failed tenancy
+                // doesn't leave the application stuck as Accepted with no way to retry.
+                await using (var transaction = await _appDbContext.Database.BeginTransactionAsync())
                 {
-                    StudentId = entity.StudentId,
-                    LeaseEndDate = mapped.ToDate,
-                    LeaseStartDate = mapped.FromDate,
-                    PropertyId = entity.PropertyId,
-                    MonthlyRent = property.MonthlyRent
-                });
+                    entity.Status = ApplicationStatus.Accepted;
+                    await _appDbContext.SaveChangesAsync();
+
+                    await _tenancyService.AddAsync(new AddTenancyDto
+                    {
+                        StudentId = entity.StudentId,
+                        LeaseEndDate = mapped.ToDate,
+                        LeaseStartDate = mapped.FromDate,
+                        PropertyId = entity.PropertyId,
+                        MonthlyRent = property.MonthlyRent
+                    });
+
+                    await transaction.CommitAsync();
+                }
 
                 await _notificationService.SendToUserAsync(
                     userId: entity.StudentId,

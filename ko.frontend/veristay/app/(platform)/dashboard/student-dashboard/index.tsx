@@ -10,6 +10,9 @@ import {
     MaintenanceRequestDto,
     useGetTenanciesByStudentIdQuery,
     useAcceptDeclineOfferMutation,
+    useGetStudentPaymentSummaryQuery,
+    useGetDisputesQuery,
+    useGetComplaintsQuery,
 } from '@/app/errors/listingsApi';
 import { useAppSelector } from '@/app/store/store';
 import { toast } from 'react-toastify';
@@ -25,6 +28,7 @@ import { OfferResultModal } from './OfferResultModal';
 import { OverviewTab } from './OverviewTab';
 import { ApplicationsTab } from './ApplicationsTab';
 import { MaintenanceTab } from './MaintenanceTab';
+import { TabBadge, useUnseenCount } from '../tab-badges';
 
 type ModalState =
     | { type: 'none' }
@@ -64,6 +68,56 @@ export function StudentDashboard() {
 
     const activeTenancy = tenancies.find((t) => t.status === 0) ?? tenancies[0] ?? null;
     const activePropertyId = activeTenancy?.propertyId ?? null;
+
+    // ── Tab badges ── action items are plain counts; landlord/admin communication
+    // counts as "unseen" until the student opens that tab.
+    const { data: paymentSummary } = useGetStudentPaymentSummaryQuery(userId ?? '', { skip: !userId });
+    const { data: allDisputes = [] }   = useGetDisputesQuery(undefined, { skip: !userId });
+    const { data: allComplaints = [] } = useGetComplaintsQuery(undefined, { skip: !userId });
+
+    const seenKey = (tab: Tab) => `veristay-seen:${userId ?? ''}:${tab}`;
+
+    const offerCount   = applications.filter((a) => a.status === 1).length;
+    const unsignedLease =
+        activeTenancy && activeTenancy.leaseDocument && !activeTenancy.signedLeaseUploadedAt ? 1 : 0;
+    const overdueCount = paymentSummary?.overdueCount ?? 0;
+
+    const unseenMaintenance = useUnseenCount(
+        seenKey('maintenance'),
+        maintenanceRequests
+            .filter((m) => m.status !== 0 || m.landlordResponse)
+            .map((m) => `${m.id}:${m.status}:${(m.landlordResponse ?? '').length}`),
+        activeTab === 'maintenance',
+    );
+    const unseenAnnouncements = useUnseenCount(
+        seenKey('community'),
+        announcements.map((a) => `${a.id}`),
+        activeTab === 'community',
+    );
+    const unseenDisputes = useUnseenCount(
+        seenKey('disputes'),
+        allDisputes
+            .filter((d) => d.studentId === userId && (d.status !== 0 || d.landlordRespondedAt))
+            .map((d) => `${d.id}:${d.status}:${d.landlordRespondedAt ?? ''}`),
+        activeTab === 'disputes',
+    );
+    const unseenComplaints = useUnseenCount(
+        seenKey('complaints'),
+        allComplaints
+            .filter((c) => c.submittedById === userId && (c.status !== 0 || c.landlordRespondedAt || c.adminNotes))
+            .map((c) => `${c.id}:${c.status}:${c.landlordRespondedAt ?? ''}:${(c.adminNotes ?? '').length}`),
+        activeTab === 'complaints',
+    );
+
+    const badges: Partial<Record<Tab, { count: number; tone: 'red' | 'orange' | 'green' | 'blue' }>> = {
+        applications: { count: offerCount,          tone: 'green'  },
+        tenancy:      { count: unsignedLease,       tone: 'orange' },
+        payments:     { count: overdueCount,        tone: 'red'    },
+        maintenance:  { count: unseenMaintenance,   tone: 'blue'   },
+        community:    { count: unseenAnnouncements, tone: 'blue'   },
+        disputes:     { count: unseenDisputes,      tone: 'blue'   },
+        complaints:   { count: unseenComplaints,    tone: 'blue'   },
+    };
 
     const [acceptDeclineOffer] = useAcceptDeclineOfferMutation();
 
@@ -134,12 +188,9 @@ export function StudentDashboard() {
                                 >
                                     <tab.icon className="h-4 w-4" />
                                     {tab.label}
-                                    {tab.id === 'applications' &&
-                                        applications.filter((a) => a.status === 1).length > 0 && (
-                                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-white">
-                                                {applications.filter((a) => a.status === 1).length}
-                                            </span>
-                                        )}
+                                    {badges[tab.id] && (
+                                        <TabBadge count={badges[tab.id]!.count} tone={badges[tab.id]!.tone} />
+                                    )}
                                 </button>
                             ))}
                         </div>

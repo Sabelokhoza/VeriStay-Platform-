@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Star, AlertCircle, Home } from 'lucide-react';
+import { Star, AlertCircle, Home, Megaphone, Calendar } from 'lucide-react';
 import { useGetListingByIdQuery, AnnouncementDto, TenancyDto } from '@/app/errors/listingsApi';
 import { ReviewsList } from './ReviewsList';
 import { RateLandlordSection } from './RateLandlordSection';
@@ -25,6 +25,44 @@ export function CommunityTab({
     return (
         <div className="space-y-5">
             <h2 className="text-lg font-semibold">Property Community</h2>
+
+            <div className="rounded-xl border bg-background shadow-sm">
+                <div className="flex items-center gap-2 border-b px-5 py-4 font-semibold">
+                    <Megaphone className="h-4 w-4 text-blue-600" />
+                    Announcements from your landlord
+                    {announcements.length > 0 && (
+                        <span className="ml-1 rounded-full bg-blue-100 border border-blue-200 px-2 py-0.5 text-xs font-semibold text-blue-800">
+                            {announcements.length}
+                        </span>
+                    )}
+                </div>
+                {announcements.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                        <Megaphone className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                        <p>No announcements yet.</p>
+                    </div>
+                ) : (
+                    <ul className="divide-y">
+                        {[...announcements]
+                            .sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime())
+                            .map(a => (
+                                <li key={a.id} className="px-5 py-4">
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                        {a.propertyTitle && (
+                                            <span className="font-semibold uppercase text-blue-700">{a.propertyTitle}</span>
+                                        )}
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="h-3 w-3" />
+                                            {new Date(a.postedAt).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </span>
+                                        {a.landlordName && <span>· {a.landlordName}</span>}
+                                    </div>
+                                    <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-line">{a.message}</p>
+                                </li>
+                            ))}
+                    </ul>
+                )}
+            </div>
 
             <div className="rounded-xl border bg-background shadow-sm">
                 <div className="flex items-center gap-2 border-b px-5 py-4 font-semibold">

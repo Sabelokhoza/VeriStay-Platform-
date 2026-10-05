@@ -7,6 +7,11 @@ import {
     useGetLandlordDashboardQuery,
     useMarkMaintenanceResolvedMutation,
     useReviewApplicationMutation,
+    useGetTenanciesByLandlordIdQuery,
+    useGetLandlordPaymentsOverviewQuery,
+    useGetLandlordDisputesQuery,
+    useGetLandlordComplaintsQuery,
+    useGetLandlordReviewsQuery,
     MaintenanceStatus,
     ApplicationDto,
     LandlordMaintenanceDto,
@@ -27,6 +32,7 @@ import { TenantsTab } from './TenantsTab';
 import { MaintenanceTab } from './MaintenanceTab';
 import { DisputesComplaintsTab } from './DisputesComplaintsTab';
 import { EditMaintenanceModal } from './EditMaintenanceModal';
+import { TabBadge, BadgeTone, useUnseenCount } from '../tab-badges';
 
 export function LandlordDashboard() {
     const router = useRouter();
@@ -54,6 +60,44 @@ export function LandlordDashboard() {
 
     const pendingApps = applications.filter(a => a.status === 0);
     const openMaint   = maintenance.filter(m => m.status === 0 || m.status === 1);
+
+    // ── Tab badges ── action items are plain counts; things tenants send in count as
+    // "unseen" until the landlord opens that tab.
+    const landlordId = landlord?.id ?? userId;
+    const { data: tenancies = [] }  = useGetTenanciesByLandlordIdQuery(landlordId, { skip: !landlordId });
+    const { data: paymentsOverview } = useGetLandlordPaymentsOverviewQuery(landlordId, { skip: !landlordId });
+    const { data: disputes = [] }   = useGetLandlordDisputesQuery(landlordId, { skip: !landlordId });
+    const { data: complaints = [] } = useGetLandlordComplaintsQuery(landlordId, { skip: !landlordId });
+    const { data: reviews = [] }    = useGetLandlordReviewsQuery(landlordId, { skip: !landlordId });
+
+    const seenKey = (tab: Tab) => `veristay-seen:${landlordId}:${tab}`;
+
+    const overdueTenants = (paymentsOverview?.tenancySummaries ?? []).filter(s => s.overdueCount > 0).length;
+    // Open / under-review items the landlord hasn't replied to yet.
+    const awaitingResponse =
+        disputes.filter(d => (d.status === 0 || d.status === 1) && !d.landlordResponse).length +
+        complaints.filter(c => (c.status === 0 || c.status === 1) && !c.landlordResponse).length;
+
+    const unseenSignedLeases = useUnseenCount(
+        seenKey('tenants'),
+        tenancies.filter(t => t.signedLeaseUploadedAt).map(t => `${t.id}:${t.signedLeaseUploadedAt}`),
+        activeTab === 'tenants',
+    );
+    const unseenReviews = useUnseenCount(
+        seenKey('reputation'),
+        reviews.map(r => `${r.id}`),
+        activeTab === 'reputation',
+    );
+
+    const badges: Partial<Record<Tab, { count: number; tone: BadgeTone }>> = {
+        applications: { count: pendingApps.length, tone: 'red'    },
+        pending:      { count: pendingApps.length, tone: 'red'    },
+        tenants:      { count: unseenSignedLeases, tone: 'blue'   },
+        payments:     { count: overdueTenants,     tone: 'red'    },
+        maintenance:  { count: openMaint.length,   tone: 'orange' },
+        disputes:     { count: awaitingResponse,   tone: 'red'    },
+        reputation:   { count: unseenReviews,      tone: 'blue'   },
+    };
 
     function goToProperty(id: number) {
         router.push(`/dashboard/property/${id}`);
@@ -182,15 +226,8 @@ export function LandlordDashboard() {
                                 >
                                     <tab.icon className="h-4 w-4" />
                                     {tab.label}
-                                    {tab.id === 'applications' && pendingApps.length > 0 && (
-                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                                            {pendingApps.length}
-                                        </span>
-                                    )}
-                                    {tab.id === 'maintenance' && openMaint.length > 0 && (
-                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-                                            {openMaint.length}
-                                        </span>
+                                    {badges[tab.id] && (
+                                        <TabBadge count={badges[tab.id]!.count} tone={badges[tab.id]!.tone} />
                                     )}
                                 </button>
                             ))}

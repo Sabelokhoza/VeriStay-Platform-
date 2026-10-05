@@ -8,6 +8,8 @@ import {
     useRejectLandlordMutation,
     useAdminApprovePropertyMutation,
     useAdminRejectPropertyMutation,
+    useGetDisputesQuery,
+    useGetComplaintsQuery,
     AdminLandlordDto,
     AdminPropertyDto,
 } from '@/app/errors/listingsApi';
@@ -23,6 +25,7 @@ import { OverviewTab } from './OverviewTab';
 import { LandlordsTab } from './LandlordsTab';
 import { PropertiesTab } from './PropertiesTab';
 import { AnalyticsTab } from './AnalyticsTab';
+import { TabBadge, BadgeTone } from '../tab-badges';
 
 export function AdminDashboard() {
     const [activeTab, setActiveTab]               = useState<Tab>('overview');
@@ -40,6 +43,17 @@ export function AdminDashboard() {
     const pendingLandlords  = data?.pendingLandlordsList  ?? [];
     const pendingProperties = data?.pendingPropertiesList ?? [];
     const cityDistribution  = data?.cityBreakdown      ?? [];
+
+    const { data: disputes = [] }   = useGetDisputesQuery();
+    const { data: complaints = [] } = useGetComplaintsQuery();
+
+    // Items waiting on the admin: new (Open) disputes and complaints that nobody has picked up yet.
+    const badges: Partial<Record<Tab, { count: number; tone: BadgeTone }>> = {
+        landlords:  { count: pendingLandlords.length,                   tone: 'red'    },
+        properties: { count: pendingProperties.length,                  tone: 'orange' },
+        disputes:   { count: disputes.filter(d => d.status === 0).length,   tone: 'red' },
+        complaints: { count: complaints.filter(c => c.status === 0).length, tone: 'red' },
+    };
 
     async function handleApproveLandlord() {
         if (!selectedLandlord) return;
@@ -174,15 +188,8 @@ export function AdminDashboard() {
                                         ${activeTab === tab.id ? 'bg-blue-600 text-white' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
                                     <tab.icon className="h-4 w-4" />
                                     {tab.label}
-                                    {tab.id === 'landlords' && pendingLandlords.length > 0 && (
-                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                                            {pendingLandlords.length}
-                                        </span>
-                                    )}
-                                    {tab.id === 'properties' && pendingProperties.length > 0 && (
-                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-                                            {pendingProperties.length}
-                                        </span>
+                                    {badges[tab.id] && (
+                                        <TabBadge count={badges[tab.id]!.count} tone={badges[tab.id]!.tone} />
                                     )}
                                 </button>
                             ))}

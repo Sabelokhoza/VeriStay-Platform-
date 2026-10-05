@@ -506,6 +506,21 @@ namespace ko.core.Models
         [Required] public string Description { get; set; }
     }
 
+    public class UpdateDisputeDto
+    {
+        [Required] public string StudentId { get; set; }
+        [Required] public string Title { get; set; }
+        [Required] public string Description { get; set; }
+    }
+
+    public class UpdateComplaintDto
+    {
+        [Required] public string SubmittedById { get; set; }
+        [Required] public ComplaintType Type { get; set; }
+        [Required] public string Title { get; set; }
+        [Required] public string Description { get; set; }
+    }
+
     public class ResolveDisputeDto
     {
         [Required] public int DisputeId { get; set; }

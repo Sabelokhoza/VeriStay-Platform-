@@ -122,6 +122,26 @@ namespace ko.core.Services
             return await ToDisputeDtoAsync(entity);
         }
 
+        public async Task<DisputeDto> UpdateDisputeAsync(int id, UpdateDisputeDto dto)
+        {
+            _logger.LogInformation("Student {0} updating dispute {1}", dto.StudentId, id);
+            var dispute = await _appDbContext.Disputes.FirstOrDefaultAsync(d => d.Id == id);
+            if (dispute == null)
+                throw new NotFoundException(nameof(UpdateDisputeAsync), id);
+
+            if (dispute.StudentId != dto.StudentId)
+                throw new ForbiddenException("You can only edit disputes you filed.");
+
+            if (dispute.Status != DisputeStatus.Open)
+                throw new BadRequestException("This dispute is already being reviewed and can no longer be edited.");
+
+            dispute.Title = dto.Title.Trim();
+            dispute.Description = dto.Description.Trim();
+            await _appDbContext.SaveChangesAsync();
+
+            return await ToDisputeDtoAsync(dispute);
+        }
+
         public async Task<DisputeDto> ResolveDisputeAsync(ResolveDisputeDto dto)
         {
             _logger.LogInformation("Resolving dispute {0}", dto.DisputeId);
@@ -227,6 +247,27 @@ namespace ko.core.Services
                 body: $"<p>A new complaint has been filed. Review it on the <a href='{dashUrl}admin'>Admin Dashboard</a>.</p>"));
 
             return await ToComplaintDtoAsync(entity);
+        }
+
+        public async Task<ComplaintDto> UpdateComplaintAsync(int id, UpdateComplaintDto dto)
+        {
+            _logger.LogInformation("User {0} updating complaint {1}", dto.SubmittedById, id);
+            var complaint = await _appDbContext.Complaints.FirstOrDefaultAsync(c => c.Id == id);
+            if (complaint == null)
+                throw new NotFoundException(nameof(UpdateComplaintAsync), id);
+
+            if (complaint.SubmittedById != dto.SubmittedById)
+                throw new ForbiddenException("You can only edit complaints you submitted.");
+
+            if (complaint.Status != ComplaintStatus.Open)
+                throw new BadRequestException("This complaint is already being reviewed and can no longer be edited.");
+
+            complaint.Type = dto.Type;
+            complaint.Title = dto.Title.Trim();
+            complaint.Description = dto.Description.Trim();
+            await _appDbContext.SaveChangesAsync();
+
+            return await ToComplaintDtoAsync(complaint);
         }
 
         public async Task<ComplaintDto> UpdateComplaintStatusAsync(

@@ -125,7 +125,12 @@ export function StudentComplaintsTab({
             {selectedComplaint && (
                 <ComplaintDetailModal
                     complaint={selectedComplaint}
+                    userId={userId}
                     onClose={() => setSelectedComplaint(null)}
+                    onUpdated={updated => {
+                        setSelectedComplaint(updated);
+                        refetch();
+                    }}
                 />
             )}
         </>

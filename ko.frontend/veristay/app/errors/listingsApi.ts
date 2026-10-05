@@ -864,6 +864,14 @@ addDispute: builder.mutation<ApiResponse<DisputeDto>, AddDisputeDto>({
     query: (body) => ({ url: 'Admin/disputes', method: 'POST', body }),
     invalidatesTags: [{ type: 'Listing' as const, id: 'disputes' }],
 }),
+updateDispute: builder.mutation<ApiResponse<DisputeDto>, { id: number; studentId: string; title: string; description: string }>({
+    query: ({ id, ...body }) => ({ url: `Admin/disputes/${id}`, method: 'PUT', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'disputes' }],
+}),
+updateComplaint: builder.mutation<ApiResponse<ComplaintDto>, { id: number; submittedById: string; type: number; title: string; description: string }>({
+    query: ({ id, ...body }) => ({ url: `Admin/complaints/${id}`, method: 'PUT', body }),
+    invalidatesTags: [{ type: 'Listing' as const, id: 'complaints' }],
+}),
 resolveDispute: builder.mutation<ApiResponse<DisputeDto>, ResolveDisputeDto>({
     query: (body) => ({ url: 'Admin/disputes/resolve', method: 'PATCH', body }),
     invalidatesTags: [{ type: 'Listing' as const, id: 'disputes' }],
@@ -1137,6 +1145,8 @@ useGetImagesByPropertyIdQuery,
     useAdminApprovePropertyMutation,
     useAdminRejectPropertyMutation,
     useAcceptDeclineOfferMutation,
+    useUpdateDisputeMutation,
+    useUpdateComplaintMutation,
     useReviewApplicationMutation,
     useGetTenanciesByLandlordIdQuery,
     useAddReviewMutation,

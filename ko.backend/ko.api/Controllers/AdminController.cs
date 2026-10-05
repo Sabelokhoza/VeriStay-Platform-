@@ -34,6 +34,14 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Dispute filed successfully"));
         }
 
+        [HttpPut("disputes/{id:int}")]
+        public async Task<ActionResult<ApiResponse<DisputeDto>>> UpdateDispute(
+            int id, [FromBody] UpdateDisputeDto dto)
+        {
+            var result = await _adminService.UpdateDisputeAsync(id, dto);
+            return Ok(ApiResponse.Success(result, "Dispute updated"));
+        }
+
         [HttpPatch("disputes/resolve")]
         public async Task<ActionResult<ApiResponse<DisputeDto>>> ResolveDispute(
             [FromBody] ResolveDisputeDto dto)
@@ -72,6 +80,14 @@ namespace ko.api.Controllers
         {
             var result = await _adminService.AddComplaintAsync(dto);
             return Ok(ApiResponse.Success(result, "Complaint submitted"));
+        }
+
+        [HttpPut("complaints/{id:int}")]
+        public async Task<ActionResult<ApiResponse<ComplaintDto>>> UpdateComplaint(
+            int id, [FromBody] UpdateComplaintDto dto)
+        {
+            var result = await _adminService.UpdateComplaintAsync(id, dto);
+            return Ok(ApiResponse.Success(result, "Complaint updated"));
         }
 
         [HttpPatch("complaints/{id}/status")]

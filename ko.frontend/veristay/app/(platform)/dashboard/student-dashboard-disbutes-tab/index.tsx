@@ -124,7 +124,12 @@ export function StudentDisputesTab({
             {selectedDispute && (
                 <DisputeDetailModal
                     dispute={selectedDispute}
+                    studentId={userId}
                     onClose={() => setSelectedDispute(null)}
+                    onUpdated={updated => {
+                        setSelectedDispute(updated);
+                        refetch();
+                    }}
                 />
             )}
         </>

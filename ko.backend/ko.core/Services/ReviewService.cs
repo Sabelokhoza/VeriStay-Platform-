@@ -75,12 +75,10 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving all reviews from the database");
 
             var data = await _appDbContext.Reviews
-                .Include(r => r.Student)
-                .Include(r => r.Landlord)
                 .Include(r => r.Property)
                 .ToListAsync();
 
-            return _mapper.Map<List<ReviewDto>>(data);
+            return await WithNamesAsync(data);
         }
 
         public async Task<ReviewDto?> GetByIdAsync(int? id)
@@ -88,8 +86,6 @@ namespace ko.core.Services
             _logger.LogInformation("Attempting to retrieve review with id {0}", id);
 
             var entity = await _appDbContext.Reviews
-                .Include(r => r.Student)
-                .Include(r => r.Landlord)
                 .Include(r => r.Property)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
@@ -99,7 +95,7 @@ namespace ko.core.Services
                 throw new NotFoundException(nameof(GetByIdAsync), id);
             }
 
-            return _mapper.Map<ReviewDto>(entity);
+            return (await WithNamesAsync(new List<Review> { entity }))[0];
         }
 
         public async Task<List<ReviewDto>> GetByLandlordIdAsync(string landlordId)
@@ -107,21 +103,12 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving reviews for landlord {0}", landlordId);
 
             var data = await _appDbContext.Reviews
-                .Include(r => r.Student)
                 .Include(r => r.Property)
                 .Where(r => r.LandlordId == landlordId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
-            var results = _mapper.Map<List<ReviewDto>>(data);
-
-            foreach (var (dto, entity) in results.Zip(data))
-            {
-                dto.StudentName = entity.Student?.FullName ?? string.Empty;
-                dto.PropertyTitle = entity.Property?.Title ?? string.Empty;
-            }
-
-            return results;
+            return await WithNamesAsync(data);
         }
 
         public async Task<List<ReviewDto>> GetByPropertyIdAsync(int propertyId)
@@ -153,13 +140,12 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving reviews written by student {0}", studentId);
 
             var data = await _appDbContext.Reviews
-                .Include(r => r.Landlord)
                 .Include(r => r.Property)
                 .Where(r => r.StudentId == studentId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<List<ReviewDto>>(data);
+            return await WithNamesAsync(data);
         }
 
         public async Task<double> GetAverageRatingByLandlordIdAsync(string landlordId)
@@ -187,6 +173,35 @@ namespace ko.core.Services
 
             await afterDelete(entity);
             return true;
+        }
+
+        // Names come from UserManager rather than Include(r => r.Student / r.Landlord):
+        // accounts are stored as plain ApplicationUser rows, so those typed navigations
+        // turn into inner joins that drop every review.
+        private async Task<List<ReviewDto>> WithNamesAsync(List<Review> data)
+        {
+            var results = _mapper.Map<List<ReviewDto>>(data);
+            var names = new Dictionary<string, string>();
+
+            async Task<string> NameOf(string? userId)
+            {
+                if (string.IsNullOrEmpty(userId)) return string.Empty;
+                if (!names.TryGetValue(userId, out var name))
+                {
+                    name = (await _userManager.FindByIdAsync(userId))?.FullName ?? string.Empty;
+                    names[userId] = name;
+                }
+                return name;
+            }
+
+            foreach (var (dto, entity) in results.Zip(data))
+            {
+                dto.StudentName = await NameOf(entity.StudentId);
+                dto.LandlordName = await NameOf(entity.LandlordId);
+                dto.PropertyTitle = entity.Property?.Title ?? string.Empty;
+            }
+
+            return results;
         }
 
         #endregion

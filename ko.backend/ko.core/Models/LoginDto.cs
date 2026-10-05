@@ -365,6 +365,7 @@ namespace ko.core.Models
         public int Id { get; set; }
         public string StudentId { get; set; }
         public string StudentName { get; set; }
+        public string LandlordId { get; set; }
         public string LandlordName { get; set; }
         public string Location { get; set; }
         public string LeaseDocument { get; set; } = string.Empty;
@@ -491,6 +492,8 @@ namespace ko.core.Models
         public string Resolution { get; set; }
         public DateTime? ResolvedAt { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string LandlordResponse { get; set; }
+        public DateTime? LandlordRespondedAt { get; set; }
     }
 
     public class AddDisputeDto
@@ -533,6 +536,14 @@ namespace ko.core.Models
         public string AdminNotes { get; set; }
         public bool IsNotified { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string LandlordResponse { get; set; }
+        public DateTime? LandlordRespondedAt { get; set; }
+    }
+
+    public class LandlordResponseDto
+    {
+        [Required] public string LandlordId { get; set; }
+        [Required] public string Response { get; set; }
     }
 
     public class AddComplaintDto

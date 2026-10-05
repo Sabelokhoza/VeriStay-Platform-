@@ -46,29 +46,46 @@ namespace ko.core.Services
 
             var result = new List<DisputeDto>();
             foreach (var d in disputes)
-            {
-                var student = await _userManager.FindByIdAsync(d.StudentId);
-                var landlord = await _userManager.FindByIdAsync(d.LandlordId);
-                result.Add(new DisputeDto
-                {
-                    Id = d.Id,
-                    StudentId = d.StudentId,
-                    StudentName = student?.FullName ?? d.StudentId,
-                    StudentEmail = student?.Email ?? string.Empty,
-                    LandlordId = d.LandlordId,
-                    LandlordName = landlord?.FullName ?? d.LandlordId,
-                    LandlordEmail = landlord?.Email ?? string.Empty,
-                    PropertyId = d.PropertyId,
-                    PropertyTitle =  string.Empty,
-                    Title = d.Title,
-                    Description = d.Description,
-                    Status = d.Status,
-                    AdminNotes = d.AdminNotes,
-                    Resolution = d.Resolution,
-                    ResolvedAt = d.ResolvedAt,
-                });
-            }
+                result.Add(await ToDisputeDtoAsync(d));
             return result;
+        }
+
+        public async Task<List<DisputeDto>> GetDisputesByLandlordAsync(string landlordId)
+        {
+            _logger.LogInformation("Getting disputes for landlord {0}", landlordId);
+            var propertyIds = await GetLandlordPropertyIdsAsync(landlordId);
+
+            // Matching on property as well picks up older disputes whose
+            // LandlordId was saved as the landlord's name instead of their id.
+            var disputes = await _appDbContext.Disputes
+                .Where(d => d.LandlordId == landlordId
+                         || (d.PropertyId.HasValue && propertyIds.Contains(d.PropertyId.Value)))
+                .OrderByDescending(d => d.DateCreated)
+                .ToListAsync();
+
+            var result = new List<DisputeDto>();
+            foreach (var d in disputes)
+                result.Add(await ToDisputeDtoAsync(d));
+            return result;
+        }
+
+        public async Task<DisputeDto> RespondToDisputeAsync(int id, LandlordResponseDto dto)
+        {
+            _logger.LogInformation("Landlord {0} responding to dispute {1}", dto.LandlordId, id);
+            var dispute = await _appDbContext.Disputes.FirstOrDefaultAsync(d => d.Id == id);
+            if (dispute == null)
+                throw new NotFoundException(nameof(RespondToDisputeAsync), id);
+
+            if (!await IsLandlordOfAsync(dto.LandlordId, dispute.LandlordId, dispute.PropertyId))
+                throw new ForbiddenException("You can only respond to disputes about your own properties.");
+
+            dispute.LandlordId = dto.LandlordId;
+            dispute.LandlordResponse = dto.Response.Trim();
+            dispute.LandlordRespondedAt = DateTime.UtcNow;
+            await _appDbContext.SaveChangesAsync();
+
+            await NotifyLandlordResponseAsync(dispute.StudentId, "dispute", dispute.Title, dispute.LandlordResponse);
+            return await ToDisputeDtoAsync(dispute);
         }
 
         public async Task<DisputeDto> AddDisputeAsync(AddDisputeDto dto)
@@ -77,7 +94,7 @@ namespace ko.core.Services
             var entity = new Dispute
             {
                 StudentId = dto.StudentId,
-                LandlordId = dto.LandlordId,
+                LandlordId = await ResolveLandlordIdAsync(dto.PropertyId, dto.LandlordId) ?? dto.LandlordId,
                 PropertyId = dto.PropertyId,
                 Title = dto.Title,
                 Description = dto.Description,
@@ -92,19 +109,17 @@ namespace ko.core.Services
                 subject: $"VeriStay — New Dispute Filed: {dto.Title}",
                 body: $"<p>A new dispute has been filed. Please review it on the <a href='{dashUrl}admin'>Admin Dashboard</a>.</p>"));
 
-            var student = await _userManager.FindByIdAsync(dto.StudentId);
-            var landlord = await _userManager.FindByIdAsync(dto.LandlordId);
-            return new DisputeDto
-            {
-                Id = entity.Id,
-                StudentId = entity.StudentId,
-                StudentName = student?.FullName ?? entity.StudentId,
-                LandlordId = entity.LandlordId,
-                LandlordName = landlord?.FullName ?? entity.LandlordId,
-                Title = entity.Title,
-                Description = entity.Description,
-                Status = entity.Status,
-            };
+            var landlord = await _userManager.FindByIdAsync(entity.LandlordId);
+            if (landlord?.Email != null)
+                await _emailService.SendEmailAsync(new EmailMessage(
+                    to: landlord.Email,
+                    subject: $"VeriStay — Dispute Filed: {dto.Title}",
+                    body: $@"<p>Dear {landlord.FullName},</p>
+                            <p>A tenant has filed a dispute: <strong>{dto.Title}</strong>.</p>
+                            <p>You can view it and respond from the Disputes &amp; Complaints tab on your
+                            <a href='{dashUrl}dashboard'>dashboard</a>.</p>"));
+
+            return await ToDisputeDtoAsync(entity);
         }
 
         public async Task<DisputeDto> ResolveDisputeAsync(ResolveDisputeDto dto)
@@ -132,24 +147,7 @@ namespace ko.core.Services
                             <p><strong>Resolution:</strong> {dto.Resolution}</p>
                             <p>Thank you for using VeriStay.</p>"));
 
-            var landlord = await _userManager.FindByIdAsync(dispute.LandlordId);
-            return new DisputeDto
-            {
-                Id = dispute.Id,
-                StudentId = dispute.StudentId,
-                StudentName = student?.FullName ?? dispute.StudentId,
-                StudentEmail = student?.Email ?? string.Empty,
-                LandlordId = dispute.LandlordId,
-                LandlordName = landlord?.FullName ?? dispute.LandlordId,
-                PropertyId = dispute.PropertyId,
-                PropertyTitle =  string.Empty,
-                Title = dispute.Title,
-                Description = dispute.Description,
-                Status = dispute.Status,
-                AdminNotes = dispute.AdminNotes,
-                Resolution = dispute.Resolution,
-                ResolvedAt = dispute.ResolvedAt,
-            };
+            return await ToDisputeDtoAsync(dispute);
         }
 
 
@@ -157,34 +155,53 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Getting all complaints");
             var complaints = await _appDbContext.Complaints
+                .Include(c => c.Property)
                 .OrderByDescending(c => c.DateCreated)
                 .ToListAsync();
 
             var result = new List<ComplaintDto>();
             foreach (var c in complaints)
-            {
-                var submittedBy = await _userManager.FindByIdAsync(c.SubmittedById);
-                var landlord = c.LandlordId != null
-                    ? await _userManager.FindByIdAsync(c.LandlordId)
-                    : null;
-                result.Add(new ComplaintDto
-                {
-                    Id = c.Id,
-                    SubmittedById = c.SubmittedById,
-                    SubmittedByName = submittedBy?.FullName ?? c.SubmittedById,
-                    LandlordId = c.LandlordId ?? string.Empty,
-                    LandlordName = landlord?.FullName ?? string.Empty,
-                    PropertyId = c.PropertyId,
-                    PropertyTitle = c.Property?.Title ?? string.Empty,
-                    Type = c.Type,
-                    Status = c.Status,
-                    Title = c.Title,
-                    Description = c.Description,
-                    AdminNotes = c.AdminNotes,
-                    IsNotified = c.IsNotified,
-                });
-            }
+                result.Add(await ToComplaintDtoAsync(c));
             return result;
+        }
+
+        public async Task<List<ComplaintDto>> GetComplaintsByLandlordAsync(string landlordId)
+        {
+            _logger.LogInformation("Getting complaints for landlord {0}", landlordId);
+            var propertyIds = await GetLandlordPropertyIdsAsync(landlordId);
+
+            var complaints = await _appDbContext.Complaints
+                .Include(c => c.Property)
+                .Where(c => c.LandlordId == landlordId
+                         || (c.PropertyId.HasValue && propertyIds.Contains(c.PropertyId.Value)))
+                .OrderByDescending(c => c.DateCreated)
+                .ToListAsync();
+
+            var result = new List<ComplaintDto>();
+            foreach (var c in complaints)
+                result.Add(await ToComplaintDtoAsync(c));
+            return result;
+        }
+
+        public async Task<ComplaintDto> RespondToComplaintAsync(int id, LandlordResponseDto dto)
+        {
+            _logger.LogInformation("Landlord {0} responding to complaint {1}", dto.LandlordId, id);
+            var complaint = await _appDbContext.Complaints
+                .Include(c => c.Property)
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (complaint == null)
+                throw new NotFoundException(nameof(RespondToComplaintAsync), id);
+
+            if (!await IsLandlordOfAsync(dto.LandlordId, complaint.LandlordId, complaint.PropertyId))
+                throw new ForbiddenException("You can only respond to complaints about your own properties.");
+
+            complaint.LandlordId = dto.LandlordId;
+            complaint.LandlordResponse = dto.Response.Trim();
+            complaint.LandlordRespondedAt = DateTime.UtcNow;
+            await _appDbContext.SaveChangesAsync();
+
+            await NotifyLandlordResponseAsync(complaint.SubmittedById, "complaint", complaint.Title, complaint.LandlordResponse);
+            return await ToComplaintDtoAsync(complaint);
         }
 
         public async Task<ComplaintDto> AddComplaintAsync(AddComplaintDto dto)
@@ -193,7 +210,7 @@ namespace ko.core.Services
             var entity = new Complaint
             {
                 SubmittedById = dto.SubmittedById,
-                LandlordId = dto.LandlordId,
+                LandlordId = await ResolveLandlordIdAsync(dto.PropertyId, dto.LandlordId),
                 PropertyId = dto.PropertyId,
                 Type = dto.Type,
                 Title = dto.Title,
@@ -209,17 +226,7 @@ namespace ko.core.Services
                 subject: $"VeriStay — New Complaint: {dto.Title}",
                 body: $"<p>A new complaint has been filed. Review it on the <a href='{dashUrl}admin'>Admin Dashboard</a>.</p>"));
 
-            var submittedBy = await _userManager.FindByIdAsync(dto.SubmittedById);
-            return new ComplaintDto
-            {
-                Id = entity.Id,
-                SubmittedById = entity.SubmittedById,
-                SubmittedByName = submittedBy?.FullName ?? entity.SubmittedById,
-                Type = entity.Type,
-                Title = entity.Title,
-                Description = entity.Description,
-                Status = entity.Status,
-            };
+            return await ToComplaintDtoAsync(entity);
         }
 
         public async Task<ComplaintDto> UpdateComplaintStatusAsync(
@@ -280,12 +287,132 @@ namespace ko.core.Services
                                 <p>A complaint has been filed regarding your property on VeriStay.</p>
                                 <p><strong>Type:</strong> {complaint.Type}</p>
                                 <p><strong>Title:</strong> {complaint.Title}</p>
-                                <p>Our admin team is reviewing this complaint and will be in touch.</p>"));
+                                <p>Our admin team is reviewing this complaint. You can respond to it from the
+                                Disputes &amp; Complaints tab on your dashboard.</p>"));
             }
 
             complaint.IsNotified = true;
             await _appDbContext.SaveChangesAsync();
             return true;
+        }
+
+
+        private async Task<DisputeDto> ToDisputeDtoAsync(Dispute d)
+        {
+            var student = await _userManager.FindByIdAsync(d.StudentId);
+            var landlord = string.IsNullOrEmpty(d.LandlordId)
+                ? null
+                : await _userManager.FindByIdAsync(d.LandlordId);
+            var propertyTitle = d.PropertyId.HasValue
+                ? await _appDbContext.Properties
+                    .Where(p => p.Id == d.PropertyId.Value)
+                    .Select(p => p.Title)
+                    .FirstOrDefaultAsync()
+                : null;
+
+            return new DisputeDto
+            {
+                Id = d.Id,
+                StudentId = d.StudentId,
+                StudentName = student?.FullName ?? d.StudentId,
+                StudentEmail = student?.Email ?? string.Empty,
+                LandlordId = d.LandlordId,
+                LandlordName = landlord?.FullName ?? d.LandlordId,
+                LandlordEmail = landlord?.Email ?? string.Empty,
+                PropertyId = d.PropertyId,
+                PropertyTitle = propertyTitle ?? string.Empty,
+                Title = d.Title,
+                Description = d.Description,
+                Status = d.Status,
+                AdminNotes = d.AdminNotes,
+                Resolution = d.Resolution,
+                ResolvedAt = d.ResolvedAt,
+                CreatedAt = d.DateCreated ?? default,
+                LandlordResponse = d.LandlordResponse,
+                LandlordRespondedAt = d.LandlordRespondedAt,
+            };
+        }
+
+        private async Task<ComplaintDto> ToComplaintDtoAsync(Complaint c)
+        {
+            var submittedBy = await _userManager.FindByIdAsync(c.SubmittedById);
+            var landlord = string.IsNullOrEmpty(c.LandlordId)
+                ? null
+                : await _userManager.FindByIdAsync(c.LandlordId);
+
+            return new ComplaintDto
+            {
+                Id = c.Id,
+                SubmittedById = c.SubmittedById,
+                SubmittedByName = submittedBy?.FullName ?? c.SubmittedById,
+                LandlordId = c.LandlordId ?? string.Empty,
+                LandlordName = landlord?.FullName ?? c.LandlordId ?? string.Empty,
+                PropertyId = c.PropertyId,
+                PropertyTitle = c.Property?.Title ?? string.Empty,
+                Type = c.Type,
+                Status = c.Status,
+                Title = c.Title,
+                Description = c.Description,
+                AdminNotes = c.AdminNotes,
+                IsNotified = c.IsNotified,
+                CreatedAt = c.DateCreated ?? default,
+                LandlordResponse = c.LandlordResponse,
+                LandlordRespondedAt = c.LandlordRespondedAt,
+            };
+        }
+
+        private Task<List<int>> GetLandlordPropertyIdsAsync(string landlordId) =>
+            _appDbContext.Properties
+                .Where(p => p.LandlordId == landlordId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+        // The property owner is the source of truth for who a dispute/complaint is against;
+        // the id supplied by the client is only used when no property is linked.
+        private async Task<string?> ResolveLandlordIdAsync(int? propertyId, string? suppliedLandlordId)
+        {
+            if (propertyId.HasValue)
+            {
+                var ownerId = await _appDbContext.Properties
+                    .Where(p => p.Id == propertyId.Value)
+                    .Select(p => p.LandlordId)
+                    .FirstOrDefaultAsync();
+                if (!string.IsNullOrEmpty(ownerId)) return ownerId;
+            }
+            return string.IsNullOrWhiteSpace(suppliedLandlordId) ? null : suppliedLandlordId;
+        }
+
+        private async Task<bool> IsLandlordOfAsync(string landlordId, string? storedLandlordId, int? propertyId)
+        {
+            if (storedLandlordId == landlordId) return true;
+            return propertyId.HasValue && await _appDbContext.Properties
+                .AnyAsync(p => p.Id == propertyId.Value && p.LandlordId == landlordId);
+        }
+
+        private async Task NotifyLandlordResponseAsync(
+            string studentId, string kind, string title, string response)
+        {
+            try
+            {
+                var body = $@"<p>The landlord has responded to the {kind} <strong>{title}</strong>.</p>
+                              <p><strong>Landlord response:</strong> {response}</p>";
+
+                var student = await _userManager.FindByIdAsync(studentId);
+                if (student?.Email != null)
+                    await _emailService.SendEmailAsync(new EmailMessage(
+                        to: student.Email,
+                        subject: $"VeriStay — Landlord Responded to Your {kind}",
+                        body: $"<p>Dear {student.FullName},</p>{body}"));
+
+                await _emailService.SendEmailAsync(new EmailMessage(
+                    to: _configuration["Email:From"]!,
+                    subject: $"VeriStay — Landlord Responded to {kind}: {title}",
+                    body: body));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation("Failed to send landlord response email: {0}", ex.Message);
+            }
         }
 
 

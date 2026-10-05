@@ -1,5 +1,5 @@
 import {
-    BarChart3, Home, ClipboardList, Users, CreditCard, Wrench, Megaphone, Star,
+    BarChart3, Home, ClipboardList, Users, CreditCard, Wrench, Megaphone, Star, AlertTriangle,
 } from 'lucide-react';
 
 export function formatRent(amount: number) {
@@ -83,7 +83,7 @@ export function getMaintStatusLabel(status: number) {
     }
 }
 
-export type Tab = 'overview' | 'properties' | 'applications' | 'pending' | 'tenants' | 'payments' | 'maintenance' | 'announcements' | 'reputation';
+export type Tab = 'overview' | 'properties' | 'applications' | 'pending' | 'tenants' | 'payments' | 'maintenance' | 'announcements' | 'disputes' | 'reputation';
 
 export const tabs: { id: Tab; label: string; icon: typeof BarChart3 }[] = [
     { id: 'overview',       label: 'Overview',             icon: BarChart3     },
@@ -94,5 +94,6 @@ export const tabs: { id: Tab; label: string; icon: typeof BarChart3 }[] = [
     { id: 'payments',       label: 'Payments',             icon: CreditCard    },
     { id: 'maintenance',    label: 'Maintenance',          icon: Wrench        },
     { id: 'announcements',  label: 'Announcements',        icon: Megaphone     },
+    { id: 'disputes',       label: 'Disputes & Complaints', icon: AlertTriangle },
     { id: 'reputation',     label: 'Reputation Score',     icon: Star          },
 ];

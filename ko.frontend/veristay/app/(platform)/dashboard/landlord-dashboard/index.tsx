@@ -23,6 +23,7 @@ import { PropertiesTab } from './PropertiesTab';
 import { ApplicationsList } from './ApplicationsList';
 import { TenantsTab } from './TenantsTab';
 import { MaintenanceTab } from './MaintenanceTab';
+import { DisputesComplaintsTab } from './DisputesComplaintsTab';
 
 export function LandlordDashboard() {
     const router = useRouter();
@@ -261,6 +262,10 @@ export function LandlordDashboard() {
                             landlordId={landlord?.id ?? userId}
                             properties={properties}
                         />
+                    )}
+
+                    {activeTab === 'disputes' && (
+                        <DisputesComplaintsTab landlordId={landlord?.id ?? userId} />
                     )}
 
                     {activeTab === 'reputation' && (

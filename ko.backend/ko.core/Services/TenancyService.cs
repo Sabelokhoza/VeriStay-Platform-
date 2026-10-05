@@ -135,6 +135,7 @@ namespace ko.core.Services
                 var student = await _userManager.FindByIdAsync(dto.StudentId);
                 var landlord =  await _userManager.FindByIdAsync(property.LandlordId);
                 dto.StudentName = student.FullName;
+                dto.LandlordId = property.LandlordId;
                 dto.LandlordName = landlord.FullName;
                 dto.Location = $"{property.Address} - {property.City}";
                 dto.LeaseDocument = string.IsNullOrEmpty( data.LeaseDocument) ? "" : await _fileUploadService.GetSignedUrlAsync("uploads", data.LeaseDocument);

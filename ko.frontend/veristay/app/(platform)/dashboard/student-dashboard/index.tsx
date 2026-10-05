@@ -200,7 +200,7 @@ export function StudentDashboard() {
                         <StudentDisputesTab
                             activeTenancy={dashboardData?.activeTenancy
                                 ? {
-                                    landlordId:    dashboardData.activeTenancy.landlordName,
+                                    landlordId:    dashboardData.activeTenancy.landlordId,
                                     propertyId:    dashboardData.activeTenancy.propertyId,
                                     propertyTitle: dashboardData.activeTenancy.propertyTitle,
                                 }
@@ -213,7 +213,7 @@ export function StudentDashboard() {
                         <StudentComplaintsTab
                             activeTenancy={dashboardData?.activeTenancy
                                 ? {
-                                    landlordId:    dashboardData.activeTenancy.landlordName,
+                                    landlordId:    dashboardData.activeTenancy.landlordId,
                                     propertyId:    dashboardData.activeTenancy.propertyId,
                                     propertyTitle: dashboardData.activeTenancy.propertyTitle,
                                 }

@@ -1,4 +1,4 @@
-import { X, Calendar, Bell, ShieldCheck } from 'lucide-react';
+import { X, Calendar, Bell, MessageSquare, ShieldCheck } from 'lucide-react';
 import { ComplaintDto } from '@/app/errors/listingsApi';
 import { formatDate, getComplaintTypeInfo, getComplaintStatusInfo } from './utils';
 
@@ -73,6 +73,21 @@ export function ComplaintDetailModal({
                             : 'Landlord has not yet been notified'
                         }
                     </div>
+
+                    {complaint.landlordResponse && (
+                        <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                            <p className="text-xs font-semibold text-indigo-700 mb-1.5 flex items-center gap-1">
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                Landlord Response
+                            </p>
+                            <p className="text-sm text-indigo-900 whitespace-pre-line">{complaint.landlordResponse}</p>
+                            {complaint.landlordRespondedAt && (
+                                <p className="text-xs text-indigo-600 mt-1">
+                                    Responded on {formatDate(complaint.landlordRespondedAt)}
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     {complaint.adminNotes && (
                         <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">

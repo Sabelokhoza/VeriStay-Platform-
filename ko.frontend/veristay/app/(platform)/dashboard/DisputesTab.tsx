@@ -109,6 +109,11 @@ export default function DisputesTab() {
                                             )}
                                             <span>{formatDate(d.createdAt)}</span>
                                         </div>
+                                        {d.landlordResponse && (
+                                            <div className="mt-2 rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs text-indigo-800">
+                                                <strong>Landlord response:</strong> {d.landlordResponse}
+                                            </div>
+                                        )}
                                         {d.resolution && (
                                             <div className="mt-2 rounded-lg bg-green-50 border border-green-100 px-3 py-2 text-xs text-green-800">
                                                 <strong>Resolution:</strong> {d.resolution}
@@ -152,6 +157,19 @@ export default function DisputesTab() {
                             <div>
                                 <p className="text-xs text-muted-foreground">Description</p>
                                 <p className="text-sm">{selected.description}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground">Landlord Response</p>
+                                {selected.landlordResponse ? (
+                                    <p className="text-sm whitespace-pre-line">
+                                        {selected.landlordResponse}
+                                        <span className="block text-xs text-muted-foreground">
+                                            {formatDate(selected.landlordRespondedAt)}
+                                        </span>
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground italic">No response from landlord yet</p>
+                                )}
                             </div>
                         </div>
 

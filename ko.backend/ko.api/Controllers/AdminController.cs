@@ -42,6 +42,21 @@ namespace ko.api.Controllers
             return Ok(ApiResponse.Success(result, "Dispute resolved"));
         }
 
+        [HttpGet("disputes/landlord/{landlordId}")]
+        public async Task<ActionResult<ApiResponse<List<DisputeDto>>>> GetLandlordDisputes(string landlordId)
+        {
+            var result = await _adminService.GetDisputesByLandlordAsync(landlordId);
+            return Ok(ApiResponse.Success(result, "Disputes retrieved"));
+        }
+
+        [HttpPatch("disputes/{id:int}/landlord-response")]
+        public async Task<ActionResult<ApiResponse<DisputeDto>>> RespondToDispute(
+            int id, [FromBody] LandlordResponseDto dto)
+        {
+            var result = await _adminService.RespondToDisputeAsync(id, dto);
+            return Ok(ApiResponse.Success(result, "Response sent"));
+        }
+
 
         [HttpGet("complaints")]
         public async Task<ActionResult<ApiResponse<List<ComplaintDto>>>> GetComplaints()
@@ -73,6 +88,21 @@ namespace ko.api.Controllers
         {
             var result = await _adminService.NotifyComplaintAsync(id);
             return Ok(ApiResponse.Success(result, "Notification sent"));
+        }
+
+        [HttpGet("complaints/landlord/{landlordId}")]
+        public async Task<ActionResult<ApiResponse<List<ComplaintDto>>>> GetLandlordComplaints(string landlordId)
+        {
+            var result = await _adminService.GetComplaintsByLandlordAsync(landlordId);
+            return Ok(ApiResponse.Success(result, "Complaints retrieved"));
+        }
+
+        [HttpPatch("complaints/{id:int}/landlord-response")]
+        public async Task<ActionResult<ApiResponse<ComplaintDto>>> RespondToComplaint(
+            int id, [FromBody] LandlordResponseDto dto)
+        {
+            var result = await _adminService.RespondToComplaintAsync(id, dto);
+            return Ok(ApiResponse.Success(result, "Response sent"));
         }
 
 

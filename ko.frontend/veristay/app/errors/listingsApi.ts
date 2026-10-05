@@ -20,6 +20,8 @@ export interface DisputeDto {
     resolution:    string;
     resolvedAt:    string | null;
     createdAt:     string;
+    landlordResponse:    string;
+    landlordRespondedAt: string | null;
 }
 
 export interface AddDisputeDto {
@@ -52,6 +54,14 @@ export interface ComplaintDto {
     adminNotes:      string;
     isNotified:      boolean;
     createdAt:       string;
+    landlordResponse:    string;
+    landlordRespondedAt: string | null;
+}
+
+export interface LandlordResponseDto {
+    id:         number;
+    landlordId: string;
+    response:   string;
 }
 
 export interface AddComplaintDto {
@@ -259,6 +269,7 @@ export interface TenancyDto {
     id: number;
     studentId: string;
     studentName: string;
+    landlordId: string;
     landlordName: string;
     location: string;
     propertyId: number;
@@ -837,6 +848,26 @@ updateComplaintStatus: builder.mutation<ApiResponse<ComplaintDto>, { id: number;
 notifyComplaint: builder.mutation<ApiResponse<boolean>, number>({
     query: (id) => ({ url: `Admin/complaints/${id}/notify`, method: 'POST' }),
 }),
+getLandlordDisputes: builder.query<DisputeDto[], string>({
+    query: (landlordId) => ({ url: `Admin/disputes/landlord/${landlordId}`, method: 'GET' }),
+    transformResponse: (r: ApiResponse<DisputeDto[]>) => r.data ?? [],
+    providesTags: [{ type: 'Listing' as const, id: 'disputes' }],
+}),
+getLandlordComplaints: builder.query<ComplaintDto[], string>({
+    query: (landlordId) => ({ url: `Admin/complaints/landlord/${landlordId}`, method: 'GET' }),
+    transformResponse: (r: ApiResponse<ComplaintDto[]>) => r.data ?? [],
+    providesTags: [{ type: 'Listing' as const, id: 'complaints' }],
+}),
+respondToDispute: builder.mutation<DisputeDto, LandlordResponseDto>({
+    query: ({ id, ...body }) => ({ url: `Admin/disputes/${id}/landlord-response`, method: 'PATCH', body }),
+    transformResponse: (r: ApiResponse<DisputeDto>) => r.data,
+    invalidatesTags: [{ type: 'Listing' as const, id: 'disputes' }],
+}),
+respondToComplaint: builder.mutation<ComplaintDto, LandlordResponseDto>({
+    query: ({ id, ...body }) => ({ url: `Admin/complaints/${id}/landlord-response`, method: 'PATCH', body }),
+    transformResponse: (r: ApiResponse<ComplaintDto>) => r.data,
+    invalidatesTags: [{ type: 'Listing' as const, id: 'complaints' }],
+}),
 getAllUsers: builder.query<UserAccountDto[], void>({
     query: () => ({ url: 'Admin/users', method: 'GET' }),
     transformResponse: (r: ApiResponse<UserAccountDto[]>) => r.data,
@@ -1075,6 +1106,10 @@ useGetImagesByPropertyIdQuery,
     useAddComplaintMutation,
     useUpdateComplaintStatusMutation,
     useNotifyComplaintMutation,
+    useGetLandlordDisputesQuery,
+    useGetLandlordComplaintsQuery,
+    useRespondToDisputeMutation,
+    useRespondToComplaintMutation,
     useGetAllUsersQuery,
     useToggleUserActiveMutation,
     useSuspendLandlordMutation,

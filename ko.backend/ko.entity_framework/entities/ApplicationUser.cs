@@ -46,6 +46,8 @@ namespace ko.entity_framework.entities
         public string AdminNotes { get; set; } = string.Empty;
         public string Resolution { get; set; } = string.Empty;
         public DateTime? ResolvedAt { get; set; }
+        public string LandlordResponse { get; set; } = string.Empty;
+        public DateTime? LandlordRespondedAt { get; set; }
     }
 
     public class Complaint : BaseEntity
@@ -61,6 +63,8 @@ namespace ko.entity_framework.entities
         public ComplaintStatus Status { get; set; } = ComplaintStatus.Open;
         public string AdminNotes { get; set; } = string.Empty;
         public bool IsNotified { get; set; } = false;
+        public string LandlordResponse { get; set; } = string.Empty;
+        public DateTime? LandlordRespondedAt { get; set; }
     }
 
     public enum DisputeStatus { Open = 0, UnderReview = 1, Resolved = 2, Closed = 3 }

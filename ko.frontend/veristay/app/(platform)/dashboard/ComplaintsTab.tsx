@@ -118,6 +118,11 @@ export default function ComplaintsTab() {
                                             {c.propertyTitle && <span>Property: <strong>{c.propertyTitle}</strong></span>}
                                             <span>{formatDate(c.createdAt)}</span>
                                         </div>
+                                        {c.landlordResponse && (
+                                            <div className="mt-2 rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs text-indigo-800">
+                                                <strong>Landlord response:</strong> {c.landlordResponse}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-2 shrink-0">
                                         <button
@@ -156,6 +161,12 @@ export default function ComplaintsTab() {
                             {selected.landlordName && <p><strong>Against:</strong> {selected.landlordName}</p>}
                             <p><strong>Type:</strong> {typeLabel(selected.type)}</p>
                             <p className="text-muted-foreground">{selected.description}</p>
+                            <p>
+                                <strong>Landlord response:</strong>{' '}
+                                {selected.landlordResponse
+                                    ? <span className="whitespace-pre-line">{selected.landlordResponse}</span>
+                                    : <span className="italic text-muted-foreground">No response yet</span>}
+                            </p>
                         </div>
                         <div className="px-6 py-5 space-y-4">
                             <div>

@@ -137,7 +137,6 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving all announcements from the database");
 
             var data = await _appDbContext.Announcements
-                .Include(a => a.Landlord)
                 .Include(a => a.Property)
                 .ToListAsync();
 
@@ -186,7 +185,6 @@ namespace ko.core.Services
             _logger.LogInformation("Attempting to retrieve announcement with id {0}", id);
 
             var entity = await _appDbContext.Announcements
-                .Include(a => a.Landlord)
                 .Include(a => a.Property)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
@@ -204,7 +202,6 @@ namespace ko.core.Services
             _logger.LogInformation("Retrieving announcements for property {0}", propertyId);
 
             var data = await _appDbContext.Announcements
-                .Include(a => a.Landlord)
                 .Where(a => a.PropertyId == propertyId)
                 .OrderByDescending(a => a.DateCreated)
                 .ToListAsync();
@@ -216,14 +213,18 @@ namespace ko.core.Services
         {
             _logger.LogInformation("Attempting to delete announcement with id {0}", id);
 
-            var entity = await GetByIdAsync(id);
-            var canDelete = await onDelete(entity);
+            var entity = await _appDbContext.Announcements.FindAsync(id);
+            if (entity == null) throw new NotFoundException(nameof(DeleteAsync), id);
+
+            var dto = _mapper.Map<AnnouncementDto>(entity);
+            var canDelete = await onDelete(dto);
             if (!canDelete) return false;
 
-            await _genericService.RemoveAsync(id);
+            _appDbContext.Announcements.Remove(entity);
+            await _appDbContext.SaveChangesAsync();
             _logger.LogInformation("Announcement with id {0} has been successfully removed", id);
 
-            await afterDelete(entity);
+            await afterDelete(dto);
             return true;
         }
 

@@ -33,7 +33,8 @@ export const baseQueryWithErrorHandling = async (
     if (result.error) {
         const { status, data } = result.error;
         const apiResponse = data as ApiResponse;
-        const errorMessage = apiResponse?.message || 'An unexpected error occurred';
+        // The .NET API serialises with PascalCase (Message), so check both casings.
+        const errorMessage = apiResponse?.message || (data as { Message?: string })?.Message || 'An unexpected error occurred';
 
         switch (status) {
             case 400:

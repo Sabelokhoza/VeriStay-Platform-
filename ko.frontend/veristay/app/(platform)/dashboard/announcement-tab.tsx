@@ -35,7 +35,7 @@ export default function AnnouncementsTab({
             setConfirmDeleteId(null);
             refetch();
         } catch (err: any) {
-            setDeleteError(err?.data?.message ?? 'Failed to delete announcement.');
+            setDeleteError(err?.data?.message ?? err?.data?.Message ?? 'Failed to delete announcement.');
         }
     }
 

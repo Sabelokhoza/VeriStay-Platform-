@@ -62,6 +62,7 @@ namespace ko.api.Controllers
 
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
         {
             _logger.LogInformation("DELETE api/review/{0} - Deleting review", id);

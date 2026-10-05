@@ -655,6 +655,7 @@ export const listingsApi = createApi({
             }),
             invalidatesTags: (_result, _error, { dto }) => [
                 { type: 'Listing' as const, id: dto.propertyId },
+                { type: 'Listing' as const, id: `landlord-reviews-${dto.landlordId}` },
             ],
         }),
         getStudentPaymentSummary: builder.query<StudentPaymentSummaryDto, string>({
@@ -847,6 +848,13 @@ updateComplaintStatus: builder.mutation<ApiResponse<ComplaintDto>, { id: number;
 }),
 notifyComplaint: builder.mutation<ApiResponse<boolean>, number>({
     query: (id) => ({ url: `Admin/complaints/${id}/notify`, method: 'POST' }),
+}),
+getLandlordReviews: builder.query<ReviewDto[], string>({
+    query: (landlordId) => ({ url: `Review/landlord/${landlordId}`, method: 'GET' }),
+    transformResponse: (r: ApiResponse<ReviewDto[]>) => r.data ?? [],
+    providesTags: (_result, _error, landlordId) => [
+        { type: 'Listing' as const, id: `landlord-reviews-${landlordId}` },
+    ],
 }),
 getLandlordDisputes: builder.query<DisputeDto[], string>({
     query: (landlordId) => ({ url: `Admin/disputes/landlord/${landlordId}`, method: 'GET' }),
@@ -1106,6 +1114,7 @@ useGetImagesByPropertyIdQuery,
     useAddComplaintMutation,
     useUpdateComplaintStatusMutation,
     useNotifyComplaintMutation,
+    useGetLandlordReviewsQuery,
     useGetLandlordDisputesQuery,
     useGetLandlordComplaintsQuery,
     useRespondToDisputeMutation,

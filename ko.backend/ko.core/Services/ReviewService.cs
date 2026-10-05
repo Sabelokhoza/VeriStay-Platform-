@@ -106,7 +106,15 @@ namespace ko.core.Services
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
-            return _mapper.Map<List<ReviewDto>>(data);
+            var results = _mapper.Map<List<ReviewDto>>(data);
+
+            foreach (var (dto, entity) in results.Zip(data))
+            {
+                dto.StudentName = entity.Student?.FullName ?? string.Empty;
+                dto.PropertyTitle = entity.Property?.Title ?? string.Empty;
+            }
+
+            return results;
         }
 
         public async Task<List<ReviewDto>> GetByPropertyIdAsync(int propertyId)

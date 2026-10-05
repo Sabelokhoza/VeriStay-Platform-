@@ -173,6 +173,7 @@ namespace ko.core.Services
             {
                 Id = s.Id,
                 Title = s.Title,
+                LandlordName = landlords.FirstOrDefault(w => w.Id == s.LandlordId)?.FullName ?? "Unknown",
                 Address = s.Address,
                 City = s.City,
                 MonthlyRent = s.MonthlyRent,

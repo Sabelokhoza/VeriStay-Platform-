@@ -10,10 +10,13 @@ namespace ko.core.MappingProfiles
         public PropertyMappingProfile()
         {
             CreateMap<ListingDetailsDto, PropertyDto>().ReverseMap();
-            CreateMap<Property, PropertyDto>().ReverseMap(); 
+            // The entity calls it DateCreated, the DTO CreatedAt; without this the DTO date is always 0001-01-01.
+            CreateMap<Property, PropertyDto>()
+                .ForMember(d => d.CreatedAt, o => o.MapFrom(s => s.DateCreated ?? DateTime.MinValue))
+                .ReverseMap()
+                .ForMember(s => s.DateCreated, o => o.Ignore());
             CreateMap<ListingDto, PropertyDto>().ReverseMap();
             CreateMap<ListingDto, Property>().ReverseMap();
-            CreateMap<Property, PropertyDto>().ReverseMap();
             CreateMap<Property, AddPropertyDto>().ReverseMap();
             CreateMap<Property, ListingDetailsDto>().ReverseMap();
             CreateMap<PropertyImage, PropertyImageDto>().ReverseMap();

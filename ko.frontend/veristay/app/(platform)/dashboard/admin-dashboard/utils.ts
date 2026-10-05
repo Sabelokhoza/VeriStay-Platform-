@@ -8,7 +8,10 @@ export function formatRent(amount: number) {
 
 export function formatDate(date: string | null) {
     if (!date) return '—';
-    return new Date(date).toLocaleDateString('en-ZA', {
+    const parsed = new Date(date);
+    // .NET sends 0001-01-01 for dates that were never set.
+    if (Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 1900) return '—';
+    return parsed.toLocaleDateString('en-ZA', {
         day: '2-digit', month: 'short', year: 'numeric',
     });
 }

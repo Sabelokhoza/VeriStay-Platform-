@@ -26,10 +26,12 @@ namespace ko.core.Services
         private readonly IEmailServiceMailJet _emailServiceMailJet;
         private readonly IMaintenanceRequestService _maintenanceRequestService;
         private readonly IFileUploadService _fileUploadService;
+        private readonly INotificationService _notificationService;
 
 
-        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest, IFileUploadService fileUploadService)
+        public UserService(UserManager<ApplicationUser> userManager, IAppLogger<UserService> logger, IMapper mapper, AppDbContext identityDbContext, IServiceProvider serviceProvider, IEmailService emailService, IConfiguration configuration, IApplicationService applicationService, IEmailServiceMailJet emailServiceMailJet, IMaintenanceRequestService maintenanceRequest, IFileUploadService fileUploadService, INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _userManager = userManager;
             _logger = logger;
             _mapper = mapper;
@@ -115,6 +117,14 @@ namespace ko.core.Services
 
             await _userManager.UpdateAsync(landlord);
             await SendStatusUpdateEmailAsync(landlord, isApproved);
+
+            await _notificationService.SendToUserAsync(
+                userId: landlord.Id,
+                title: isApproved ? "✅ Account Approved" : "Account Not Approved",
+                message: isApproved
+                    ? "Your landlord account has been verified. You can now list properties."
+                    : "Your landlord verification was not approved. Check your email for details.",
+                type: "account");
 
             return true;
         }

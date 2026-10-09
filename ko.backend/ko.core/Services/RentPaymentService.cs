@@ -339,6 +339,12 @@ namespace ko.core.Services
             _logger.LogInformation(
                 "Rent payment {0} added for tenancy {1}", entity.Id, dto.TenancyId);
 
+            await _notificationService.SendToUserAsync(
+                userId: tenancy.StudentId,
+                title: "🧾 New Rent Payment Due",
+                message: $"Rent of R {entity.Amount:N0} for {entity.DueDate:MMMM yyyy} has been added to your account.",
+                type: "payment");
+
             var result = MapToDto(entity, tenancy);
             await afterInsert(result);
             return result;

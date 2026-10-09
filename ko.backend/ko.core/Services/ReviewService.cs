@@ -16,14 +16,17 @@ namespace ko.core.Services
         private readonly IAppLogger<ReviewService> _logger;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
 
         public ReviewService(
             AppDbContext appDbContext,
             IGenericService<Review> genericService,
             IAppLogger<ReviewService> logger,
             IMapper mapper,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
@@ -64,6 +67,13 @@ namespace ko.core.Services
             _logger.LogInformation("Review with id {0} has been added successfully", result.Id);
 
             await afterInsert(dto: result);
+
+            await _notificationService.SendToUserAsync(
+                userId: property.LandlordId,
+                title: "⭐ New Review",
+                message: $"{student?.FullName ?? "A tenant"} left a {dto.Rating}-star review for {property.Title}.",
+                type: "review");
+
             result.LandlordName = landlord?.FullName ?? string.Empty;
             result.StudentName = student?.FullName ?? string.Empty;
             result.PropertyTitle = property.Title;

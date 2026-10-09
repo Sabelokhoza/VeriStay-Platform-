@@ -19,6 +19,7 @@ namespace ko.core.Services
         private readonly IFileUploadService _fileUploadService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IServiceProvider _serviceProvider;
+        private readonly INotificationService _notificationService;
 
         public PropertyService(
             AppDbContext appDbContext,
@@ -27,8 +28,10 @@ namespace ko.core.Services
             IMapper mapper,
             IFileUploadService fileUploadService,
             UserManager<ApplicationUser> userManager,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
@@ -251,6 +254,12 @@ namespace ko.core.Services
             entity.IsAvailable = true;
             await _appDbContext.SaveChangesAsync();
 
+            await _notificationService.SendToUserAsync(
+                userId: entity.LandlordId,
+                title: "🏠 Property Approved",
+                message: $"{entity.Title} has been approved and is now listed on VeriStay.",
+                type: "property");
+
 
             _logger.LogInformation("Property with id {0} has been approved", id);
             return true;
@@ -266,6 +275,12 @@ namespace ko.core.Services
             entity.Status = PropertyStatus.Rejected;
             await _appDbContext.SaveChangesAsync();
 
+            await _notificationService.SendToUserAsync(
+                userId: entity.LandlordId,
+                title: "Property Not Approved",
+                message: $"{entity.Title} was not approved. Please review the listing and resubmit.",
+                type: "property");
+
             _logger.LogInformation("Property with id {0} has been rejected", id);
             return true;
         }
@@ -280,6 +295,12 @@ namespace ko.core.Services
             entity.Status = PropertyStatus.Delisted;
             entity.IsAvailable = false;
             await _appDbContext.SaveChangesAsync();
+
+            await _notificationService.SendToUserAsync(
+                userId: entity.LandlordId,
+                title: "Property Delisted",
+                message: $"{entity.Title} has been delisted and is no longer visible to students.",
+                type: "property");
 
             _logger.LogInformation("Property with id {0} has been delisted", id);
             return true;

@@ -21,6 +21,7 @@ namespace ko.core.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILeaseAgreementService _leaseAgreementService;
         private readonly IFileUploadService _fileUploadService;
+        private readonly INotificationService _notificationService;
 
 
 
@@ -32,8 +33,10 @@ namespace ko.core.Services
         UserManager<ApplicationUser> userManager,
         IServiceProvider serviceProvider,
         ILeaseAgreementService leaseAgreementService,
-        IFileUploadService fileUploadService)
+        IFileUploadService fileUploadService,
+        INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
@@ -169,6 +172,25 @@ namespace ko.core.Services
 
             _logger.LogInformation("Lease document uploaded successfully for tenancy {0}", tenancyId);
 
+            var property = await _appDbContext.Properties.FindAsync(tenancy.PropertyId);
+            if (uploadedByStudent)
+            {
+                if (property != null)
+                    await _notificationService.SendToUserAsync(
+                        userId: property.LandlordId,
+                        title: "📄 Signed Lease Uploaded",
+                        message: $"Your tenant uploaded the signed lease for {property.Title}.",
+                        type: "tenancy");
+            }
+            else
+            {
+                await _notificationService.SendToUserAsync(
+                    userId: tenancy.StudentId,
+                    title: "📄 Lease Ready to Sign",
+                    message: $"A lease for {property?.Title ?? "your property"} has been uploaded. Please sign and upload it.",
+                    type: "tenancy");
+            }
+
             return _mapper.Map<TenancyDto>(tenancy);
         }
 
@@ -273,6 +295,12 @@ namespace ko.core.Services
             await _appDbContext.SaveChangesAsync();
 
             _logger.LogInformation("Tenancy with id {0} has been ended", id);
+
+            await _notificationService.SendToUserAsync(
+                userId: entity.StudentId,
+                title: "Tenancy Ended",
+                message: $"Your tenancy at {property?.Title ?? "your property"} has ended.",
+                type: "tenancy");
             return true;
         }
 

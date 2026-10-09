@@ -21,19 +21,22 @@ namespace ko.core.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailServiceMailJet _emailService;
         private readonly IConfiguration _configuration;
+        private readonly INotificationService _notificationService;
 
         public AdminService(
             AppDbContext appDbContext,
             IAppLogger<AdminService> logger,
             UserManager<ApplicationUser> userManager,
             IEmailServiceMailJet emailService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            INotificationService notificationService)
         {
             _appDbContext = appDbContext;
             _logger = logger;
             _userManager = userManager;
             _emailService = emailService;
             _configuration = configuration;
+            _notificationService = notificationService;
         }
 
 
@@ -119,6 +122,13 @@ namespace ko.core.Services
                             <p>You can view it and respond from the Disputes &amp; Complaints tab on your
                             <a href='{dashUrl}dashboard'>dashboard</a>.</p>"));
 
+            if (!string.IsNullOrEmpty(entity.LandlordId))
+                await _notificationService.SendToUserAsync(
+                    userId: entity.LandlordId,
+                    title: "⚖️ Dispute Filed",
+                    message: $"A tenant has filed a dispute: {dto.Title}. Open the app to respond.",
+                    type: "dispute");
+
             return await ToDisputeDtoAsync(entity);
         }
 
@@ -166,6 +176,19 @@ namespace ko.core.Services
                             <p>Your dispute <strong>{dispute.Title}</strong> has been resolved.</p>
                             <p><strong>Resolution:</strong> {dto.Resolution}</p>
                             <p>Thank you for using VeriStay.</p>"));
+
+            await _notificationService.SendToUserAsync(
+                userId: dispute.StudentId,
+                title: "⚖️ Dispute Resolved",
+                message: $"Your dispute \"{dispute.Title}\" has been resolved.",
+                type: "dispute");
+
+            if (!string.IsNullOrEmpty(dispute.LandlordId))
+                await _notificationService.SendToUserAsync(
+                    userId: dispute.LandlordId,
+                    title: "⚖️ Dispute Resolved",
+                    message: $"The dispute \"{dispute.Title}\" has been resolved by VeriStay.",
+                    type: "dispute");
 
             return await ToDisputeDtoAsync(dispute);
         }
@@ -295,6 +318,12 @@ namespace ko.core.Services
                                     ? $"<p><strong>Admin Notes:</strong> {adminNotes}</p>"
                                     : "")}"));
 
+            await _notificationService.SendToUserAsync(
+                userId: complaint.SubmittedById,
+                title: "📝 Complaint Update",
+                message: $"Your complaint \"{complaint.Title}\" is now {status}.",
+                type: "complaint");
+
             return new ComplaintDto
             {
                 Id = complaint.Id,
@@ -330,6 +359,12 @@ namespace ko.core.Services
                                 <p><strong>Title:</strong> {complaint.Title}</p>
                                 <p>Our admin team is reviewing this complaint. You can respond to it from the
                                 Disputes &amp; Complaints tab on your dashboard.</p>"));
+
+                await _notificationService.SendToUserAsync(
+                    userId: complaint.LandlordId,
+                    title: "📝 Complaint Filed",
+                    message: $"A complaint was filed about your property: {complaint.Title}. Open the app to respond.",
+                    type: "complaint");
             }
 
             complaint.IsNotified = true;
@@ -433,6 +468,12 @@ namespace ko.core.Services
         private async Task NotifyLandlordResponseAsync(
             string studentId, string kind, string title, string response)
         {
+            await _notificationService.SendToUserAsync(
+                userId: studentId,
+                title: "💬 Landlord Responded",
+                message: $"Your landlord responded to your {kind} \"{title}\".",
+                type: kind);
+
             try
             {
                 var body = $@"<p>The landlord has responded to the {kind} <strong>{title}</strong>.</p>
@@ -611,6 +652,14 @@ namespace ko.core.Services
                         : $@"<p>Dear {landlord.FullName},</p>
                          <p>Your VeriStay account has been reinstated. 
                          You may now log in and relist your properties.</p>"));
+
+            await _notificationService.SendToUserAsync(
+                userId: landlord.Id,
+                title: dto.IsSuspended ? "⛔ Account Suspended" : "✅ Account Reinstated",
+                message: dto.IsSuspended
+                    ? "Your VeriStay account has been suspended. Check your email for details."
+                    : "Your VeriStay account has been reinstated. You may now relist your properties.",
+                type: "account");
 
             return true;
         }

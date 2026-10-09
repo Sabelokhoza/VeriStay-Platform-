@@ -85,8 +85,20 @@ namespace ko.core.Services
             catch (FirebaseMessagingException ex)
             {
                 _logger.LogError(
-                    "FCM failed for {UserId}. Code: {Code}. Error: {Error}",
-                    userId, ex.ErrorCode, ex.Message);
+                    "FCM failed for {UserId}. Code: {Code}. MessagingCode: {MessagingCode}. Error: {Error}",
+                    userId, ex.ErrorCode, ex.MessagingErrorCode, ex.Message);
+
+                // The device token is dead (app reinstalled, data cleared, or token rotated
+                // without the app re-registering). Clear it so the logs show "no FCM token"
+                // instead of failing silently on every send.
+                if (ex.MessagingErrorCode is MessagingErrorCode.Unregistered
+                    or MessagingErrorCode.SenderIdMismatch)
+                {
+                    user.FcmToken = string.Empty;
+                    await _userManager.UpdateAsync(user);
+                    _logger.LogWarning(
+                        "Cleared stale FCM token for user {UserId}.", userId);
+                }
             }
             catch (Exception ex)
             {

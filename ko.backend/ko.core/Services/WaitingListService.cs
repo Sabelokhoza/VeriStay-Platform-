@@ -14,13 +14,16 @@ namespace ko.core.Services
         private readonly IGenericService<WaitingListEntry> _genericService;
         private readonly IAppLogger<WaitingListService> _logger;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
         public WaitingListService(
             AppDbContext appDbContext,
             IGenericService<WaitingListEntry> genericService,
             IAppLogger<WaitingListService> logger,
-            IMapper mapper)
+            IMapper mapper,
+            INotificationService notificationService)
         {
+            _notificationService = notificationService;
             _appDbContext = appDbContext;
             _genericService = genericService;
             _logger = logger;
@@ -125,7 +128,8 @@ namespace ko.core.Services
             _logger.LogInformation("Notifying next student on waiting list for property {0}", propertyId);
 
             var next = await _appDbContext.WaitingListEntries
-                .Where(w => w.PropertyId == propertyId)
+                .Include(w => w.Property)
+                .Where(w => w.PropertyId == propertyId && !w.NotificationSent)
                 .OrderBy(w => w.DateCreated)
                 .FirstOrDefaultAsync();
 
@@ -135,7 +139,13 @@ namespace ko.core.Services
                 return false;
             }
 
+            await _notificationService.SendToUserAsync(
+                userId: next.StudentId,
+                title: "🏠 A Bed Is Available!",
+                message: $"A spot has opened up at {next.Property?.Title ?? "a property you're waiting for"}. Apply now before it's taken.",
+                type: "waitinglist");
 
+            next.NotificationSent = true;
             await _appDbContext.SaveChangesAsync();
 
             _logger.LogInformation("Student {0} notified for property {1}", next.StudentId, propertyId);

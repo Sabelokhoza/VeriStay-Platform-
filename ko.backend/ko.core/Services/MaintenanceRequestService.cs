@@ -409,7 +409,20 @@ namespace ko.core.Services
 
 
         public Task<bool> onInsert(AddMaintenanceRequestDto dto) => Task.FromResult(true);
-        public Task<bool> afterInsert(MaintenanceRequestDto dto) => Task.FromResult(true);
+        public async Task<bool> afterInsert(MaintenanceRequestDto dto)
+        {
+            var property = await _appDbContext.Properties
+                .FirstOrDefaultAsync(p => p.Id == dto.PropertyId);
+
+            if (property != null)
+                await _notificationService.SendToUserAsync(
+                    userId: property.LandlordId,
+                    title: "🔧 New Maintenance Request",
+                    message: $"{dto.Title} — reported at {property.Title}.",
+                    type: "maintenance");
+
+            return true;
+        }
         public Task<bool> onUpdate(MaintenanceRequestDto dto) => Task.FromResult(true);
         public Task<bool> afterUpdate(MaintenanceRequestDto dto) => Task.FromResult(true);
         public Task<bool> onDelete(MaintenanceRequestDto dto) => Task.FromResult(true);

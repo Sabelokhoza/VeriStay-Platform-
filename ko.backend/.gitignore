@@ -286,3 +286,6 @@ local.settings.json
 /.vs/New folder (2)/FileContentIndex/499078bd-e068-46fb-b3c0-2d79319865a8.vsidx
 *.vsidx
 **/bin/
+
+# Firebase service account keys - never commit (Google disables leaked keys)
+*firebase-adminsdk*.json

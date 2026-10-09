@@ -100,7 +100,12 @@ builder.Services.AddScoped<Client>(_ =>
 
 FirebaseApp.Create(new AppOptions
 {
-    Credential = GoogleCredential.FromFile("veristay-e83d8-firebase-adminsdk-fbsvc-a267d08b94.json")
+    // Keep the service account key out of git: Google disables keys pushed to public repos.
+    // On hosts that build from git, set Firebase__CredentialJson to the key file's contents.
+    Credential = !string.IsNullOrWhiteSpace(builder.Configuration["Firebase:CredentialJson"])
+        ? GoogleCredential.FromJson(builder.Configuration["Firebase:CredentialJson"])
+        : GoogleCredential.FromFile(
+            builder.Configuration["Firebase:CredentialPath"] ?? "firebase-adminsdk.json")
 });
 
 
